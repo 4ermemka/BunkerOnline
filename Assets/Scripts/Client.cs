@@ -110,5 +110,4 @@ public class Client : MonoBehaviour
         NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
     }
     #endregion
-    
 }
