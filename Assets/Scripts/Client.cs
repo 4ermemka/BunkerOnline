@@ -98,18 +98,17 @@ public class Client : MonoBehaviour
             Debug.Log("Unexpected msg type!");
             break;
         }
-
-        #region Send
-        public void SendServer() 
-        {
-            //Place to hold data
-            byte[] buffer = new byte[BYTE_SIZE];
-            
-            //Here you make byte array from your data
-            buffer[0] = 1;
-
-            NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
-        }
-        #endregion
     }
+    #region Send
+    public void SendServer() 
+    {
+        //Place to hold data
+        byte[] buffer = new byte[BYTE_SIZE];
+        
+        //Here you make byte array from your data
+        buffer[0] = 1;
+        NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
+    }
+    #endregion
+    
 }
