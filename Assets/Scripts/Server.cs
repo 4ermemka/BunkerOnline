@@ -107,7 +107,7 @@ public class Server : MonoBehaviour
 
         formatter.Serialize(ms, msg);
 
-        if(recHost == 0)
+        if(recHostId == 0)
             NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
         else
             NetworkTransport.Send(webHostId, connectionId, reliableChannel, buffer, buffer.Length, out error);

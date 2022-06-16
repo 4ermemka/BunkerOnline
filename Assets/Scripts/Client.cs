@@ -107,7 +107,6 @@ public class Client : MonoBehaviour
         }
     }
 
-
     #region OnData
     private void OnData(int conId, int channel, int host, NetMsg msg) 
     {
@@ -124,8 +123,6 @@ public class Client : MonoBehaviour
        }
     }
     #endregion
-}
-
 
     #region Send
     public void SendServer(NetMsg msg) 
