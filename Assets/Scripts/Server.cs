@@ -1,3 +1,5 @@
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -67,21 +69,65 @@ public class Server : MonoBehaviour
         {
             case NetworkEventType.Nothing:
             break;
-            case NetworkEventType.DataEvent:
 
-            Debug.Log(recBuffer[0]);
-            
+            case NetworkEventType.DataEvent:
+            //Here we get data
+        
+            BinaryFormatter formatter = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream(recBuffer);
+
+            NetMsg msg = (NetMsg)formatter.Deserialize(ms);
+            OnData(connectionId, channelId, recHostId, msg);
             break;
+
             case NetworkEventType.ConnectEvent:
             Debug.Log(string.Format("User {0} connected through port {1}!", connectionId, recHostId));
             break;
+
             case NetworkEventType.DisconnectEvent:
             Debug.Log(string.Format("User {0} disconnected!", connectionId));
             break;
+
             default:
             case NetworkEventType.BroadcastEvent:
             Debug.Log("Unexpected msg type!");
             break;
         }
     }
+
+      #region Send
+    public void SendClient(int recHostId, int connectionId, NetMsg msg) 
+    {
+        //Place to hold data
+        byte[] buffer = new byte[BYTE_SIZE];
+        
+        //Here you make byte array from your data
+        BinaryFormatter formatter = new BinaryFormatter();
+        MemoryStream ms = new MemoryStream(buffer);
+
+        formatter.Serialize(ms, msg);
+
+        if(recHost == 0)
+            NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
+        else
+            NetworkTransport.Send(webHostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
+    }
+    #endregion
+
+    #region OnData
+    private void OnData(int conId, int channel, int host, NetMsg msg) 
+    {
+        Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", conId, channel, host, msg.OP));
+
+        //Here write what to do
+       switch (msg.OP) {
+        case NetOP.None:            
+            break;
+
+        default :
+            Debug.Log("Unexpected msg type!");
+            break;
+       }
+    }
+    #endregion
 }
