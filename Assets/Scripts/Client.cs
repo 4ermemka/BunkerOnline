@@ -5,6 +5,8 @@ using UnityEngine.Networking;
 
 public class Client : MonoBehaviour
 {
+    private GameManagerClass GM = new GameManagerClass();
+
     private const int BYTE_SIZE = 1024;
 
     private const int MAX_USER = 100;
