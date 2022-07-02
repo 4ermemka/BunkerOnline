@@ -117,6 +117,10 @@ public class Client : MonoBehaviour
         case NetOP.None:            
             break;
 
+        case NetOP.AddPlayer:
+            //Update interface with new Player, info from MSG
+            break;
+
         default :
             Debug.Log("Unexpected msg type!");
             break;

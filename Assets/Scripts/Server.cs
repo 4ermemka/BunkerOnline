@@ -5,6 +5,10 @@ using UnityEngine.Networking;
 
 public class Server : MonoBehaviour
 {
+    private GameManagerClass GM = new GameManagerClass();
+
+    private List<int> ConnectedUsersId = new List<int>();
+
     private const int BYTE_SIZE = 1024;
 
     private const int MAX_USER = 100;
@@ -82,10 +86,12 @@ public class Server : MonoBehaviour
 
             case NetworkEventType.ConnectEvent:
             Debug.Log(string.Format("User {0} connected through port {1}!", connectionId, recHostId));
+            ConnectedUsersId.Add(connectionId);
             break;
 
             case NetworkEventType.DisconnectEvent:
             Debug.Log(string.Format("User {0} disconnected!", connectionId));
+            ConnectedUsersId.Remove(connectionId);
             break;
 
             default:
@@ -122,6 +128,14 @@ public class Server : MonoBehaviour
         //Here write what to do
        switch (msg.OP) {
         case NetOP.None:            
+            break;
+
+        case NetOP.AddPlayer:
+            GM.AddNewPlayer(msg.Username, conId);
+            for(int i = 0; i < ConnectedUsersId.Length; i++) 
+            {
+                if(ConnectedUsersId[i]!=conId) SendClient(host, ConnectedUsersId[i], msg) 
+            }
             break;
 
         default :
