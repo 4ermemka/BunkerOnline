@@ -2,6 +2,9 @@ public static class NetOP
 {
     public const int None = 0;
     public const int AddPlayer = 1;
+    public const int LeavePlayer = 2;
+    public const int UpdateCardPlayer = 3;
+    public const int CastCardPlayer = 4;
 }
 
 [System.Serializable]
