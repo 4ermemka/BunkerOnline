@@ -118,7 +118,22 @@ public class Client : MonoBehaviour
             break;
 
         case NetOP.AddPlayer:
-            //Update interface with new Player, info from MSG
+            Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
+            //make interface changes
+            break;
+            
+        case NetOP.LeavePlayer:
+            Debug.Log(string.Format("Player {0} is now paused.", msg.Username));
+            //make interface changes
+            break;
+
+        case NetOP.UpdateCardPlayer:
+            Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
+            //make interface changes
+            break;
+
+        case NetOP.CastCardPlayer:
+            //Soon          
             break;
 
         default :

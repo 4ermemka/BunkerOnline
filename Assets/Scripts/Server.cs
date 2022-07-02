@@ -132,16 +132,39 @@ public class Server : MonoBehaviour
 
         case NetOP.AddPlayer:
             GM.AddNewPlayer(msg.Username, conId);
-            for(int i = 0; i < ConnectedUsersId.Length; i++) 
-            {
-                if(ConnectedUsersId[i]!=conId) SendClient(host, ConnectedUsersId[i], msg) 
-            }
+            Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
+            SendOther(conId, host, msg);
+            break;
+            
+        case NetOP.LeavePlayer:
+            GM.PausePlayer(msg.Username, conId);
+            Debug.Log(string.Format("Player {0}, id: {1} is now inactive.", msg.Username, conId));
+            SendOther(conId, host, msg);
+            break;
+
+        case NetOP.UpdateCardPlayer:   
+            GM.UpdateInformation(msg.Username, conId, msg.NewCardsOnTable);
+            Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
+            SendOther(conId, host, msg);    
+            break;
+
+        case NetOP.CastCardPlayer:
+            //Soon          
             break;
 
         default :
             Debug.Log("Unexpected msg type!");
             break;
        }
+    }
+
+    private void SendOther(int conId, int host, NetMsg msg)
+    {
+        for(int i = 0; i < ConnectedUsersId.Length; i++) 
+            {
+                if(ConnectedUsersId[i]!=conId) SendClient(host, ConnectedUsersId[i], msg) 
+                Debug.Log(string.Format("Sending msg about this to user {0}", ConnectedUsersId[i]));
+            }    
     }
     #endregion
 }
