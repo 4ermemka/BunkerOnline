@@ -8,29 +8,13 @@ public enum Events {
     Kick
 }
 
-struct Cards
-{
-    public bool sex;
-    public int age;
-    public string job;
-    public string hobby;
-    public string luggage;
-
-    public bool IsEmpty()
-    {
-        if (job == string.Empty && luggage == string.Empty && hobby == string.Empty)
-            return true;
-        else return false;
-    }
-}
-
 struct Player
 {
     public int Id;
     public string name;
-    public Cards cards;
+    public string[] cards;
 
-    public Player(int id, string name, Cards cards)
+    public Player(int id, string name, string[] cards)
     {
         this.Id = id;
         this.name = name;
@@ -42,7 +26,7 @@ struct Player
         this.name = name;
     }
 
-    public void SetCards(Cards cards)
+    public void SetCards(string[] cards)
     {
         this.cards = cards;
     }
@@ -51,7 +35,7 @@ struct Player
 namespace GameManagerClass
 {
     class GameManagerClass
-    { 
+    {
         private List<Player> players;
 
         public GameManagerClass()
@@ -59,7 +43,7 @@ namespace GameManagerClass
             players = new List<Player>();
         }
 
-        public void AddNewPlayer(string name, Cards cards)
+        public void AddNewPlayer(string name, string[] cards)
         {
             int countPlayers = players.Count;
             countPlayers++;
@@ -69,12 +53,16 @@ namespace GameManagerClass
 
         private bool IsEmpty(int id)
         {
-            if (players[id].cards.IsEmpty() && players[id].name == string.Empty)
+            bool flag = false; int i;
+
+            for (i = 0; i < players[id].cards.Length; i++)
+                if (players[id].cards[i] == string.Empty) flag = true;
+            if (!flag && players[id].name == string.Empty)
                 return true;
             else return false;
         }
 
-        public bool UpdateInformation(int id, string name, Cards cards)
+        public bool UpdateInformation(int id, string name, string[] cards)
         {
             if (id < players.Count && !IsEmpty(id))
             {
@@ -83,6 +71,36 @@ namespace GameManagerClass
                 return true;
             }
             else return false;
+        }
+
+
+        public string Encryption(int id)
+        {
+            string en_cards = ""; int i;
+            for (i = 0; i < players[id].cards.Length; i++)
+                en_cards = en_cards + players[id].cards[i] + ";";
+            return en_cards;
+        }
+
+        public string[] Decryption(string en_cards)
+        {
+            int i, count_separator = 0, k = 0;
+            for (i = 0; i < en_cards.Length; i++)
+                if (en_cards[i] == ';') count_separator++;
+
+            string[] dc_cards = new string[count_separator];
+
+            for (i = 0; i < count_separator; i++)
+            {
+                while (en_cards[k] != ';')
+                {
+                    dc_cards[i] += en_cards[k];
+                    k++;
+                }
+                k++;
+            }
+
+            return dc_cards;
         }
     }
 }
