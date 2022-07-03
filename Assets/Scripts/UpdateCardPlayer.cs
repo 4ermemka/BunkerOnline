@@ -5,6 +5,6 @@ public  class Net_UpdateCardPlayer:NetMsg
     {
         OP = NetOP.UpdateCardPlayer;
     }
-    public string Username;
-    public string NewCardsOnTable;
+    public string Username { set; get; } 
+    public string NewCardsOnTable { set; get; } 
 }

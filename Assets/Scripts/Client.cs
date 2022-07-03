@@ -2,9 +2,12 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
+using GameManager;
 
 public class Client : MonoBehaviour
 {
+    private GameManager_Class GM = new GameManager_Class();
+
     private const int BYTE_SIZE = 1024;
 
     private const int MAX_USER = 100;
@@ -89,6 +92,7 @@ public class Client : MonoBehaviour
             MemoryStream ms = new MemoryStream(recBuffer);
 
             NetMsg msg = (NetMsg)formatter.Deserialize(ms);
+
             OnData(connectionId, channelId, recHostId, msg);
             break;
 
@@ -118,17 +122,15 @@ public class Client : MonoBehaviour
             break;
 
         case NetOP.AddPlayer:
-            Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
-            //make interface changes
+            OnNewPlayer((Net_AddPlayer)msg);
             break;
             
         case NetOP.LeavePlayer:
-            Debug.Log(string.Format("Player {0} is now paused.", msg.Username));
-            //make interface changes
+            OnLeavePlayer((Net_LeavePlayer)msg);
             break;
 
         case NetOP.UpdateCardPlayer:
-            Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
+            OnUpdatePlayer((Net_UpdateCardPlayer)msg);
             //make interface changes
             break;
 
@@ -141,6 +143,30 @@ public class Client : MonoBehaviour
             break;
        }
     }
+
+    /////////////////////////////////////////////////////////////////////////////
+    /*                   Every msg type working pattern below                  */
+    /////////////////////////////////////////////////////////////////////////////
+
+    private void OnNewPlayer(Net_AddPlayer msg)
+    {
+        Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
+    }
+
+    private void OnLeavePlayer(Net_LeavePlayer msg)
+    {
+        Debug.Log(string.Format("Player {0} is now paused.", msg.Username));
+    }
+
+    private void OnUpdatePlayer(Net_UpdateCardPlayer msg)
+    {
+        Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    /*                   Every msg type working pattern above                 */
+    /////////////////////////////////////////////////////////////////////////////
+
     #endregion
 
     #region Send

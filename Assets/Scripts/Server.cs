@@ -3,9 +3,12 @@ using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 
+using System.Collections.Generic;
+using GameManager;
+
 public class Server : MonoBehaviour
 {
-    private GameManagerClass GM = new GameManagerClass();
+    private GameManager_Class GM = new GameManager_Class();
 
     private List<int> ConnectedUsersId = new List<int>();
 
@@ -131,21 +134,15 @@ public class Server : MonoBehaviour
             break;
 
         case NetOP.AddPlayer:
-            GM.AddNewPlayer(msg.Username, conId);
-            Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
-            SendOther(conId, host, msg);
+            OnNewPlayer(conId, host, (Net_AddPlayer)msg);
             break;
             
         case NetOP.LeavePlayer:
-            GM.PausePlayer(msg.Username, conId);
-            Debug.Log(string.Format("Player {0}, id: {1} is now inactive.", msg.Username, conId));
-            SendOther(conId, host, msg);
+            OnLeavePlayer(conId, host, (Net_LeavePlayer)msg);
             break;
 
         case NetOP.UpdateCardPlayer:   
-            GM.UpdateInformation(msg.Username, conId, msg.NewCardsOnTable);
-            Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
-            SendOther(conId, host, msg);    
+            OnUpdatePlayer(conId, host, (Net_UpdateCardPlayer)msg);
             break;
 
         case NetOP.CastCardPlayer:
@@ -158,12 +155,41 @@ public class Server : MonoBehaviour
        }
     }
 
+    /////////////////////////////////////////////////////////////////////////////
+    /*                   Every msg type working pattern below                  */
+    /////////////////////////////////////////////////////////////////////////////
+
+    private void OnNewPlayer(int conId, int host, Net_AddPlayer msg)
+    {
+        GM.AddNewPlayer(msg.Username, conId);
+        Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
+        SendOther(conId, host, msg);
+    }
+
+    private void OnLeavePlayer(int conId, int host,Net_LeavePlayer msg)
+    {
+        GM.PausePlayer(msg.Username, conId);
+        Debug.Log(string.Format("Player {0}, id: {1} is now inactive.", msg.Username, conId));
+        SendOther(conId, host, msg);
+    }
+
+    private void OnUpdatePlayer(int conId, int host, Net_UpdateCardPlayer msg)
+    {
+        GM.UpdateInformation(msg.Username, conId, msg.NewCardsOnTable);
+        Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
+        SendOther(conId, host, msg);  
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    /*                   Every msg type working pattern above                 */
+    /////////////////////////////////////////////////////////////////////////////
+
     private void SendOther(int conId, int host, NetMsg msg)
     {
-        for(int i = 0; i < ConnectedUsersId.Length; i++) 
+        foreach (var i in ConnectedUsersId)
             {
-                if(ConnectedUsersId[i]!=conId) SendClient(host, ConnectedUsersId[i], msg) 
-                Debug.Log(string.Format("Sending msg about this to user {0}", ConnectedUsersId[i]));
+                if(i!=conId) SendClient(host, i, msg);
+                Debug.Log(string.Format("Sending msg about this to user {0}", i));
             }    
     }
     #endregion
