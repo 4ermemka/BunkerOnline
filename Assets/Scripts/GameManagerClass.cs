@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,47 +8,72 @@ public enum Events {
     Kick
 }
 
-struct Player
-{
-    public int Id;
-    public string name;
-    public string[] cards;
-
-    public Player(int id, string name, string[] cards)
-    {
-        this.Id = id;
-        this.name = name;
-        this.cards = cards;
-    }
-
-    public void SetName (string name)
-    {
-        this.name = name;
-    }
-
-    public void SetCards(string[] cards)
-    {
-        this.cards = cards;
-    }
-}
-
 namespace GameManagerClass
 {
-    class GameManagerClass
+    struct Player
+    {
+        public bool IsActive;
+        public int Id;
+        public string name;
+        public string[] cards;
+
+        public Player(int id, string name)
+        {
+            this.IsActive = true;
+            this.Id = id;
+            this.name = name;
+            this.cards = null;
+        }
+
+        public Player(int id, string name, string[] cards)
+        {
+            this.IsActive = true;
+            this.Id = id;
+            this.name = name;
+            this.cards = cards;
+        }
+
+        public void SetName(string name)
+        {
+            this.name = name;
+        }
+
+        public void SetCards(string[] cards)
+        {
+            this.cards = cards;
+        }
+
+        public void SetStatus(bool IsActive)
+        {
+            this.IsActive = IsActive;
+        }
+    }
+
+    class GameManager_Class
     {
         private List<Player> players;
 
-        public GameManagerClass()
+        public GameManager_Class()
         {
             players = new List<Player>();
         }
 
-        public void AddNewPlayer(string name, string[] cards)
+        public void AddNewPlayer(int id, string name)
         {
-            int countPlayers = players.Count;
-            countPlayers++;
-            Player newPlayer = new Player(countPlayers, name, cards);
+            Player newPlayer = new Player(id, name, null);
             players.Add(newPlayer);
+        }
+
+        public void AddNewPlayer(int id, string name, string[] cards)
+        {
+            Player newPlayer = new Player(id, name, cards);
+            players.Add(newPlayer);
+        }
+
+        public void DeletePlayer(int id)
+        {
+            bool flag;
+            if (!players[id].IsActive) flag = false; //запуск таймера
         }
 
         private bool IsEmpty(int id)
@@ -62,17 +87,26 @@ namespace GameManagerClass
             else return false;
         }
 
-        public bool UpdateInformation(int id, string name, string[] cards)
+        public bool UpdateInformation(int id, string name, string cards)
         {
+            string[] dc_cards;
+            dc_cards = Decryption(cards);
+
             if (id < players.Count && !IsEmpty(id))
             {
                 players[id].SetName(name);
-                players[id].SetCards(cards);
+                players[id].SetCards(dc_cards);
                 return true;
             }
             else return false;
         }
 
+        public string SendToServer(int id)
+        {
+            string en_cards = Encryption(id);
+            return en_cards;
+
+        }
 
         public string Encryption(int id)
         {
@@ -101,6 +135,13 @@ namespace GameManagerClass
             }
 
             return dc_cards;
+        }
+
+        public string toString()
+        {
+            string info = "";
+            info = string.Format("Id: " + players[0].Id + "\nName: " + players[0].name);
+            return info;
         }
     }
 }
