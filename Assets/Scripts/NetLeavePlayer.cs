@@ -5,5 +5,5 @@ public  class Net_LeavePlayer:NetMsg
     {
         OP = NetOP.LeavePlayer;
     }
-    public string Username;
+    public string Username { set; get; } 
 }
