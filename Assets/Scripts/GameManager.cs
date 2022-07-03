@@ -62,8 +62,25 @@ namespace GameManager
         {
             int countPlayers = players.Count;
             countPlayers++;
+            Player newPlayer = new Player(countPlayers, name);
+            players.Add(newPlayer);
+        }
+
+        public void AddNewPlayer(string name, int conID, string cardsOld)
+        {
+            int countPlayers = players.Count;
+            countPlayers++;
+
+            string[] cards;
+            cards = Decryption(cardsOld);
+
             Player newPlayer = new Player(countPlayers, name, cards);
             players.Add(newPlayer);
+        }
+
+        public void PausePlayer(string name, int conID)
+        {
+            //pause code
         }
 
         private bool IsEmpty(int id)
@@ -77,17 +94,19 @@ namespace GameManager
             else return false;
         }
 
-        public bool UpdateInformation(int id, string name, string[] cards)
+        public bool UpdateInformation(string name, int conId, string cardsNew)
         {
-            if (id < players.Count && !IsEmpty(id))
+            string[] cards;
+            cards = Decryption(cardsNew);
+
+            if (conId < players.Count && !IsEmpty(conId))
             {
-                players[id].SetName(name);
-                players[id].SetCards(cards);
+                players[conId].SetName(name);
+                players[conId].SetCards(cards);
                 return true;
             }
             else return false;
         }
-
 
         public string Encryption(int id)
         {

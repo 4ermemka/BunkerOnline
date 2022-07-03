@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using GameManagerClass;
+using GameManager;
 
 public class ButtonClick : MonoBehaviour
 {
-
+    private int count = 0;
     public GameObject guiTextLink;
     public InputField inputField;
 
@@ -14,7 +14,7 @@ public class ButtonClick : MonoBehaviour
     {
         GameManager_Class gm = new GameManager_Class();
 
-        gm.AddNewPlayer(0, inputField.text);
+        gm.AddNewPlayer(inputField.text, count);
 
         guiTextLink.GetComponent<Text>().text = gm.toString();
     }
