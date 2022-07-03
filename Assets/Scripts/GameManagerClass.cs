@@ -10,6 +10,8 @@ public enum Events {
 
 struct Player
 {
+    public bool isActive;
+    public string connectionIP;
     public int Id;
     public string name;
     public string[] cards;
@@ -43,7 +45,7 @@ namespace GameManagerClass
             players = new List<Player>();
         }
 
-        public void AddNewPlayer(string name, string[] cards)
+        public void AddNewPlayer(string name)
         {
             int countPlayers = players.Count;
             countPlayers++;
