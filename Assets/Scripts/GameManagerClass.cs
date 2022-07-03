@@ -10,14 +10,27 @@ public enum Events {
 
 struct Player
 {
+<<<<<<< HEAD
     public bool isActive;
     public string connectionIP;
+=======
+    public bool IsActive;
+>>>>>>> 7e7682c2ea9fa2adf4f7de140fb99ecf5e74e4f2
     public int Id;
     public string name;
     public string[] cards;
 
+    public Player(int id, string name)
+    {
+        this.IsActive = true;
+        this.Id = id;
+        this.name = name;
+        this.cards = null;
+    }
+
     public Player(int id, string name, string[] cards)
     {
+        this.IsActive = true;
         this.Id = id;
         this.name = name;
         this.cards = cards;
@@ -32,6 +45,11 @@ struct Player
     {
         this.cards = cards;
     }
+
+    public void SetStatus(bool IsActive)
+    {
+        this.IsActive = IsActive;
+    }
 }
 
 namespace GameManagerClass
@@ -44,13 +62,27 @@ namespace GameManagerClass
         {
             players = new List<Player>();
         }
+<<<<<<< HEAD
 
         public void AddNewPlayer(string name)
+=======
+        public void AddNewPlayer(int id, string name)
+>>>>>>> 7e7682c2ea9fa2adf4f7de140fb99ecf5e74e4f2
         {
-            int countPlayers = players.Count;
-            countPlayers++;
-            Player newPlayer = new Player(countPlayers, name, cards);
+            Player newPlayer = new Player(id, name, null);
             players.Add(newPlayer);
+        }
+
+        public void AddNewPlayer(int id, string name, string[] cards)
+        {
+            Player newPlayer = new Player(id, name, cards);
+            players.Add(newPlayer);
+        }
+
+        public void DeletePlayer(int id)
+        {
+            bool flag;
+            if (!players[id].IsActive) flag = false; //запуск таймера
         }
 
         private bool IsEmpty(int id)
@@ -64,17 +96,26 @@ namespace GameManagerClass
             else return false;
         }
 
-        public bool UpdateInformation(int id, string name, string[] cards)
+        public bool UpdateInformation(int id, string name, string cards)
         {
+            string[] dc_cards;
+            dc_cards = Decryption(cards);
+
             if (id < players.Count && !IsEmpty(id))
             {
                 players[id].SetName(name);
-                players[id].SetCards(cards);
+                players[id].SetCards(dc_cards);
                 return true;
             }
             else return false;
         }
 
+        public string SendToServer(int id)
+        {
+            string en_cards = Encryption(id);
+            return en_cards;
+
+        }
 
         public string Encryption(int id)
         {

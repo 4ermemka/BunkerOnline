@@ -1,5 +1,5 @@
-using System;
-using System.Data;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -82,31 +82,79 @@ public class Client : MonoBehaviour
         {
             case NetworkEventType.Nothing:
             break;
-            case NetworkEventType.DataEvent:
 
-            Debug.Log("Data");
-            
+            case NetworkEventType.DataEvent:
+            //Here we get data
+            BinaryFormatter formatter = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream(recBuffer);
+
+            NetMsg msg = (NetMsg)formatter.Deserialize(ms);
+            OnData(connectionId, channelId, recHostId, msg);
             break;
+
             case NetworkEventType.ConnectEvent:
             Debug.Log("Connected to the server!");
             break;
+
             case NetworkEventType.DisconnectEvent:
             Debug.Log("Disconnected from the server!");
             break;
+
             default:
             case NetworkEventType.BroadcastEvent:
             Debug.Log("Unexpected msg type!");
             break;
         }
     }
+
+    #region OnData
+    private void OnData(int conId, int channel, int host, NetMsg msg) 
+    {
+        Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", conId, channel, host, msg.OP));
+
+        //Here write what to do
+       switch (msg.OP) {
+        case NetOP.None:            
+            break;
+
+        case NetOP.AddPlayer:
+            Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
+            //make interface changes
+            break;
+            
+        case NetOP.LeavePlayer:
+            Debug.Log(string.Format("Player {0} is now paused.", msg.Username));
+            //make interface changes
+            break;
+
+        case NetOP.UpdateCardPlayer:
+            Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
+            //make interface changes
+            break;
+
+        case NetOP.CastCardPlayer:
+            //Soon          
+            break;
+
+        default :
+            Debug.Log("Unexpected msg type!");
+            break;
+       }
+    }
+    #endregion
+
     #region Send
-    public void SendServer() 
+    public void SendServer(NetMsg msg) 
     {
         //Place to hold data
         byte[] buffer = new byte[BYTE_SIZE];
         
         //Here you make byte array from your data
-        buffer[0] = 1;
+        BinaryFormatter formatter = new BinaryFormatter();
+        MemoryStream ms = new MemoryStream(buffer);
+
+        formatter.Serialize(ms, msg);
+
         NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
     }
     #endregion
