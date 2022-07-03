@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,39 +8,52 @@ public enum Events {
     Kick
 }
 
-struct Player
+namespace GameManager
 {
-    public bool isActive;
-    public string connectionIP;
-    public int Id;
-    public string name;
-    public string[] cards;
-
-    public Player(int id, string name, string[] cards)
+    struct Player
     {
-        this.Id = id;
-        this.name = name;
-        this.cards = cards;
+        public bool IsActive;
+        public int Id;
+        public string name;
+        public string[] cards;
+
+        public Player(int id, string name)
+        {
+            this.IsActive = true;
+            this.Id = id;
+            this.name = name;
+            this.cards = null;
+        }
+
+        public Player(int id, string name, string[] cards)
+        {
+            this.IsActive = true;
+            this.Id = id;
+            this.name = name;
+            this.cards = cards;
+        }
+
+        public void SetName(string name)
+        {
+            this.name = name;
+        }
+
+        public void SetCards(string[] cards)
+        {
+            this.cards = cards;
+        }
+
+        public void SetStatus(bool IsActive)
+        {
+            this.IsActive = IsActive;
+        }
     }
 
-    public void SetName (string name)
-    {
-        this.name = name;
-    }
-
-    public void SetCards(string[] cards)
-    {
-        this.cards = cards;
-    }
-}
-
-namespace GameManagerClass
-{
-    class GameManagerClass
+    class GameManager_Class
     {
         private List<Player> players;
 
-        public GameManagerClass()
+        public GameManager_Class()
         {
             players = new List<Player>();
         }
@@ -103,6 +116,13 @@ namespace GameManagerClass
             }
 
             return dc_cards;
+        }
+
+        public string toString()
+        {
+            string info = "";
+            info = string.Format("Id: " + players[0].Id + "\nName: " + players[0].name);
+            return info;
         }
     }
 }

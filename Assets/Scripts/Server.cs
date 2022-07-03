@@ -3,9 +3,12 @@ using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 
+using System.Collections.Generic;
+using GameManager;
+
 public class Server : MonoBehaviour
 {
-    private GameManagerClass GM = new GameManagerClass();
+    private GameManager_Class GM = new GameManager_Class();
 
     private List<int> ConnectedUsersId = new List<int>();
 
@@ -162,7 +165,7 @@ public class Server : MonoBehaviour
     {
         for(int i = 0; i < ConnectedUsersId.Length; i++) 
             {
-                if(ConnectedUsersId[i]!=conId) SendClient(host, ConnectedUsersId[i], msg) 
+                if(ConnectedUsersId[i]!=conId) SendClient(host, ConnectedUsersId[i], msg);
                 Debug.Log(string.Format("Sending msg about this to user {0}", ConnectedUsersId[i]));
             }    
     }
