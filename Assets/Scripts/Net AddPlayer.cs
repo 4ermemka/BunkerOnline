@@ -6,6 +6,6 @@ public  class Net_AddPlayer:NetMsg
         OP = NetOP.AddPlayer;
     }
 
-    public string Username;
-    public string OpenedCards; //that must be ONE string
+    public string Username { set; get; }
+    public string OpenedCards { set; get; } //that must be ONE string
 }
