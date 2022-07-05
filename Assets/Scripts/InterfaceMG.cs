@@ -15,6 +15,7 @@ public enum CanvasType
 public class InterfaceMG : MonoBehaviour
 {
     [SerializeField] private GameObject playerInfo;
+    [SerializeField] private GameObject lobbyList;
 
     List<CanvasController> canvasControllerList;
     CanvasController lastActiveCanvas;
@@ -27,20 +28,16 @@ public class InterfaceMG : MonoBehaviour
         //}
 
         canvasControllerList = GetComponentsInChildren<CanvasController>().ToList();
-        Debug.Log("A: " + canvasControllerList.Count);
         canvasControllerList.ForEach(x => x.gameObject.SetActive(false));
-        Debug.Log("B: " + canvasControllerList.Count);
         SwitchCanvas(CanvasType.MainMenu);
     }
 
     public void SwitchCanvas(CanvasType _type)
     {
-        Debug.Log("type: " + _type);
         if(lastActiveCanvas != null)
         {
             lastActiveCanvas.gameObject.SetActive(false);
         }
-        Debug.Log("C: " + canvasControllerList.Count);
         CanvasController desiredCanvas = canvasControllerList.Find(x => x.canvasType == _type);
         if(desiredCanvas != null)
         {
@@ -48,25 +45,31 @@ public class InterfaceMG : MonoBehaviour
             lastActiveCanvas = desiredCanvas;
         }
         else Debug.Log("Err. Desired Canvas does not exist!");
-        Debug.Log("D: " + canvasControllerList.Count);
 
     }
 
     public void SwitchToMainMenu()
     {
-        Debug.Log("E: " + canvasControllerList.Count);
         SwitchCanvas(CanvasType.MainMenu);
     }
 
     public void SwitchToLobby()
     {
-        Debug.Log("E: " + canvasControllerList.Count);
         SwitchCanvas(CanvasType.LobbyMenu);
     }
 
     public void SwitchToConnectionMenu()
     {
-        Debug.Log("E: " + canvasControllerList.Count);
         SwitchCanvas(CanvasType.ConnectionMenu);
+    }
+
+    public void AddPlayerToList(string Nickname, int num)
+    {
+        GameObject connectedUser = Instantiate(playerInfo) as GameObject;
+        List<Text> info = connectedUser.GetComponentsInChildren<Text>().ToList();
+        info[0].text = Nickname;
+        info[1].text = num.ToString();
+
+        connectedUser.transform.parent = lobbyList.transform;
     }
 }
