@@ -5,7 +5,9 @@ using UnityEngine.Networking;
 
 public class Client : MonoBehaviour
 {
-    private GameManager GM = new GameManager();
+    public GameManager GM;
+
+    public MessageProcessing messageProcessing;
 
     private const int BYTE_SIZE = 1024;
 
@@ -24,9 +26,17 @@ public class Client : MonoBehaviour
 
     private void Start()// При старте выполнить код ниже
     {
+        messageProcessing = new MessageProcessing();
         DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
     }
+
+    public void SetGamemanager(GameManager gm)
+    {
+        GM = gm;
+        messageProcessing = new MessageProcessing(GM);
+    }
+
 
     private void Update() // каждый кадр
     {
@@ -114,7 +124,6 @@ public class Client : MonoBehaviour
     private void OnData(int conId, int channel, int host, NetMsg msg) 
     {
         Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", conId, channel, host, msg.OP));
-        MessageProcessing messageProcessing = new MessageProcessing();
         //Here write what to do
         switch (msg.OP) {
         case NetOP.None:            
@@ -142,29 +151,6 @@ public class Client : MonoBehaviour
             break;
        }
     }
-
-    /////////////////////////////////////////////////////////////////////////////
-    /*                   Every msg type working pattern below                  */
-    /////////////////////////////////////////////////////////////////////////////
-
-    /*private void OnNewPlayer(Net_AddPlayer msg)
-    {
-        Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
-    }
-
-    private void OnLeavePlayer(Net_LeavePlayer msg)
-    {
-        Debug.Log(string.Format("Player {0} is now paused.", msg.Username));
-    }
-
-    private void OnUpdatePlayer(Net_UpdateCardPlayer msg)
-    {
-        Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
-    }*/
-
-    /////////////////////////////////////////////////////////////////////////////
-    /*                   Every msg type working pattern above                 */
-    /////////////////////////////////////////////////////////////////////////////
 
     #endregion
 

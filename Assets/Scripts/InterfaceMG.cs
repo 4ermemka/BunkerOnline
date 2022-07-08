@@ -14,6 +14,8 @@ public enum CanvasType
 public class InterfaceMG : MonoBehaviour
 {
     private Player player;
+    [SerializeField] private GameManager gm;
+    [SerializeField] private Text playerNickDisplay;
     [SerializeField] private GameObject playerInfo;
     [SerializeField] private GameObject lobbyList;
     [SerializeField] private InputField NicknameField;
@@ -24,17 +26,29 @@ public class InterfaceMG : MonoBehaviour
 
     public void Start()
     {
-        //for (var i = 0; i < 10; i++)
-        //{
-        //    Instantiate(playerInfo, new Vector3(0, i * 2.0f, 0), Quaternion.identity);
-        //}
-        player = new Player();
-        player.Id = 0;
-        player.name = "";
+        player = new Player(0,"PLAYER");
         canvasControllerList = GetComponentsInChildren<CanvasController>().ToList();
         canvasControllerList.ForEach(x => x.gameObject.SetActive(false));
         resetErrorMsg();
         SwitchCanvas(CanvasType.MainMenu);
+    }
+
+
+    public void RefreshPlayerDisplay()
+    {
+        playerNickDisplay.text = player.name;
+        UpdatePlayerFromList(player.Id,player.name);
+    }
+
+    public void SetInfo()
+    {
+        if(NicknameField.text != "") player.name = NicknameField.text;
+        else
+        {
+            SwitchToMainMenu();
+            errMsg.text = "Nickname is empty!";
+        }
+        RefreshPlayerDisplay();
     }
 
     public void SwitchCanvas(CanvasType _type)
@@ -60,33 +74,35 @@ public class InterfaceMG : MonoBehaviour
 
     public void SwitchToLobby()
     {
-        if(NicknameField.text == "") 
+        if(player.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
         }
         else 
         {
+            resetErrorMsg();
             SwitchCanvas(CanvasType.LobbyMenu);
         }
     }
 
     public void SwitchToConnectionMenu()
     {
-        if(NicknameField.text == "") 
+        if(player.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
         }
         else
         {
+            resetErrorMsg();
             SwitchCanvas(CanvasType.ConnectionMenu);
         }
     }
     
     public void resetErrorMsg()
     {
-        if(errMsg != null && NicknameField.text != "") errMsg.text = "";
+        if(errMsg != null && player.name != "") errMsg.text = "";
     }
 
     public void AddPlayerToList(string Nickname, int num, bool host)
@@ -113,12 +129,26 @@ public class InterfaceMG : MonoBehaviour
         if(deletingUser!=null) Destroy(deletingUser);
         else Debug.Log("Err during deletion!");
     }
+    public void UpdatePlayerFromList(int id, string newNickname)
+    {
+        List<GameObject> info = new List<GameObject>();
+        foreach (Transform child in lobbyList.transform) 
+        {
+            info.Add(child.gameObject);
+        }
+
+        GameObject updatingUser = info.Find(x => x.GetComponent<PlayerInfo>().num == id);
+        
+        if(updatingUser!=null) 
+        {
+            updatingUser.GetComponent<PlayerInfo>().nickname = newNickname;
+            updatingUser.GetComponent<PlayerInfo>().setNickname(newNickname);
+        }
+        else Debug.Log("Err during Updating!");
+    }
 
     public void OnHost()
     {
-        player.Id = 0;
-        player.name = NicknameField.text;
-
         if(player.name!="") AddPlayerToList(player.name, player.Id, true);
         SwitchToLobby();
     }
