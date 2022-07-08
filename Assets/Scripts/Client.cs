@@ -2,11 +2,10 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
-using GameManager;
 
 public class Client : MonoBehaviour
 {
-    private GameManager_Class GM = new GameManager_Class();
+    private GameManager GM = new GameManager();
 
     private const int BYTE_SIZE = 1024;
 
@@ -23,13 +22,13 @@ public class Client : MonoBehaviour
 
     private bool isStarted;
 
-    private void Start()
+    private void Start()// При старте выполнить код ниже
     {
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
     }
 
-    private void Update()
+    private void Update() // каждый кадр
     {
         UpdateMessagePump();
     }
@@ -68,7 +67,7 @@ public class Client : MonoBehaviour
         NetworkTransport.Shutdown();
     }
 
-    public void UpdateMessagePump() 
+    public void UpdateMessagePump() //ожидание и принятие сообщений
     {
         if(!isStarted) return;
 

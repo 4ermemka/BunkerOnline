@@ -4,11 +4,10 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 using System.Collections.Generic;
-using GameManager;
 
 public class Server : MonoBehaviour
 {
-    private GameManager_Class GM = new GameManager_Class();
+    private GameManager GM = new GameManager();
 
     private List<int> ConnectedUsersId = new List<int>();
 
@@ -25,20 +24,21 @@ public class Server : MonoBehaviour
     private bool isStarted;
     private byte error;
 
-    private void Start()
+    private void Start() // При старте выполнить код ниже
     {
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
     }
 
-    private void Update()
+    private void Update() //каждый кадр
     {
         UpdateMessagePump();
     }
 
-    public void Init()
+    private void Init() // стартануть сервер
     {
         NetworkTransport.Init();
+
         ConnectionConfig cc = new ConnectionConfig();
         reliableChannel = cc.AddChannel(QosType.Reliable);
 
@@ -59,7 +59,7 @@ public class Server : MonoBehaviour
         NetworkTransport.Shutdown();
     }
 
-    public void UpdateMessagePump() 
+    public void UpdateMessagePump() //ожидание и принятие сообщений
     {
         if(!isStarted) return;
 
@@ -187,10 +187,10 @@ public class Server : MonoBehaviour
     private void SendOther(int conId, int host, NetMsg msg)
     {
         foreach (var i in ConnectedUsersId)
-            {
-                if(i!=conId) SendClient(host, i, msg);
-                Debug.Log(string.Format("Sending msg about this to user {0}", i));
-            }    
+        {
+            if(i!=conId) SendClient(host, i, msg);
+            Debug.Log(string.Format("Sending msg about this to user {0}", i));
+        }    
     }
     #endregion
 }
