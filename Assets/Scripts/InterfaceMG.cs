@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+
 
 public enum CanvasType
 {
@@ -13,10 +15,23 @@ public enum CanvasType
 
 public class InterfaceMG : MonoBehaviour
 {
+    public event EventHandler<OnClickConnectEventArgs> OnClickConnect;
+    public event EventHandler OnChooseClient;
+    public event EventHandler OnChooseServer;
+    public event EventHandler OnReturnToMenu;
+
+    public class OnClickConnectEventArgs:EventArgs
+    {
+        public string server_ip;
+    }
+
     private Player player;
+    [SerializeField] private GameManager gm;
+    [SerializeField] private Text playerNickDisplay;
     [SerializeField] private GameObject playerInfo;
     [SerializeField] private GameObject lobbyList;
     [SerializeField] private InputField NicknameField;
+    [SerializeField] private InputField ipAdressField;
     [SerializeField] private Text errMsg;
 
     List<CanvasController> canvasControllerList;
@@ -24,17 +39,28 @@ public class InterfaceMG : MonoBehaviour
 
     public void Start()
     {
-        //for (var i = 0; i < 10; i++)
-        //{
-        //    Instantiate(playerInfo, new Vector3(0, i * 2.0f, 0), Quaternion.identity);
-        //}
-        player = new Player();
-        player.Id = 0;
-        player.name = "";
+        player = new Player(0,"PLAYER");
         canvasControllerList = GetComponentsInChildren<CanvasController>().ToList();
         canvasControllerList.ForEach(x => x.gameObject.SetActive(false));
         resetErrorMsg();
         SwitchCanvas(CanvasType.MainMenu);
+    }
+
+
+    public void RefreshPlayerDisplay()
+    {
+        playerNickDisplay.text = player.name;
+        UpdatePlayerFromList(player.Id,player.name);
+    }
+
+    public void SetInfo()
+    {
+        if(NicknameField.text != "") player.name = NicknameField.text;
+        else
+        {
+            errMsg.text = "Nickname is empty!";
+        }
+        RefreshPlayerDisplay();
     }
 
     public void SwitchCanvas(CanvasType _type)
@@ -55,38 +81,44 @@ public class InterfaceMG : MonoBehaviour
 
     public void SwitchToMainMenu()
     {
+        OnReturnToMenu?.Invoke(this, EventArgs.Empty);
+        OnLobbyClosed();
         SwitchCanvas(CanvasType.MainMenu);
     }
 
     public void SwitchToLobby()
     {
-        if(NicknameField.text == "") 
+        if(player.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
         }
         else 
         {
+            resetErrorMsg();
+            OnChooseServer?.Invoke(this, EventArgs.Empty);
             SwitchCanvas(CanvasType.LobbyMenu);
         }
     }
 
     public void SwitchToConnectionMenu()
     {
-        if(NicknameField.text == "") 
+        if(player.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
         }
         else
         {
+            resetErrorMsg();
+            OnChooseClient?.Invoke(this, EventArgs.Empty);
             SwitchCanvas(CanvasType.ConnectionMenu);
         }
     }
     
     public void resetErrorMsg()
     {
-        if(errMsg != null && NicknameField.text != "") errMsg.text = "";
+        if(errMsg != null && player.name != "") errMsg.text = "";
     }
 
     public void AddPlayerToList(string Nickname, int num, bool host)
@@ -113,12 +145,36 @@ public class InterfaceMG : MonoBehaviour
         if(deletingUser!=null) Destroy(deletingUser);
         else Debug.Log("Err during deletion!");
     }
+    public void UpdatePlayerFromList(int id, string newNickname)
+    {
+        List<GameObject> info = new List<GameObject>();
+        foreach (Transform child in lobbyList.transform) 
+        {
+            info.Add(child.gameObject);
+        }
+
+        GameObject updatingUser = info.Find(x => x.GetComponent<PlayerInfo>().num == id);
+        
+        if(updatingUser!=null) 
+        {
+            updatingUser.GetComponent<PlayerInfo>().nickname = newNickname;
+            updatingUser.GetComponent<PlayerInfo>().setNickname(newNickname);
+        }
+        else Debug.Log("Err during Updating!");
+    }
+
+    public void ClickConnect() 
+    {
+        if(ipAdressField.text != "")
+        {
+            string ip = ipAdressField.text;
+            OnClickConnect?.Invoke(this, new OnClickConnectEventArgs {server_ip = ip});
+        }
+        else errMsg.text = "Ip field is empty!";
+    }
 
     public void OnHost()
     {
-        player.Id = 0;
-        player.name = NicknameField.text;
-
         if(player.name!="") AddPlayerToList(player.name, player.Id, true);
         SwitchToLobby();
     }
@@ -136,5 +192,10 @@ public class InterfaceMG : MonoBehaviour
             Debug.Log(deletingPlayer.GetComponent<PlayerInfo>().num);
             Destroy(deletingPlayer);
         }
+    }
+    
+    public void OnExit() 
+    {
+        Application.Quit();
     }
 }
