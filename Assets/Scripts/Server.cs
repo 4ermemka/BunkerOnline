@@ -161,10 +161,10 @@ public class Server : MonoBehaviour
     private void SendOther(int conId, int host, NetMsg msg)
     {
         for(int i = 0; i < ConnectedUsersId.Length; i++) 
-            {
-                if(ConnectedUsersId[i]!=conId) SendClient(host, ConnectedUsersId[i], msg) 
-                Debug.Log(string.Format("Sending msg about this to user {0}", ConnectedUsersId[i]));
-            }    
+        {
+            if (ConnectedUsersId[i] != conId) SendClient(host, ConnectedUsersId[i], msg);
+            Debug.Log(string.Format("Sending msg about this to user {0}", ConnectedUsersId[i]));
+        }    
     }
     #endregion
 }
