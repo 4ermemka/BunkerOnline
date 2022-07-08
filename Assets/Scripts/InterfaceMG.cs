@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+
 
 public enum CanvasType
 {
@@ -13,12 +15,23 @@ public enum CanvasType
 
 public class InterfaceMG : MonoBehaviour
 {
+    public event EventHandler<OnClickConnectEventArgs> OnClickConnect;
+    public event EventHandler OnChooseClient;
+    public event EventHandler OnChooseServer;
+    public event EventHandler OnReturnToMenu;
+
+    public class OnClickConnectEventArgs:EventArgs
+    {
+        public string server_ip;
+    }
+
     private Player player;
     [SerializeField] private GameManager gm;
     [SerializeField] private Text playerNickDisplay;
     [SerializeField] private GameObject playerInfo;
     [SerializeField] private GameObject lobbyList;
     [SerializeField] private InputField NicknameField;
+    [SerializeField] private InputField ipAdressField;
     [SerializeField] private Text errMsg;
 
     List<CanvasController> canvasControllerList;
@@ -45,7 +58,6 @@ public class InterfaceMG : MonoBehaviour
         if(NicknameField.text != "") player.name = NicknameField.text;
         else
         {
-            SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
         }
         RefreshPlayerDisplay();
@@ -69,6 +81,8 @@ public class InterfaceMG : MonoBehaviour
 
     public void SwitchToMainMenu()
     {
+        OnReturnToMenu?.Invoke(this, EventArgs.Empty);
+        OnLobbyClosed();
         SwitchCanvas(CanvasType.MainMenu);
     }
 
@@ -82,6 +96,7 @@ public class InterfaceMG : MonoBehaviour
         else 
         {
             resetErrorMsg();
+            OnChooseServer?.Invoke(this, EventArgs.Empty);
             SwitchCanvas(CanvasType.LobbyMenu);
         }
     }
@@ -96,6 +111,7 @@ public class InterfaceMG : MonoBehaviour
         else
         {
             resetErrorMsg();
+            OnChooseClient?.Invoke(this, EventArgs.Empty);
             SwitchCanvas(CanvasType.ConnectionMenu);
         }
     }
@@ -147,6 +163,16 @@ public class InterfaceMG : MonoBehaviour
         else Debug.Log("Err during Updating!");
     }
 
+    public void ClickConnect() 
+    {
+        if(ipAdressField.text != "")
+        {
+            string ip = ipAdressField.text;
+            OnClickConnect?.Invoke(this, new OnClickConnectEventArgs {server_ip = ip});
+        }
+        else errMsg.text = "Ip field is empty!";
+    }
+
     public void OnHost()
     {
         if(player.name!="") AddPlayerToList(player.name, player.Id, true);
@@ -166,5 +192,10 @@ public class InterfaceMG : MonoBehaviour
             Debug.Log(deletingPlayer.GetComponent<PlayerInfo>().num);
             Destroy(deletingPlayer);
         }
+    }
+    
+    public void OnExit() 
+    {
+        Application.Quit();
     }
 }

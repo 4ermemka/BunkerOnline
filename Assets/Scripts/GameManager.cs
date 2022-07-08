@@ -55,6 +55,12 @@ public class Player
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private Server serverPref;
+    [SerializeField] private Client clientPref;
+
+    private Server server;
+    private Client client;
+
     private Player player; 
     private List<Player> connectedList;
 
@@ -64,6 +70,10 @@ public class GameManager : MonoBehaviour
     {
         player = new Player();
         connectedList = new List<Player>();
+        interfaceMG.OnClickConnect += GameManager_ConnectPressed;
+        interfaceMG.OnChooseClient += GameManager_StartClient;
+        interfaceMG.OnChooseServer += GameManager_StartServer;
+        interfaceMG.OnReturnToMenu += GameManager_DeleteNetworkObjects;
     }
 
     public void AddNewPlayer(string name, int conID)
@@ -137,4 +147,42 @@ public class GameManager : MonoBehaviour
         }
         return dc_cards;
     }
+
+    //////////////////////////////////////////////////////////////////
+    /////////////////// Reversed Ladder of events ////////////////////
+    //////////////////////////////////////////////////////////////////
+
+    public void GameManager_ConnectPressed(object sender, InterfaceMG.OnClickConnectEventArgs e)
+    {
+        if(client!=null)
+        {
+            client.Connect(e.server_ip);
+        }
+        else Debug.Log("Err! No Client O_o");
+    }
+
+    public void GameManager_StartServer(object sender, EventArgs e)
+    {
+        server = Instantiate(serverPref);
+    }
+
+    public void GameManager_StartClient(object sender, EventArgs e)
+    {
+        client = Instantiate(clientPref);
+    }
+
+    public void GameManager_DeleteNetworkObjects(object sender, EventArgs e)
+    {
+        if(server!=null) 
+        {
+            server.Shutdown();
+            Destroy(server.gameObject);
+        }
+        if(client!=null) 
+        {
+            client.Shutdown();
+            Destroy(client.gameObject);
+        }
+    }
+
 }
