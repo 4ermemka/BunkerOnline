@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,140 +9,116 @@ public enum Events {
     Kick
 }
 
-namespace GameManager
+struct Player
 {
-    struct Player
+    public bool IsActive;
+    public int Id;
+    public string name;
+    public string[] cards;
+    public Player(int id, string name)
     {
-        public bool IsActive;
-        public int Id;
-        public string name;
-        public string[] cards;
+        this.IsActive = true;
+        this.Id = id;
+        this.name = name;
+        this.cards = null;
+    }
+    public Player(int id, string name, string[] cards)
+    {
+        this.IsActive = true;
+        this.Id = id;
+        this.name = name;
+        this.cards = cards;
+    }
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+    public void SetCards(string[] cards)
+    {
+        this.cards = cards;
+    }
+    public void SetStatus(bool IsActive)
+    {
+        this.IsActive = IsActive;
+    }
+}
+public class GameManager : MonoBehaviour
+{
+    private List<Player> players;
 
-        public Player(int id, string name)
-        {
-            this.IsActive = true;
-            this.Id = id;
-            this.name = name;
-            this.cards = null;
-        }
+    [SerializeField] private InterfaceMG interfaceMG;
 
-        public Player(int id, string name, string[] cards)
-        {
-            this.IsActive = true;
-            this.Id = id;
-            this.name = name;
-            this.cards = cards;
-        }
-
-        public void SetName(string name)
-        {
-            this.name = name;
-        }
-
-        public void SetCards(string[] cards)
-        {
-            this.cards = cards;
-        }
-
-        public void SetStatus(bool IsActive)
-        {
-            this.IsActive = IsActive;
-        }
+    public GameManager()
+    {
+        players = new List<Player>();
     }
 
-    class GameManager_Class
+    public void AddNewPlayer(string name, int conID)
     {
-        private List<Player> players;
+        int countPlayers = players.Count;
+        countPlayers++;
+        Player newPlayer = new Player(countPlayers, name);
+        players.Add(newPlayer);
+    }
 
-        public GameManager_Class()
+    public void AddNewPlayer(string name, int conID, string cardsOld)
+    {
+        string[] cards;
+        cards = Decryption(cardsOld);
+        Player newPlayer = new Player(conID, name, cards);
+        interfaceMG.AddPlayerToList(name, conID, false);
+        players.Add(newPlayer);
+    }
+
+    public void PausePlayer(string name, int conID)
+    {
+        //pause code
+    }
+
+    private bool IsEmpty(int id)
+    {
+        bool flag = false; int i;
+        for (i = 0; i < players[id].cards.Length; i++)
+            if (players[id].cards[i] == string.Empty) flag = true;
+        if (!flag && players[id].name == string.Empty)
+            return true;
+        else return false;
+    }
+    public bool UpdateInformation(string name, int conId, string cardsNew)
+    {
+        string[] cards;
+        cards = Decryption(cardsNew);
+        if (conId < players.Count && !IsEmpty(conId))
         {
-            players = new List<Player>();
+            players[conId].SetName(name);
+            players[conId].SetCards(cards);
+            return true;
         }
+        else return false;
+    }
+    public string Encryption(int id)
+    {
+        string en_cards = ""; int i;
+        for (i = 0; i < players[id].cards.Length; i++)
+            en_cards = en_cards + players[id].cards[i] + ";";
+        return en_cards;
+    }
 
-        public void AddNewPlayer(string name, int conID)
+    public string[] Decryption(string en_cards)
+    {
+        int i, count_separator = 0, k = 0;
+        for (i = 0; i < en_cards.Length; i++)
+            if (en_cards[i] == ';') count_separator++;
+        string[] dc_cards = new string[count_separator];
+        for (i = 0; i < count_separator; i++)
         {
-            int countPlayers = players.Count;
-            countPlayers++;
-            Player newPlayer = new Player(countPlayers, name);
-            players.Add(newPlayer);
-        }
-
-        public void AddNewPlayer(string name, int conID, string cardsOld)
-        {
-            int countPlayers = players.Count;
-            countPlayers++;
-
-            string[] cards;
-            cards = Decryption(cardsOld);
-
-            Player newPlayer = new Player(countPlayers, name, cards);
-            players.Add(newPlayer);
-        }
-
-        public void PausePlayer(string name, int conID)
-        {
-            //pause code
-        }
-
-        private bool IsEmpty(int id)
-        {
-            bool flag = false; int i;
-
-            for (i = 0; i < players[id].cards.Length; i++)
-                if (players[id].cards[i] == string.Empty) flag = true;
-            if (!flag && players[id].name == string.Empty)
-                return true;
-            else return false;
-        }
-
-        public bool UpdateInformation(string name, int conId, string cardsNew)
-        {
-            string[] cards;
-            cards = Decryption(cardsNew);
-
-            if (conId < players.Count && !IsEmpty(conId))
+            while (en_cards[k] != ';')
             {
-                players[conId].SetName(name);
-                players[conId].SetCards(cards);
-                return true;
-            }
-            else return false;
-        }
-
-        public string Encryption(int id)
-        {
-            string en_cards = ""; int i;
-            for (i = 0; i < players[id].cards.Length; i++)
-                en_cards = en_cards + players[id].cards[i] + ";";
-            return en_cards;
-        }
-
-        public string[] Decryption(string en_cards)
-        {
-            int i, count_separator = 0, k = 0;
-            for (i = 0; i < en_cards.Length; i++)
-                if (en_cards[i] == ';') count_separator++;
-
-            string[] dc_cards = new string[count_separator];
-
-            for (i = 0; i < count_separator; i++)
-            {
-                while (en_cards[k] != ';')
-                {
-                    dc_cards[i] += en_cards[k];
-                    k++;
-                }
+                dc_cards[i] += en_cards[k];
                 k++;
             }
-
-            return dc_cards;
+            k++;
         }
-
-        public string toString()
-        {
-            string info = "";
-            info = string.Format("Id: " + players[0].Id + "\nName: " + players[0].name);
-            return info;
-        }
+        return dc_cards;
     }
 }
