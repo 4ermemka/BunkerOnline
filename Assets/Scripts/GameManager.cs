@@ -15,6 +15,7 @@ struct Player
     public int Id;
     public string name;
     public string[] cards;
+
     public Player(int id, string name)
     {
         this.IsActive = true;
@@ -42,6 +43,7 @@ struct Player
         this.IsActive = IsActive;
     }
 }
+
 public class GameManager : MonoBehaviour
 {
     private List<Player> players;
@@ -59,6 +61,7 @@ public class GameManager : MonoBehaviour
         countPlayers++;
         Player newPlayer = new Player(countPlayers, name);
         players.Add(newPlayer);
+        interfaceMG.AddPlayerToList(name, conID, false);
     }
 
     public void AddNewPlayer(string name, int conID, string cardsOld)
@@ -84,6 +87,7 @@ public class GameManager : MonoBehaviour
             return true;
         else return false;
     }
+
     public bool UpdateInformation(string name, int conId, string cardsNew)
     {
         string[] cards;
@@ -96,6 +100,7 @@ public class GameManager : MonoBehaviour
         }
         else return false;
     }
+
     public string Encryption(int id)
     {
         string en_cards = ""; int i;
