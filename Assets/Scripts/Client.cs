@@ -114,22 +114,22 @@ public class Client : MonoBehaviour
     private void OnData(int conId, int channel, int host, NetMsg msg) 
     {
         Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", conId, channel, host, msg.OP));
-
+        MessageProcessing messageProcessing = new MessageProcessing();
         //Here write what to do
-       switch (msg.OP) {
+        switch (msg.OP) {
         case NetOP.None:            
             break;
 
         case NetOP.AddPlayer:
-            OnNewPlayer((Net_AddPlayer)msg);
+                messageProcessing.OnNewPlayer((Net_AddPlayer)msg);
             break;
             
         case NetOP.LeavePlayer:
-            OnLeavePlayer((Net_LeavePlayer)msg);
+                messageProcessing.OnLeavePlayer((Net_LeavePlayer)msg);
             break;
 
         case NetOP.UpdateCardPlayer:
-            OnUpdatePlayer((Net_UpdateCardPlayer)msg);
+                messageProcessing.OnUpdatePlayer((Net_UpdateCardPlayer)msg);
             //make interface changes
             break;
 
@@ -147,7 +147,7 @@ public class Client : MonoBehaviour
     /*                   Every msg type working pattern below                  */
     /////////////////////////////////////////////////////////////////////////////
 
-    private void OnNewPlayer(Net_AddPlayer msg)
+    /*private void OnNewPlayer(Net_AddPlayer msg)
     {
         Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
     }
@@ -160,7 +160,7 @@ public class Client : MonoBehaviour
     private void OnUpdatePlayer(Net_UpdateCardPlayer msg)
     {
         Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
-    }
+    }*/
 
     /////////////////////////////////////////////////////////////////////////////
     /*                   Every msg type working pattern above                 */
@@ -169,17 +169,8 @@ public class Client : MonoBehaviour
     #endregion
 
     #region Send
-    public void SendServer(NetMsg msg) 
+    public void SendServer(byte[] buffer) 
     {
-        //Place to hold data
-        byte[] buffer = new byte[BYTE_SIZE];
-        
-        //Here you make byte array from your data
-        BinaryFormatter formatter = new BinaryFormatter();
-        MemoryStream ms = new MemoryStream(buffer);
-
-        formatter.Serialize(ms, msg);
-
         NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
     }
     #endregion

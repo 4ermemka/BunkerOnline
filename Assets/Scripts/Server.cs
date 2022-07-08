@@ -24,8 +24,11 @@ public class Server : MonoBehaviour
     private bool isStarted;
     private byte error;
 
+    MessageProcessing messageProcessing;
+
     private void Start() // При старте выполнить код ниже
     {
+        messageProcessing = new MessageProcessing(GM);
         DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
     }
@@ -105,17 +108,8 @@ public class Server : MonoBehaviour
     }
 
       #region Send
-    public void SendClient(int recHostId, int connectionId, NetMsg msg) 
+    public void SendClient(int recHostId, int connectionId, byte[] buffer) 
     {
-        //Place to hold data
-        byte[] buffer = new byte[BYTE_SIZE];
-        
-        //Here you make byte array from your data
-        BinaryFormatter formatter = new BinaryFormatter();
-        MemoryStream ms = new MemoryStream(buffer);
-
-        formatter.Serialize(ms, msg);
-
         if(recHostId == 0)
             NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
         else
@@ -127,23 +121,25 @@ public class Server : MonoBehaviour
     private void OnData(int conId, int channel, int host, NetMsg msg) 
     {
         Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", conId, channel, host, msg.OP));
-
         //Here write what to do
        switch (msg.OP) {
         case NetOP.None:            
             break;
 
         case NetOP.AddPlayer:
-            OnNewPlayer(conId, host, (Net_AddPlayer)msg);
-            break;
+                messageProcessing.OnNewPlayer(conId, host, (Net_AddPlayer)msg);
+                SendOther(conId, host, msg);
+                break;
             
         case NetOP.LeavePlayer:
-            OnLeavePlayer(conId, host, (Net_LeavePlayer)msg);
-            break;
+                messageProcessing.OnLeavePlayer(conId, host, (Net_LeavePlayer)msg);
+                SendOther(conId, host, msg);
+                break;
 
-        case NetOP.UpdateCardPlayer:   
-            OnUpdatePlayer(conId, host, (Net_UpdateCardPlayer)msg);
-            break;
+        case NetOP.UpdateCardPlayer:
+                messageProcessing.OnUpdatePlayer(conId, host, (Net_UpdateCardPlayer)msg);
+                SendOther(conId, host, msg);
+                break;
 
         case NetOP.CastCardPlayer:
             //Soon          
@@ -159,7 +155,7 @@ public class Server : MonoBehaviour
     /*                   Every msg type working pattern below                  */
     /////////////////////////////////////////////////////////////////////////////
 
-    private void OnNewPlayer(int conId, int host, Net_AddPlayer msg)
+    /*private void OnNewPlayer(int conId, int host, Net_AddPlayer msg)
     {
         GM.AddNewPlayer(msg.Username, conId);
         Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
@@ -178,19 +174,24 @@ public class Server : MonoBehaviour
         GM.UpdateInformation(msg.Username, conId, msg.NewCardsOnTable);
         Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
         SendOther(conId, host, msg);  
-    }
+    }*/
 
     /////////////////////////////////////////////////////////////////////////////
     /*                   Every msg type working pattern above                 */
     /////////////////////////////////////////////////////////////////////////////
 
-    private void SendOther(int conId, int host, NetMsg msg)
+    public void SendOther(int conId, int host, NetMsg msg)
     {
+        
         foreach (var i in ConnectedUsersId)
         {
-            if(i!=conId) SendClient(host, i, msg);
+            if (i != conId)
+            {
+                byte[] buffer = messageProcessing.MakeBuffer(msg);
+                SendClient(host, i, buffer);
+            }
             Debug.Log(string.Format("Sending msg about this to user {0}", i));
-        }    
+        }
     }
     #endregion
 }
