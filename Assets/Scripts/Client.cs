@@ -5,6 +5,8 @@ using UnityEngine.Networking;
 
 public class Client : MonoBehaviour
 {
+    private GameManager GM = new GameManager();
+
     private const int BYTE_SIZE = 1024;
 
     private const int MAX_USER = 100;
@@ -20,13 +22,13 @@ public class Client : MonoBehaviour
 
     private bool isStarted;
 
-    private void Start()
+    private void Start()// При старте выполнить код ниже
     {
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
     }
 
-    private void Update()
+    private void Update() // каждый кадр
     {
         UpdateMessagePump();
     }
@@ -65,7 +67,7 @@ public class Client : MonoBehaviour
         NetworkTransport.Shutdown();
     }
 
-    public void UpdateMessagePump() 
+    public void UpdateMessagePump() //ожидание и принятие сообщений
     {
         if(!isStarted) return;
 
@@ -89,6 +91,7 @@ public class Client : MonoBehaviour
             MemoryStream ms = new MemoryStream(recBuffer);
 
             NetMsg msg = (NetMsg)formatter.Deserialize(ms);
+
             OnData(connectionId, channelId, recHostId, msg);
             break;
 
@@ -111,24 +114,22 @@ public class Client : MonoBehaviour
     private void OnData(int conId, int channel, int host, NetMsg msg) 
     {
         Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", conId, channel, host, msg.OP));
-
+        MessageProcessing messageProcessing = new MessageProcessing();
         //Here write what to do
-       switch (msg.OP) {
+        switch (msg.OP) {
         case NetOP.None:            
             break;
 
         case NetOP.AddPlayer:
-            Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
-            //make interface changes
+                messageProcessing.OnNewPlayer((Net_AddPlayer)msg);
             break;
             
         case NetOP.LeavePlayer:
-            Debug.Log(string.Format("Player {0} is now paused.", msg.Username));
-            //make interface changes
+                messageProcessing.OnLeavePlayer((Net_LeavePlayer)msg);
             break;
 
         case NetOP.UpdateCardPlayer:
-            Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
+                messageProcessing.OnUpdatePlayer((Net_UpdateCardPlayer)msg);
             //make interface changes
             break;
 
@@ -141,20 +142,35 @@ public class Client : MonoBehaviour
             break;
        }
     }
+
+    /////////////////////////////////////////////////////////////////////////////
+    /*                   Every msg type working pattern below                  */
+    /////////////////////////////////////////////////////////////////////////////
+
+    /*private void OnNewPlayer(Net_AddPlayer msg)
+    {
+        Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
+    }
+
+    private void OnLeavePlayer(Net_LeavePlayer msg)
+    {
+        Debug.Log(string.Format("Player {0} is now paused.", msg.Username));
+    }
+
+    private void OnUpdatePlayer(Net_UpdateCardPlayer msg)
+    {
+        Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
+    }*/
+
+    /////////////////////////////////////////////////////////////////////////////
+    /*                   Every msg type working pattern above                 */
+    /////////////////////////////////////////////////////////////////////////////
+
     #endregion
 
     #region Send
-    public void SendServer(NetMsg msg) 
+    public void SendServer(byte[] buffer) 
     {
-        //Place to hold data
-        byte[] buffer = new byte[BYTE_SIZE];
-        
-        //Here you make byte array from your data
-        BinaryFormatter formatter = new BinaryFormatter();
-        MemoryStream ms = new MemoryStream(buffer);
-
-        formatter.Serialize(ms, msg);
-
         NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
     }
     #endregion
