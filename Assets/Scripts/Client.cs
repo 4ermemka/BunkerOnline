@@ -98,12 +98,8 @@ public class Client : MonoBehaviour
 
             case NetworkEventType.DataEvent:
             //Here we get data
-            BinaryFormatter formatter = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(recBuffer);
 
-            NetMsg msg = (NetMsg)formatter.Deserialize(ms);
-
-            OnData(msg);
+            OnData(recBuffer);
             break;
 
             case NetworkEventType.ConnectEvent:
@@ -122,35 +118,9 @@ public class Client : MonoBehaviour
     }
 
     #region OnData
-    private void OnData(NetMsg msg) 
+    private void OnData(byte[] buffer) 
     {
-        Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", msg.OP));
-        //Here write what to do
-        switch (msg.OP) {
-        case NetOP.None:            
-            break;
-
-        case NetOP.AddPlayer:
-                messageProcessing.OnNewPlayer((Net_AddPlayer)msg);
-            break;
-            
-        case NetOP.LeavePlayer:
-                messageProcessing.OnLeavePlayer((Net_LeavePlayer)msg);
-            break;
-
-        case NetOP.UpdateCardPlayer:
-                messageProcessing.OnUpdatePlayer((Net_UpdateCardPlayer)msg);
-            //make interface changes
-            break;
-
-        case NetOP.CastCardPlayer:
-            //Soon          
-            break;
-
-        default :
-            Debug.Log("Unexpected msg type!");
-            break;
-       }
+        messageProcessing.OnData(buffer);
     }
 
     #endregion
