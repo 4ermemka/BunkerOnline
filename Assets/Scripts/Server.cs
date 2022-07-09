@@ -87,12 +87,8 @@ public class Server : MonoBehaviour
 
             case NetworkEventType.DataEvent:
             //Here we get data
-        
-            BinaryFormatter formatter = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(recBuffer);
 
-            NetMsg msg = (NetMsg)formatter.Deserialize(ms);
-            OnData(connectionId, channelId, recHostId, msg);
+            OnData(connectionId, channelId, recHostId, recBuffer);
             break;
 
             case NetworkEventType.ConnectEvent:
@@ -123,49 +119,21 @@ public class Server : MonoBehaviour
     #endregion
 
     #region OnData
-    private void OnData(int conId, int channel, int host, NetMsg msg) 
+    private void OnData(int conId, int channel, int host, byte[] buffer) 
     {
-        Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", conId, channel, host, msg.OP));
+
         //Here write what to do
-       switch (msg.OP) {
-        case NetOP.None:            
-            break;
-
-        case NetOP.AddPlayer:
-                messageProcessing.OnNewPlayer(conId, host, (Net_AddPlayer)msg);
-                SendOther(conId, host, msg);
-                break;
-            
-        case NetOP.LeavePlayer:
-                messageProcessing.OnLeavePlayer(conId, host, (Net_LeavePlayer)msg);
-                SendOther(conId, host, msg);
-                break;
-
-        case NetOP.UpdateCardPlayer:
-                messageProcessing.OnUpdatePlayer(conId, host, (Net_UpdateCardPlayer)msg);
-                SendOther(conId, host, msg);
-                break;
-
-        case NetOP.CastCardPlayer:
-            //Soon          
-            break;
-
-        default :
-            Debug.Log("Unexpected msg type!");
-            break;
-       }
+        messageProcessing.OnData(conId, channel, host, buffer);
+        SendOther(conId, host, buffer);
     }
 
-    public void SendOther(int conId, int host, NetMsg msg)
+    public void SendOther(int conId, int host, byte[] buffer)
     {
         
         foreach (var i in ConnectedUsersId)
         {
             if (i != conId)
-            {
-                byte[] buffer = messageProcessing.MakeBuffer(msg);
                 SendClient(host, i, buffer);
-            }
             Debug.Log(string.Format("Sending msg about this to user {0}", i));
         }
     }
