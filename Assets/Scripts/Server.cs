@@ -7,7 +7,8 @@ using System.Collections.Generic;
 
 public class Server : MonoBehaviour
 {
-    private GameManager GM = new GameManager();
+    public GameManager GM;
+    public MessageProcessing messageProcessing;
 
     private List<int> ConnectedUsersId = new List<int>();
 
@@ -24,13 +25,17 @@ public class Server : MonoBehaviour
     private bool isStarted;
     private byte error;
 
-    MessageProcessing messageProcessing;
-
     private void Start() // При старте выполнить код ниже
     {
-        messageProcessing = new MessageProcessing(GM);
+        messageProcessing = new MessageProcessing();
         DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
+    }
+
+    public void SetGamemanager(GameManager gm)
+    {
+        GM = gm;
+        messageProcessing = new MessageProcessing(GM);
     }
 
     private void Update() //каждый кадр
@@ -150,35 +155,6 @@ public class Server : MonoBehaviour
             break;
        }
     }
-
-    /////////////////////////////////////////////////////////////////////////////
-    /*                   Every msg type working pattern below                  */
-    /////////////////////////////////////////////////////////////////////////////
-
-    /*private void OnNewPlayer(int conId, int host, Net_AddPlayer msg)
-    {
-        GM.AddNewPlayer(msg.Username, conId);
-        Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
-        SendOther(conId, host, msg);
-    }
-
-    private void OnLeavePlayer(int conId, int host,Net_LeavePlayer msg)
-    {
-        GM.PausePlayer(msg.Username, conId);
-        Debug.Log(string.Format("Player {0}, id: {1} is now inactive.", msg.Username, conId));
-        SendOther(conId, host, msg);
-    }
-
-    private void OnUpdatePlayer(int conId, int host, Net_UpdateCardPlayer msg)
-    {
-        GM.UpdateInformation(msg.Username, conId, msg.NewCardsOnTable);
-        Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
-        SendOther(conId, host, msg);  
-    }*/
-
-    /////////////////////////////////////////////////////////////////////////////
-    /*                   Every msg type working pattern above                 */
-    /////////////////////////////////////////////////////////////////////////////
 
     public void SendOther(int conId, int host, NetMsg msg)
     {
