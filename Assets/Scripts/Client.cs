@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
@@ -5,9 +6,17 @@ using UnityEngine.Networking;
 
 public class Client : MonoBehaviour
 {
-    public GameManager GM;
-
-    public MessageProcessing messageProcessing;
+    public event EventHandler<OnConnectEventArgs> OnConnect;
+    public event EventHandler OnDisconnect;
+    public event EventHandler<OnDataEventArgs> OnData;
+    public class OnConnectEventArgs:EventArgs
+    {
+        public int conId;
+    }
+    public class OnDataEventArgs:EventArgs
+    {
+        public  byte[] buffer;
+    }
 
     private const int BYTE_SIZE = 1024;
 
@@ -24,17 +33,9 @@ public class Client : MonoBehaviour
 
     private void Start()// При старте выполнить код ниже
     {
-        messageProcessing = new MessageProcessing();
         DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
     }
-
-    public void SetGamemanager(GameManager gm)
-    {
-        GM = gm;
-        messageProcessing = new MessageProcessing(GM);
-    }
-
 
     private void Update() // каждый кадр
     {
@@ -99,14 +100,16 @@ public class Client : MonoBehaviour
             case NetworkEventType.DataEvent:
             //Here we get data
 
-            OnData(recBuffer);
+            OnData?.Invoke(this, new OnDataEventArgs {buffer = recBuffer});
             break;
 
             case NetworkEventType.ConnectEvent:
+            OnConnect?.Invoke(this, new OnConnectEventArgs {conId = connectionId});
             Debug.Log("Connected to the server!");
             break;
 
             case NetworkEventType.DisconnectEvent:
+            OnDisconnect?.Invoke(this, EventArgs.Empty);
             Debug.Log("Disconnected from the server!");
             break;
 
@@ -117,18 +120,11 @@ public class Client : MonoBehaviour
         }
     }
 
-    #region OnData
-    private void OnData(byte[] buffer) 
-    {
-        messageProcessing.OnData(buffer);
-    }
-
-    #endregion
-
     #region Send
     public void SendServer(byte[] buffer) 
     {
         NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
+        Debug.Log("Sending msg...");
     }
     #endregion
 }

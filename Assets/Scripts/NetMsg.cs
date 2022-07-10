@@ -4,7 +4,8 @@ public static class NetOP
     public const int AddPlayer = 1;
     public const int LeavePlayer = 2;
     public const int UpdateCardPlayer = 3;
-    public const int CastCardPlayer = 4;
+    public const int AllPlayersInfo = 4;
+    public const int CastCardPlayer = 5;
 }
 
 [System.Serializable]

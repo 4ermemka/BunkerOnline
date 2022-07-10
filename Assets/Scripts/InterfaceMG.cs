@@ -33,6 +33,7 @@ public class InterfaceMG : MonoBehaviour
     [SerializeField] private InputField NicknameField;
     [SerializeField] private InputField ipAdressField;
     [SerializeField] private Text errMsg;
+    [SerializeField] public Text connectionStatusText;
 
     List<CanvasController> canvasControllerList;
     CanvasController lastActiveCanvas;
@@ -50,7 +51,7 @@ public class InterfaceMG : MonoBehaviour
     public void RefreshPlayerDisplay()
     {
         playerNickDisplay.text = player.name;
-        UpdatePlayerFromList(player.Id,player.name);
+        UpdatePlayerFromList(player.id,player.name);
     }
 
     public void SetInfo()
@@ -119,6 +120,7 @@ public class InterfaceMG : MonoBehaviour
     public void resetErrorMsg()
     {
         if(errMsg != null && player.name != "") errMsg.text = "";
+        connectionStatusText.text = "";
     }
 
     public void AddPlayerToList(string Nickname, int num, bool host)
@@ -168,14 +170,15 @@ public class InterfaceMG : MonoBehaviour
         if(ipAdressField.text != "")
         {
             string ip = ipAdressField.text;
+            connectionStatusText.text = "Connecting to " + ip.ToString() + "...";
             OnClickConnect?.Invoke(this, new OnClickConnectEventArgs {server_ip = ip});
         }
-        else errMsg.text = "Ip field is empty!";
+        else connectionStatusText.text = "Ip field is empty!";
     }
 
     public void OnHost()
     {
-        if(player.name!="") AddPlayerToList(player.name, player.Id, true);
+        if(player.name!="") AddPlayerToList(player.name, player.id, true);
         SwitchToLobby();
     }
 
