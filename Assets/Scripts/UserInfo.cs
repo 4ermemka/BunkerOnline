@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
 
-public class PlayerInfo:MonoBehaviour
+public class UserInfo:MonoBehaviour
 {
     public int num = 0;
     public bool isHost = false;

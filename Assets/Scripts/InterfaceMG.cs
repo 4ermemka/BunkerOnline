@@ -25,10 +25,10 @@ public class InterfaceMG : MonoBehaviour
         public string server_ip;
     }
 
-    private Player player;
+    private User user;
     [SerializeField] private GameManager gm;
-    [SerializeField] private Text playerNickDisplay;
-    [SerializeField] private GameObject playerInfo;
+    [SerializeField] private Text userNickDisplay;
+    [SerializeField] private GameObject userInfo;
     [SerializeField] private GameObject lobbyList;
     [SerializeField] private InputField NicknameField;
     [SerializeField] private InputField ipAdressField;
@@ -40,7 +40,7 @@ public class InterfaceMG : MonoBehaviour
 
     public void Start()
     {
-        player = new Player(0,"PLAYER");
+        user = new User(0,"PLAYER");
         canvasControllerList = GetComponentsInChildren<CanvasController>().ToList();
         canvasControllerList.ForEach(x => x.gameObject.SetActive(false));
         resetErrorMsg();
@@ -48,20 +48,20 @@ public class InterfaceMG : MonoBehaviour
     }
 
 
-    public void RefreshPlayerDisplay()
+    public void RefreshUserDisplay()
     {
-        playerNickDisplay.text = player.name;
-        UpdatePlayerFromList(player.id,player.name);
+        userNickDisplay.text = user.name;
+        UpdateUserFromList(user.id,user.name);
     }
 
     public void SetInfo()
     {
-        if(NicknameField.text != "") player.name = NicknameField.text;
+        if(NicknameField.text != "") user.name = NicknameField.text;
         else
         {
             errMsg.text = "Nickname is empty!";
         }
-        RefreshPlayerDisplay();
+        RefreshUserDisplay();
     }
 
     public void SwitchCanvas(CanvasType _type)
@@ -89,7 +89,7 @@ public class InterfaceMG : MonoBehaviour
 
     public void SwitchToLobby()
     {
-        if(player.name == "") 
+        if(user.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
@@ -104,7 +104,7 @@ public class InterfaceMG : MonoBehaviour
 
     public void SwitchToConnectionMenu()
     {
-        if(player.name == "") 
+        if(user.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
@@ -119,14 +119,14 @@ public class InterfaceMG : MonoBehaviour
     
     public void resetErrorMsg()
     {
-        if(errMsg != null && player.name != "") errMsg.text = "";
+        if(errMsg != null && user.name != "") errMsg.text = "";
         connectionStatusText.text = "";
     }
 
-    public void AddPlayerToList(string Nickname, int num, bool host)
+    public void AddUserToList(string Nickname, int num, bool host)
     {
-        GameObject connectedUser = Instantiate(playerInfo) as GameObject;
-        PlayerInfo temp = connectedUser.GetComponent<PlayerInfo>();
+        GameObject connectedUser = Instantiate(userInfo) as GameObject;
+        UserInfo temp = connectedUser.GetComponent<UserInfo>();
 
         temp.setNickname(Nickname);
         temp.toggleHost(host);
@@ -134,7 +134,7 @@ public class InterfaceMG : MonoBehaviour
         temp.setPanelToList(lobbyList);
     }
 
-    public void RemovePlayerFromList(int id)
+    public void RemoveUserFromList(int id)
     {
         List<GameObject> info = new List<GameObject>();
         foreach (Transform child in lobbyList.transform) 
@@ -142,12 +142,12 @@ public class InterfaceMG : MonoBehaviour
             info.Add(child.gameObject);
         }
 
-        GameObject deletingUser = info.Find(x => x.GetComponent<PlayerInfo>().num == id);
+        GameObject deletingUser = info.Find(x => x.GetComponent<UserInfo>().num == id);
         
         if(deletingUser!=null) Destroy(deletingUser);
         else Debug.Log("Err during deletion!");
     }
-    public void UpdatePlayerFromList(int id, string newNickname)
+    public void UpdateUserFromList(int id, string newNickname)
     {
         List<GameObject> info = new List<GameObject>();
         foreach (Transform child in lobbyList.transform) 
@@ -155,12 +155,12 @@ public class InterfaceMG : MonoBehaviour
             info.Add(child.gameObject);
         }
 
-        GameObject updatingUser = info.Find(x => x.GetComponent<PlayerInfo>().num == id);
+        GameObject updatingUser = info.Find(x => x.GetComponent<UserInfo>().num == id);
         
         if(updatingUser!=null) 
         {
-            updatingUser.GetComponent<PlayerInfo>().nickname = newNickname;
-            updatingUser.GetComponent<PlayerInfo>().setNickname(newNickname);
+            updatingUser.GetComponent<UserInfo>().nickname = newNickname;
+            updatingUser.GetComponent<UserInfo>().setNickname(newNickname);
         }
         else Debug.Log("Err during Updating!");
     }
@@ -178,7 +178,7 @@ public class InterfaceMG : MonoBehaviour
 
     public void OnHost()
     {
-        if(player.name!="") AddPlayerToList(player.name, player.id, true);
+        if(user.name!="") AddUserToList(user.name, user.id, true);
         SwitchToLobby();
     }
 
@@ -190,10 +190,10 @@ public class InterfaceMG : MonoBehaviour
             info.Add(child.gameObject);
         }
         
-        foreach(GameObject deletingPlayer in info) 
+        foreach(GameObject deletingUser in info) 
         {
-            Debug.Log(deletingPlayer.GetComponent<PlayerInfo>().num);
-            Destroy(deletingPlayer);
+            Debug.Log(deletingUser.GetComponent<UserInfo>().num);
+            Destroy(deletingUser);
         }
     }
     

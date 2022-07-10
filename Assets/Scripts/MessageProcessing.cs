@@ -59,17 +59,17 @@ public class MessageProcessing
             case NetOP.None:
                 break;
 
-            case NetOP.AddPlayer:
-                OnNewPlayer(e.conId, e.host, (Net_AddPlayer)msg);
+            case NetOP.AddUser:
+                OnNewUser(e.conId, e.host, (Net_AddUser)msg);
                 break;
 
-            case NetOP.LeavePlayer:
-                OnLeavePlayer(e.conId, e.host, (Net_LeavePlayer)msg);
+            case NetOP.LeaveUser:
+                OnLeaveUser(e.conId, e.host, (Net_LeaveUser)msg);
                 break;
 
-            case NetOP.UpdateCardPlayer:
+            /*case NetOP.UpdateCardPlayer:
                 OnUpdatePlayer(e.conId, e.host, (Net_UpdateCardPlayer)msg);
-                break;
+                break;*/
 
             case NetOP.CastCardPlayer:
                 //Soon          
@@ -81,23 +81,23 @@ public class MessageProcessing
         }
     }
       
-    private void OnNewPlayer(int conId, int host, Net_AddPlayer msg)
+    private void OnNewUser(int conId, int host, Net_AddUser msg)
     {
-        gameManager.AddNewPlayer(msg.Username, conId, false, string.Empty);
+        gameManager.AddNewUser(msg.Username, conId, false);
         Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
     }
 
-    private void OnLeavePlayer(int conId, int host, Net_LeavePlayer msg)
+    private void OnLeaveUser(int conId, int host, Net_LeaveUser msg)
     {
-        gameManager.PausePlayer(msg.Username, conId);
+        gameManager.PauseUser(msg.Username, conId);
         Debug.Log(string.Format("Player {0}, id: {1} is now inactive.", msg.Username, conId));
     }
 
-    private void OnUpdatePlayer(int conId, int host, Net_UpdateCardPlayer msg)
+    /*private void OnUpdatePlayer(int conId, int host, Net_UpdateCardPlayer msg)
     {
-        gameManager.UpdateInformation(msg.Username, conId, msg.NewCardsOnTable);
+        gameManager.UpdatePlayerInformation(msg.Username, conId, msg.NewCardsOnTable);
         Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
-    }
+    }*/
 
     /////////////////////////////////////////////////////////////////////////////
     /*                                CLIENT                                   */
@@ -113,12 +113,12 @@ public class MessageProcessing
             case NetOP.None:
                 break;
 
-            case NetOP.AddPlayer:
-                OnNewPlayer((Net_AddPlayer)msg);
+            case NetOP.AddUser:
+                OnNewUser((Net_AddUser)msg);
                 break;
 
-            case NetOP.LeavePlayer:
-                OnLeavePlayer((Net_LeavePlayer)msg);
+            case NetOP.LeaveUser:
+                OnLeaveUser((Net_LeaveUser)msg);
                 break;
 
             case NetOP.UpdateCardPlayer:
@@ -126,8 +126,8 @@ public class MessageProcessing
                 //make interface changes
                 break;
 
-            case NetOP.AllPlayersInfo:
-                SetListOfPlayers((Net_AllPlayerList)msg);
+            case NetOP.AllUsersInfo:
+                SetListOfUsers((Net_AllUserList)msg);
                 break;
 
             case NetOP.CastCardPlayer:
@@ -140,12 +140,12 @@ public class MessageProcessing
         }
     }
     
-    private void OnNewPlayer(Net_AddPlayer msg)
+    private void OnNewUser(Net_AddUser msg)
     {
         Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
     }
 
-    private void OnLeavePlayer(Net_LeavePlayer msg)
+    private void OnLeaveUser(Net_LeaveUser msg)
     {
         Debug.Log(string.Format("Player {0} is now paused.", msg.Username));
     }
@@ -155,11 +155,11 @@ public class MessageProcessing
         Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
     }
 
-    private void SetListOfPlayers(Net_AllPlayerList msg)
+    private void SetListOfUsers(Net_AllUserList msg)
     {
-        List<Player> newList = new List<Player>();
-        foreach (Player p in msg.players) newList.Add(p);
-        gameManager.UpdatePlayersList(newList);
+        List<User> newList = new List<User>();
+        foreach (User p in msg.users) newList.Add(p);
+        gameManager.UpdateUsersList(newList);
     }
 
 }

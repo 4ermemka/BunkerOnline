@@ -28,6 +28,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2735055341212496399}
   m_RootOrder: 2
@@ -107,6 +108,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2735055341212496399}
   m_RootOrder: 1
@@ -186,6 +188,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2735055341212496399}
   m_RootOrder: 0
@@ -248,7 +251,7 @@ GameObject:
   - component: {fileID: 2735055341212496399}
   - component: {fileID: 6245530513232061338}
   - component: {fileID: 6343892692356208846}
-  - component: {fileID: 7435255353892989333}
+  - component: {fileID: 3196395794771871806}
   m_Layer: 5
   m_Name: PlayerInfoPrefab
   m_TagString: Untagged
@@ -266,6 +269,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3742993973644484250}
   - {fileID: 2394942456474092118}
@@ -316,7 +320,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &7435255353892989333
+--- !u!114 &3196395794771871806
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -325,9 +329,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6296282613421308917}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 412c3c0c566a8f042b399c7019853bbd, type: 3}
+  m_Script: {fileID: 11500000, guid: e15e780eb4639f648a9d37e375b2f461, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   num: 0
   isHost: 0
-  nickname: 
+  nickname: /*default nick*/
