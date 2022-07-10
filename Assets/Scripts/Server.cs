@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
@@ -7,8 +8,21 @@ using System.Collections.Generic;
 
 public class Server : MonoBehaviour
 {
-    public GameManager GM;
-    public MessageProcessing messageProcessing;
+    public event EventHandler<OnConnectEventArgs> OnConnect;
+    public event EventHandler OnDisconnect;
+    public event EventHandler<OnDataEventArgs> OnData;
+    public class OnConnectEventArgs:EventArgs
+    {
+        public int conId;
+        public int host;
+    }
+    public class OnDataEventArgs:EventArgs
+    {
+        public int conId;
+        public int host;
+        public int channel;
+        public  byte[] buffer;
+    }
 
     private List<int> ConnectedUsersId = new List<int>();
 
@@ -27,15 +41,8 @@ public class Server : MonoBehaviour
 
     private void Start() // При старте выполнить код ниже
     {
-        messageProcessing = new MessageProcessing();
         DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
-    }
-
-    public void SetGamemanager(GameManager gm)
-    {
-        GM = gm;
-        messageProcessing = new MessageProcessing(GM);
     }
 
     private void Update() //каждый кадр
@@ -88,16 +95,25 @@ public class Server : MonoBehaviour
             case NetworkEventType.DataEvent:
             //Here we get data
 
-            OnData(connectionId, channelId, recHostId, recBuffer);
+            OnData?.Invoke(this, new OnDataEventArgs 
+            {buffer = recBuffer,
+            host = recHostId,
+            conId = connectionId,
+            channel = channelId
+            });
             break;
 
             case NetworkEventType.ConnectEvent:
             Debug.Log(string.Format("User {0} connected through port {1}!", connectionId, recHostId));
+
+            OnConnect?.Invoke(this, new OnConnectEventArgs {host = recHostId, conId = connectionId});
             ConnectedUsersId.Add(connectionId);
             break;
 
             case NetworkEventType.DisconnectEvent:
             Debug.Log(string.Format("User {0} disconnected!", connectionId));
+
+            OnDisconnect?.Invoke(this, EventArgs.Empty);
             ConnectedUsersId.Remove(connectionId);
             break;
 
@@ -108,7 +124,7 @@ public class Server : MonoBehaviour
         }
     }
 
-      #region Send
+    #region Send
     public void SendClient(int recHostId, int connectionId, byte[] buffer) 
     {
         if(recHostId == 0)
@@ -116,24 +132,12 @@ public class Server : MonoBehaviour
         else
             NetworkTransport.Send(webHostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
     }
-    #endregion
-
-    #region OnData
-    private void OnData(int conId, int channel, int host, byte[] buffer) 
-    {
-
-        //Here write what to do
-        messageProcessing.OnData(conId, channel, host, buffer);
-        SendOther(conId, host, buffer);
-    }
 
     public void SendOther(int conId, int host, byte[] buffer)
     {
-        
         foreach (var i in ConnectedUsersId)
         {
-            if (i != conId)
-                SendClient(host, i, buffer);
+            if (i != conId) SendClient(host, i, buffer);
             Debug.Log(string.Format("Sending msg about this to user {0}", i));
         }
     }

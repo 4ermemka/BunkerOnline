@@ -3,39 +3,51 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Text;
 
-public enum Events 
+public enum CurrentStage 
 {
     Turn,
     Voting,
     Kick
 }
 
+public enum CurrentNetState
+{
+    None,
+    Server,
+    Client
+}
+
+[Serializable]
 public class Player
 {
-    public bool IsActive;
-    public int Id;
+    public bool isHost;
+    public bool isActive;
+    public int id;
     public string name;
     public string[] cards;
 
     public Player()
     {
-        this.IsActive = true;
-        this.Id = 0;
-        this.name = "PLAYER";
-        this.cards = null;
+        isHost = false;
+        isActive = true;
+        id = 0;
+        name = "PLAYER";
+        cards = new string[10];
     }
 
     public Player(int id, string name)
     {
-        this.IsActive = true;
-        this.Id = id;
+        this.isHost = false;
+        this.isActive = true;
+        this.id = id;
         this.name = name;
-        this.cards = null;
+        this.cards = new string[10];
     }
-    public Player(int id, string name, string[] cards)
+    public Player(int id, string name, bool host,string[] cards)
     {
-        this.IsActive = true;
-        this.Id = id;
+        this.isHost = host;
+        this.isActive = true;
+        this.id = id;
         this.name = name;
         this.cards = cards;
     }
@@ -47,16 +59,19 @@ public class Player
     {
         this.cards = cards;
     }
-    public void SetStatus(bool IsActive)
+    public void SetStatus(bool isActive)
     {
-        this.IsActive = IsActive;
+        this.isActive = isActive;
     }
 }
 
 public class GameManager : MonoBehaviour
 {
+    private CurrentNetState netState = CurrentNetState.None;
     [SerializeField] private Server serverPref;
     [SerializeField] private Client clientPref;
+
+    private MessageProcessing messageProcessing;
 
     private Server server;
     private Client client;
@@ -70,41 +85,85 @@ public class GameManager : MonoBehaviour
     {
         player = new Player();
         connectedList = new List<Player>();
+        messageProcessing = new MessageProcessing(this);
+
         interfaceMG.OnClickConnect += GameManager_ConnectPressed;
         interfaceMG.OnChooseClient += GameManager_StartClient;
         interfaceMG.OnChooseServer += GameManager_StartServer;
         interfaceMG.OnReturnToMenu += GameManager_DeleteNetworkObjects;
     }
 
-    public void AddNewPlayer(string name, int conID)
+    public void OnServerConnection(object sender, Client.OnConnectEventArgs e)
     {
-        int countconnectedList = connectedList.Count;
-        countconnectedList++;
-        Player newPlayer = new Player(countconnectedList, name);
-        connectedList.Add(newPlayer);
-        interfaceMG.AddPlayerToList(name, conID, false);
+        interfaceMG.connectionStatusText.text = "Connected!";
+        Net_AddPlayer msg = new Net_AddPlayer();
+        msg.Username = player.name;
+        msg.OpenedCards = Encryption(player.cards);
+
+        byte[] buffer = messageProcessing.MakeBuffer(msg);
+
+        client.SendServer(buffer);
     }
 
-    public void AddNewPlayer(string name, int conID, string cardsOld)
+    public void OnClientConnection(object sender, Server.OnConnectEventArgs e)
+    {
+        Net_AllPlayerList msg = new Net_AllPlayerList();
+        msg.players = connectedList.ToArray();
+
+        byte[] buffer = messageProcessing.MakeBuffer(msg);
+
+        server.SendClient(e.host, e.conId, buffer);
+    }
+
+    public void AddNewPlayer(string name, int conId)
+    {
+        Player newPlayer = new Player(conId, name);
+        connectedList.Add(newPlayer);
+
+        UpdateLobby();
+    }
+
+    public void AddNewPlayer(string name, int conId, bool host, string cardsOld)
     {
         string[] cards;
         cards = Decryption(cardsOld);
-        Player newPlayer = new Player(conID, name, cards);
-        interfaceMG.AddPlayerToList(name, conID, false);
+        Player newPlayer = new Player(conId, name, host, cards);
         connectedList.Add(newPlayer);
+
+        UpdateLobby();
     }
 
-    public void PausePlayer(string name, int conID)
+    public void CloseLobby()
+    {
+        connectedList.Clear();
+        UpdateLobby();
+    }
+
+    public void PausePlayer(string name, int conId)
     {
         //pause code
     }
 
-    private bool IsEmpty(int id)
+    public void UpdatePlayersList(List<Player> newList)
+    {
+        connectedList = newList;
+        UpdateLobby();
+        interfaceMG.SwitchToLobby();
+        Debug.Log("List was updated!");
+    }
+
+    private void UpdateLobby()
+    {
+        for(int i = 0; i < connectedList.Count; i++) 
+            interfaceMG.AddPlayerToList(connectedList[i].name, i+1, connectedList[i].isHost);
+    }
+
+    private bool IsEmpty(string[] cards)
     {
         bool flag = false; int i;
-        for (i = 0; i < connectedList[id].cards.Length; i++)
-            if (connectedList[id].cards[i] == string.Empty) flag = true;
-        if (!flag && connectedList[id].name == string.Empty)
+        for (i = 0; i < cards.Length; i++)
+            if (cards[i] == string.Empty) flag = true;
+        if (!flag && name == string.Empty)
             return true;
         else return false;
     }
@@ -113,7 +172,7 @@ public class GameManager : MonoBehaviour
     {
         string[] cards;
         cards = Decryption(cardsNew);
-        if (conId < connectedList.Count && !IsEmpty(conId))
+        if (conId < connectedList.Count && !IsEmpty(connectedList[conId].cards))
         {
             connectedList[conId].SetName(name);
             connectedList[conId].SetCards(cards);
@@ -122,11 +181,12 @@ public class GameManager : MonoBehaviour
         else return false;
     }
 
-    public string Encryption(int id)
+    public string Encryption(string[] cards)
     {
-        string en_cards = ""; int i;
-        for (i = 0; i < connectedList[id].cards.Length; i++)
-            en_cards = en_cards + connectedList[id].cards[i] + ";";
+        string en_cards = ""; 
+        int i;
+        for (i = 0; i < cards.Length; i++)
+            en_cards = en_cards + cards[i] + ";";
         return en_cards;
     }
 
@@ -164,11 +224,17 @@ public class GameManager : MonoBehaviour
     public void GameManager_StartServer(object sender, EventArgs e)
     {
         server = Instantiate(serverPref);
+        server.OnData += messageProcessing.OnData;
+        server.OnConnect += OnClientConnection;
+        netState = CurrentNetState.Server;
     }
 
     public void GameManager_StartClient(object sender, EventArgs e)
     {
         client = Instantiate(clientPref);
+        client.OnData += messageProcessing.OnData;
+        client.OnConnect += OnServerConnection;
+        netState = CurrentNetState.Client;
     }
 
     public void GameManager_DeleteNetworkObjects(object sender, EventArgs e)
@@ -176,13 +242,16 @@ public class GameManager : MonoBehaviour
         if(server!=null) 
         {
             server.Shutdown();
+            server.OnData -= messageProcessing.OnData;
             Destroy(server.gameObject);
         }
         if(client!=null) 
         {
             client.Shutdown();
+            client.OnData -= messageProcessing.OnData;
             Destroy(client.gameObject);
         }
+        netState = CurrentNetState.None;
     }
 
 }
