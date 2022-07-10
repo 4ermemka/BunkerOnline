@@ -1,10 +1,10 @@
 public static class NetOP
 {
     public const int None = 0;
-    public const int AddPlayer = 1;
-    public const int LeavePlayer = 2;
+    public const int AddUser = 1;
+    public const int LeaveUser = 2;
     public const int UpdateCardPlayer = 3;
-    public const int AllPlayersInfo = 4;
+    public const int AllUsersInfo = 4;
     public const int CastCardPlayer = 5;
 }
 

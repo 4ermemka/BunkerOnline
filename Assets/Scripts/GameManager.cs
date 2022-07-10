@@ -17,44 +17,81 @@ public enum CurrentNetState
     Client
 }
 
+
 [Serializable]
-public class Player
+public class User
 {
     public bool isHost;
-    public bool isActive;
     public int id;
     public string name;
-    public string[] cards;
+    public bool isReady;
 
-    public Player()
+    public User()
     {
         isHost = false;
-        isActive = true;
         id = 0;
         name = "PLAYER";
-        cards = new string[10];
+        isReady = false;
     }
 
-    public Player(int id, string name)
+    public User(int id, string name)
     {
         this.isHost = false;
-        this.isActive = true;
         this.id = id;
         this.name = name;
-        this.cards = new string[10];
+        isReady = false;
     }
-    public Player(int id, string name, bool host,string[] cards)
+
+    public User(int id, string name, bool host)
     {
         this.isHost = host;
-        this.isActive = true;
         this.id = id;
         this.name = name;
-        this.cards = cards;
+        isReady = false;
     }
+
     public void SetName(string name)
     {
         this.name = name;
     }
+
+    public void SetId(int id)
+    {
+        this.id = id;
+    }
+
+    public void ToggleHost(bool host)
+    {
+        this.isHost = host;
+    }
+}
+
+[Serializable]
+public class Player : User
+{
+    public bool isActive;
+    public string[] cards;
+
+    public Player() : base() 
+    {
+        isActive = true;
+        cards = new string[10];
+    }
+
+    public Player(int id, string name) : base(id, name)
+    {
+        this.isActive = true;
+        this.cards = new string[10];
+    }
+
+    public Player(int id, string name, bool host,string[] cards) : base(id, name, host)
+    {
+        this.isActive = true;
+        this.cards = cards;
+    }
+
+    //public static implicit operator Player(User user) => new Player (user.id, user.name);
+
     public void SetCards(string[] cards)
     {
         this.cards = cards;
@@ -76,15 +113,15 @@ public class GameManager : MonoBehaviour
     private Server server;
     private Client client;
 
-    private Player player; 
-    private List<Player> connectedList;
+    private User user; 
+    private List<User> connectedList;
 
     [SerializeField] private InterfaceMG interfaceMG;
 
     public void Start()
     {
-        player = new Player();
-        connectedList = new List<Player>();
+        user = new User();
+        connectedList = new List<User>();
         messageProcessing = new MessageProcessing(this);
 
         interfaceMG.OnClickConnect += GameManager_ConnectPressed;
@@ -96,9 +133,8 @@ public class GameManager : MonoBehaviour
     public void OnServerConnection(object sender, Client.OnConnectEventArgs e)
     {
         interfaceMG.connectionStatusText.text = "Connected!";
-        Net_AddPlayer msg = new Net_AddPlayer();
-        msg.Username = player.name;
-        msg.OpenedCards = Encryption(player.cards);
+        Net_AddUser msg = new Net_AddUser();
+        msg.Username = user.name;
 
         byte[] buffer = messageProcessing.MakeBuffer(msg);
 
@@ -107,28 +143,26 @@ public class GameManager : MonoBehaviour
 
     public void OnClientConnection(object sender, Server.OnConnectEventArgs e)
     {
-        Net_AllPlayerList msg = new Net_AllPlayerList();
-        msg.players = connectedList.ToArray();
+        Net_AllUserList msg = new Net_AllUserList();
+        msg.users = connectedList.ToArray();
 
         byte[] buffer = messageProcessing.MakeBuffer(msg);
 
         server.SendClient(e.host, e.conId, buffer);
     }
 
-    public void AddNewPlayer(string name, int conId)
+    public void AddNewUser(string name, int conId)
     {
-        Player newPlayer = new Player(conId, name);
-        connectedList.Add(newPlayer);
+        User newUser = new User(conId, name);
+        connectedList.Add(newUser);
 
         UpdateLobby();
     }
 
-    public void AddNewPlayer(string name, int conId, bool host, string cardsOld)
+    public void AddNewUser(string name, int conId, bool host)
     {
-        string[] cards;
-        cards = Decryption(cardsOld);
-        Player newPlayer = new Player(conId, name, host, cards);
-        connectedList.Add(newPlayer);
+        User newUser = new User(conId, name, host);
+        connectedList.Add(newUser);
 
         UpdateLobby();
     }
@@ -139,12 +173,12 @@ public class GameManager : MonoBehaviour
         UpdateLobby();
     }
 
-    public void PausePlayer(string name, int conId)
+    public void PauseUser(string name, int conId)
     {
         //pause code
     }
 
-    public void UpdatePlayersList(List<Player> newList)
+    public void UpdateUsersList(List<User> newList)
     {
         connectedList = newList;
         UpdateLobby();
@@ -155,7 +189,7 @@ public class GameManager : MonoBehaviour
     private void UpdateLobby()
     {
         for(int i = 0; i < connectedList.Count; i++) 
-            interfaceMG.AddPlayerToList(connectedList[i].name, i+1, connectedList[i].isHost);
+            interfaceMG.AddUserToList(connectedList[i].name, i+1, connectedList[i].isHost);
     }
 
     private bool IsEmpty(string[] cards)
@@ -168,7 +202,7 @@ public class GameManager : MonoBehaviour
         else return false;
     }
 
-    public bool UpdateInformation(string name, int conId, string cardsNew)
+    /*public bool UpdatePlayerInformation(string name, int conId, string cardsNew)
     {
         string[] cards;
         cards = Decryption(cardsNew);
@@ -179,7 +213,7 @@ public class GameManager : MonoBehaviour
             return true;
         }
         else return false;
-    }
+    }*/
 
     public string Encryption(string[] cards)
     {
