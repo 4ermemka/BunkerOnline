@@ -1,19 +1,66 @@
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Collections.Generic;
+
+public class ConnectionInfo
+    {
+        private int connectionId;
+        private int hostId;
+
+        public void SetConnectionId(int id)
+        {
+                connectionId = id;
+        }
+        public void SetHostId(int hostId)
+        {
+                this.hostId = hostId;
+        }
+        public int GetConnectionId() {return connectionId;}
+        public int GetHostId() {return hostId;}
+    }
 
 public class Server : MonoBehaviour
 {
-    private GameManagerClass GM = new GameManagerClass();
+    #region ServerEvents
 
-    private List<int> ConnectedUsersId = new List<int>();
+    public event EventHandler<OnConnectEventArgs> OnConnect;
+    public event EventHandler<OnDisconnectEventArgs> OnDisconnect;
+    public event EventHandler<OnDataEventArgs> OnData;
+    public class OnConnectEventArgs:EventArgs
+    {
+        public int conId;
+        public int host;
+    }
+    public class OnDisconnectEventArgs:EventArgs
+    {
+        public int conId;
+        public int host;
+    }
+    public class OnDataEventArgs:EventArgs
+    {
+        public int conId;
+        public int host;
+        public int channel;
+        public  byte[] buffer;
+    }
+
+    #endregion
+
+    #region ServerConsts
 
     private const int BYTE_SIZE = 1024;
-
     private const int MAX_USER = 100;
     private const int PORT = 28120;
     private const int WEB_PORT = 28121;
+
+    #endregion
+
+    #region ServerVars
+
+    private List<ConnectionInfo> connectedUsersList = new List<ConnectionInfo>();
 
     private byte reliableChannel;
     private int hostId;
@@ -22,20 +69,20 @@ public class Server : MonoBehaviour
     private bool isStarted;
     private byte error;
 
-    private void Start()
+    #endregion
+
+    #region ServerStartAndShut
+
+    private void Start() // При старте выполнить код ниже
     {
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
     }
-
-    private void Update()
-    {
-        UpdateMessagePump();
-    }
-
-    public void Init()
+    
+    private void Init() // стартануть сервер
     {
         NetworkTransport.Init();
+
         ConnectionConfig cc = new ConnectionConfig();
         reliableChannel = cc.AddChannel(QosType.Reliable);
 
@@ -56,7 +103,16 @@ public class Server : MonoBehaviour
         NetworkTransport.Shutdown();
     }
 
-    public void UpdateMessagePump() 
+    #endregion
+
+    #region ServerNetworking
+
+    private void Update() //каждый кадр
+    {
+        UpdateMessagePump();
+    }
+
+    public void UpdateMessagePump() //ожидание и принятие сообщений
     {
         if(!isStarted) return;
 
@@ -76,22 +132,33 @@ public class Server : MonoBehaviour
 
             case NetworkEventType.DataEvent:
             //Here we get data
-        
-            BinaryFormatter formatter = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(recBuffer);
 
-            NetMsg msg = (NetMsg)formatter.Deserialize(ms);
-            OnData(connectionId, channelId, recHostId, msg);
+            OnData?.Invoke(this, new OnDataEventArgs 
+            {buffer = recBuffer,
+            host = recHostId,
+            conId = connectionId,
+            channel = channelId
+            });
             break;
 
             case NetworkEventType.ConnectEvent:
             Debug.Log(string.Format("User {0} connected through port {1}!", connectionId, recHostId));
-            ConnectedUsersId.Add(connectionId);
+
+            ConnectionInfo newConnection = new ConnectionInfo();
+            newConnection.SetHostId(recHostId);
+            newConnection.SetConnectionId(connectionId);
+
+            OnConnect?.Invoke(this, new OnConnectEventArgs {host = recHostId, conId = connectionId});
+            connectedUsersList.Add(newConnection);
             break;
 
             case NetworkEventType.DisconnectEvent:
             Debug.Log(string.Format("User {0} disconnected!", connectionId));
-            ConnectedUsersId.Remove(connectionId);
+
+            OnDisconnect?.Invoke(this, new OnDisconnectEventArgs {conId = connectionId, host = recHostId});
+
+            ConnectionInfo deletingConnection = connectedUsersList.Find(x => x.GetConnectionId() == connectionId);
+            if(deletingConnection!=null) connectedUsersList.Remove(deletingConnection);
             break;
 
             default:
@@ -101,70 +168,33 @@ public class Server : MonoBehaviour
         }
     }
 
-      #region Send
-    public void SendClient(int recHostId, int connectionId, NetMsg msg) 
+    #endregion
+
+    #region ServerSendMethods
+    public void SendClient(int recHostId, int connectionId, byte[] buffer) 
     {
-        //Place to hold data
-        byte[] buffer = new byte[BYTE_SIZE];
-        
-        //Here you make byte array from your data
-        BinaryFormatter formatter = new BinaryFormatter();
-        MemoryStream ms = new MemoryStream(buffer);
-
-        formatter.Serialize(ms, msg);
-
         if(recHostId == 0)
             NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
         else
             NetworkTransport.Send(webHostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
     }
-    #endregion
 
-    #region OnData
-    private void OnData(int conId, int channel, int host, NetMsg msg) 
+    public void SendOther(int conId, int host, byte[] buffer)
     {
-        Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", conId, channel, host, msg.OP));
-
-        //Here write what to do
-       switch (msg.OP) {
-        case NetOP.None:            
-            break;
-
-        case NetOP.AddPlayer:
-            GM.AddNewPlayer(msg.Username, conId);
-            Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
-            SendOther(conId, host, msg);
-            break;
-            
-        case NetOP.LeavePlayer:
-            GM.PausePlayer(msg.Username, conId);
-            Debug.Log(string.Format("Player {0}, id: {1} is now inactive.", msg.Username, conId));
-            SendOther(conId, host, msg);
-            break;
-
-        case NetOP.UpdateCardPlayer:   
-            GM.UpdateInformation(msg.Username, conId, msg.NewCardsOnTable);
-            Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
-            SendOther(conId, host, msg);    
-            break;
-
-        case NetOP.CastCardPlayer:
-            //Soon          
-            break;
-
-        default :
-            Debug.Log("Unexpected msg type!");
-            break;
-       }
+        foreach (var i in connectedUsersList)
+        {
+            if (i.GetConnectionId() != conId) SendClient(i.GetHostId(), i.GetConnectionId(), buffer);
+            Debug.Log(string.Format("Sending msg about this to user {0}", i.GetConnectionId()));
+        }
     }
 
-    private void SendOther(int conId, int host, NetMsg msg)
+    public void SendOther(byte[] buffer)
     {
-        for(int i = 0; i < ConnectedUsersId.Length; i++) 
-            {
-                if(ConnectedUsersId[i]!=conId) SendClient(host, ConnectedUsersId[i], msg) 
-                Debug.Log(string.Format("Sending msg about this to user {0}", ConnectedUsersId[i]));
-            }    
+        foreach (var i in connectedUsersList)
+        {
+            SendClient(i.GetHostId(), i.GetConnectionId(), buffer);
+            Debug.Log(string.Format("Sending msg about this to user {0}", i.GetConnectionId()));
+        }
     }
     #endregion
 }

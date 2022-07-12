@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
@@ -5,30 +6,50 @@ using UnityEngine.Networking;
 
 public class Client : MonoBehaviour
 {
-    private const int BYTE_SIZE = 1024;
+    #region ClientEvents
 
+    public event EventHandler<OnConnectEventArgs> OnConnect;
+    public event EventHandler OnDisconnect;
+    public event EventHandler<OnDataEventArgs> OnData;
+    public class OnConnectEventArgs:EventArgs
+    {
+        public int conId;
+        public int hostId;
+    }
+    public class OnDataEventArgs:EventArgs
+    {
+        public int conId;
+        public int hostId;
+        public  byte[] buffer;
+    }
+
+    #endregion
+
+    #region ClientConsts
+
+    private const int BYTE_SIZE = 1024;
     private const int MAX_USER = 100;
     private const int PORT = 28120;
     private const int WEB_PORT = 28121;
 
-    private const string SERVER_IP = "127.0.0.1";
+    #endregion
+
+    #region ClientVars
 
     private byte reliableChannel;
     private int connectionId; 
     private int hostId;
     private byte error;
-
     private bool isStarted;
 
-    private void Start()
-    {
-        DontDestroyOnLoad(gameObject);
-        Init();
-    }
+    #endregion
 
-    private void Update()
+    #region ClientStartAndShut
+
+    private void Start()// При старте выполнить код ниже
     {
-        UpdateMessagePump();
+        DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
+        Init();
     }
 
     public void Init()
@@ -43,29 +64,43 @@ public class Client : MonoBehaviour
         //CLIENT ONLY FROM HERE
 
         hostId = NetworkTransport.AddHost(topo, 0);
+    }
 
-#if UNITY_WEBGL && !UNITY_EDITOR
+    public void Shutdown() 
+    {
+        isStarted = false;
+        NetworkTransport.Shutdown();
+    }
+
+    #endregion
+
+    #region ClientNetworking
+
+    public void Connect(string SERVER_IP)
+    {
+        #if UNITY_WEBGL && !UNITY_EDITOR
         //web client
         connectionId = NetworkTransport.Connect(hostId, SERVER_IP, WEB_PORT, 0, out error);
         Debug.Log("Web connection");
-#else
+        #else
         //standalone client
         connectionId = NetworkTransport.Connect(hostId, SERVER_IP, PORT, 0, out error);
         Debug.Log("Standalone connection");
-#endif
+
+        Debug.Log("My connection id is " + connectionId);
+        #endif
 
         Debug.Log(string.Format("Connecting to {0}...", SERVER_IP));
 
         isStarted = true;
     }
 
-    public void  Shutdown() 
+    private void Update() // каждый кадр
     {
-        isStarted = false;
-        NetworkTransport.Shutdown();
+        UpdateMessagePump();
     }
 
-    public void UpdateMessagePump() 
+    public void UpdateMessagePump() //ожидание и принятие сообщений
     {
         if(!isStarted) return;
 
@@ -85,18 +120,17 @@ public class Client : MonoBehaviour
 
             case NetworkEventType.DataEvent:
             //Here we get data
-            BinaryFormatter formatter = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(recBuffer);
 
-            NetMsg msg = (NetMsg)formatter.Deserialize(ms);
-            OnData(connectionId, channelId, recHostId, msg);
+            OnData?.Invoke(this, new OnDataEventArgs {buffer = recBuffer});
             break;
 
             case NetworkEventType.ConnectEvent:
+            OnConnect?.Invoke(this, new OnConnectEventArgs {conId = connectionId, hostId = recHostId});
             Debug.Log("Connected to the server!");
             break;
 
             case NetworkEventType.DisconnectEvent:
+            OnDisconnect?.Invoke(this, EventArgs.Empty);
             Debug.Log("Disconnected from the server!");
             break;
 
@@ -107,55 +141,15 @@ public class Client : MonoBehaviour
         }
     }
 
-    #region OnData
-    private void OnData(int conId, int channel, int host, NetMsg msg) 
-    {
-        Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", conId, channel, host, msg.OP));
-
-        //Here write what to do
-       switch (msg.OP) {
-        case NetOP.None:            
-            break;
-
-        case NetOP.AddPlayer:
-            Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
-            //make interface changes
-            break;
-            
-        case NetOP.LeavePlayer:
-            Debug.Log(string.Format("Player {0} is now paused.", msg.Username));
-            //make interface changes
-            break;
-
-        case NetOP.UpdateCardPlayer:
-            Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
-            //make interface changes
-            break;
-
-        case NetOP.CastCardPlayer:
-            //Soon          
-            break;
-
-        default :
-            Debug.Log("Unexpected msg type!");
-            break;
-       }
-    }
     #endregion
 
-    #region Send
-    public void SendServer(NetMsg msg) 
+    #region ClientSendMethod
+    
+    public void SendServer(byte[] buffer) 
     {
-        //Place to hold data
-        byte[] buffer = new byte[BYTE_SIZE];
-        
-        //Here you make byte array from your data
-        BinaryFormatter formatter = new BinaryFormatter();
-        MemoryStream ms = new MemoryStream(buffer);
-
-        formatter.Serialize(ms, msg);
-
         NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
+        Debug.Log("Sending msg...");
     }
+    
     #endregion
 }
