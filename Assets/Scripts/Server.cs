@@ -3,15 +3,38 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
-
 using System.Collections.Generic;
+
+public class ConnectionInfo
+    {
+        private int connectionId;
+        private int hostId;
+
+        public void SetConnectionId(int id)
+        {
+                connectionId = id;
+        }
+        public void SetHostId(int hostId)
+        {
+                this.hostId = hostId;
+        }
+        public int GetConnectionId() {return connectionId;}
+        public int GetHostId() {return hostId;}
+    }
 
 public class Server : MonoBehaviour
 {
+    #region ServerEvents
+
     public event EventHandler<OnConnectEventArgs> OnConnect;
-    public event EventHandler OnDisconnect;
+    public event EventHandler<OnDisconnectEventArgs> OnDisconnect;
     public event EventHandler<OnDataEventArgs> OnData;
     public class OnConnectEventArgs:EventArgs
+    {
+        public int conId;
+        public int host;
+    }
+    public class OnDisconnectEventArgs:EventArgs
     {
         public int conId;
         public int host;
@@ -24,13 +47,20 @@ public class Server : MonoBehaviour
         public  byte[] buffer;
     }
 
-    private List<int> ConnectedUsersId = new List<int>();
+    #endregion
+
+    #region ServerConsts
 
     private const int BYTE_SIZE = 1024;
-
     private const int MAX_USER = 100;
     private const int PORT = 28120;
     private const int WEB_PORT = 28121;
+
+    #endregion
+
+    #region ServerVars
+
+    private List<ConnectionInfo> connectedUsersList = new List<ConnectionInfo>();
 
     private byte reliableChannel;
     private int hostId;
@@ -39,17 +69,16 @@ public class Server : MonoBehaviour
     private bool isStarted;
     private byte error;
 
+    #endregion
+
+    #region ServerStartAndShut
+
     private void Start() // При старте выполнить код ниже
     {
         DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
     }
-
-    private void Update() //каждый кадр
-    {
-        UpdateMessagePump();
-    }
-
+    
     private void Init() // стартануть сервер
     {
         NetworkTransport.Init();
@@ -72,6 +101,15 @@ public class Server : MonoBehaviour
     {
         isStarted = false;
         NetworkTransport.Shutdown();
+    }
+
+    #endregion
+
+    #region ServerNetworking
+
+    private void Update() //каждый кадр
+    {
+        UpdateMessagePump();
     }
 
     public void UpdateMessagePump() //ожидание и принятие сообщений
@@ -106,15 +144,21 @@ public class Server : MonoBehaviour
             case NetworkEventType.ConnectEvent:
             Debug.Log(string.Format("User {0} connected through port {1}!", connectionId, recHostId));
 
+            ConnectionInfo newConnection = new ConnectionInfo();
+            newConnection.SetHostId(recHostId);
+            newConnection.SetConnectionId(connectionId);
+
             OnConnect?.Invoke(this, new OnConnectEventArgs {host = recHostId, conId = connectionId});
-            ConnectedUsersId.Add(connectionId);
+            connectedUsersList.Add(newConnection);
             break;
 
             case NetworkEventType.DisconnectEvent:
             Debug.Log(string.Format("User {0} disconnected!", connectionId));
 
-            OnDisconnect?.Invoke(this, EventArgs.Empty);
-            ConnectedUsersId.Remove(connectionId);
+            OnDisconnect?.Invoke(this, new OnDisconnectEventArgs {conId = connectionId, host = recHostId});
+
+            ConnectionInfo deletingConnection = connectedUsersList.Find(x => x.GetConnectionId() == connectionId);
+            if(deletingConnection!=null) connectedUsersList.Remove(deletingConnection);
             break;
 
             default:
@@ -124,7 +168,9 @@ public class Server : MonoBehaviour
         }
     }
 
-    #region Send
+    #endregion
+
+    #region ServerSendMethods
     public void SendClient(int recHostId, int connectionId, byte[] buffer) 
     {
         if(recHostId == 0)
@@ -135,10 +181,19 @@ public class Server : MonoBehaviour
 
     public void SendOther(int conId, int host, byte[] buffer)
     {
-        foreach (var i in ConnectedUsersId)
+        foreach (var i in connectedUsersList)
         {
-            if (i != conId) SendClient(host, i, buffer);
-            Debug.Log(string.Format("Sending msg about this to user {0}", i));
+            if (i.GetConnectionId() != conId) SendClient(i.GetHostId(), i.GetConnectionId(), buffer);
+            Debug.Log(string.Format("Sending msg about this to user {0}", i.GetConnectionId()));
+        }
+    }
+
+    public void SendOther(byte[] buffer)
+    {
+        foreach (var i in connectedUsersList)
+        {
+            SendClient(i.GetHostId(), i.GetConnectionId(), buffer);
+            Debug.Log(string.Format("Sending msg about this to user {0}", i.GetConnectionId()));
         }
     }
     #endregion
