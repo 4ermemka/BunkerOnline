@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class UserInfo:MonoBehaviour
 {
+    public int id = 0;
     public int num = 0;
     public bool isHost = false;
     public string nickname = "/*default nick*/";
@@ -19,6 +20,11 @@ public class UserInfo:MonoBehaviour
         hostStatus = GetComponentsInChildren<Text>()[2];
     }
 
+    public void setId(int id)
+    {
+        this.id = id;
+    }
+    
     public void setNum(int n)
     {
         num = n;

@@ -17,6 +17,7 @@ public enum CurrentNetState
     Client
 }
 
+#region UserClass
 
 [Serializable]
 public class User
@@ -65,6 +66,9 @@ public class User
         this.isHost = host;
     }
 }
+#endregion
+
+#region PlayerClass
 
 [Serializable]
 public class Player : User
@@ -101,27 +105,41 @@ public class Player : User
         this.isActive = isActive;
     }
 }
+#endregion
 
 public class GameManager : MonoBehaviour
 {
+    #region Events
+    public event EventHandler<OnUserUpdatedEventArgs> OnUserUpdated;
+
+    public class OnUserUpdatedEventArgs:EventArgs
+    {
+        public string newName;
+    }
+    #endregion
+
+    #region GamemanagerFields
+
     private CurrentNetState netState = CurrentNetState.None;
     [SerializeField] private Server serverPref;
     [SerializeField] private Client clientPref;
+    [SerializeField] private InterfaceMG interfaceMG;
 
     private MessageProcessing messageProcessing;
 
     private Server server;
     private Client client;
+    public int hostId;
 
-    private User user; 
-    private List<User> connectedList;
+    public User user; 
+    private List<User> lobbyList;
 
-    [SerializeField] private InterfaceMG interfaceMG;
+    #endregion
 
     public void Start()
     {
         user = new User();
-        connectedList = new List<User>();
+        lobbyList = new List<User>();
         messageProcessing = new MessageProcessing(this);
 
         interfaceMG.OnClickConnect += GameManager_ConnectPressed;
@@ -130,69 +148,140 @@ public class GameManager : MonoBehaviour
         interfaceMG.OnReturnToMenu += GameManager_DeleteNetworkObjects;
     }
 
-    public void OnServerConnection(object sender, Client.OnConnectEventArgs e)
+    #region OnConnection  
+
+    public void ClientOnServerConnection(object sender, Client.OnConnectEventArgs e)
     {
-        interfaceMG.connectionStatusText.text = "Connected!";
-        Net_AddUser msg = new Net_AddUser();
-        msg.Username = user.name;
-
-        byte[] buffer = messageProcessing.MakeBuffer(msg);
-
-        client.SendServer(buffer);
+        interfaceMG.NewConnectionStatus("Connected!");
+        hostId = e.hostId;
     }
 
-    public void OnClientConnection(object sender, Server.OnConnectEventArgs e)
+    public void ServerOnClientConnected(object sender, Server.OnConnectEventArgs e)
     {
-        Net_AllUserList msg = new Net_AllUserList();
-        msg.users = connectedList.ToArray();
-
-        byte[] buffer = messageProcessing.MakeBuffer(msg);
-
-        server.SendClient(e.host, e.conId, buffer);
+        Debug.Log("New player connected! Sending him list...");
+        server.SendClient(hostId, e.conId, messageProcessing.ServerSetGlobalId(e.conId));
     }
+
+    #endregion
+
+    #region OnDisonnection  
+
+    public void ClientOnServerDisonnection(object sender, EventArgs e)
+    {
+        Debug.Log("We have been disconnected from server!");
+        ClearLobbyList();
+        interfaceMG.SwitchToMainMenu();
+    }
+
+    public void ServerOnClientDisconnection(object sender, Server.OnDisconnectEventArgs e)
+    {
+        Debug.Log(string.Format("Player {0} was disconnected! ", e.conId));
+        LeaveUser(e.conId);
+
+        server.SendOther(messageProcessing.ServerUsersListMsg(lobbyList));
+    }
+
+    #endregion
+
+    #region UserManager
 
     public void AddNewUser(string name, int conId)
     {
         User newUser = new User(conId, name);
-        connectedList.Add(newUser);
+        lobbyList.Add(newUser);
 
-        UpdateLobby();
+        interfaceMG.UpdateLobby(lobbyList);
     }
 
-    public void AddNewUser(string name, int conId, bool host)
+    public void AddNewUser(string name, int conId, bool host, int recHost)
     {
         User newUser = new User(conId, name, host);
-        connectedList.Add(newUser);
+        lobbyList.Add(newUser);
 
-        UpdateLobby();
+        server.SendClient(recHost, conId, messageProcessing.ServerUsersListMsg(lobbyList));
+        server.SendOther(conId, recHost, messageProcessing.ServerUsersListMsg(lobbyList));
+
+        interfaceMG.UpdateLobby(lobbyList);
     }
 
-    public void CloseLobby()
+    public void UpdateUsername(string name)
     {
-        connectedList.Clear();
-        UpdateLobby();
+        user.SetName(name);
+        OnUserUpdated?.Invoke(this, new OnUserUpdatedEventArgs{newName = name});
+        User updatedUser = lobbyList.Find(x=> x.id == user.id);
+        if(updatedUser!=null) Debug.Log("ID USER: " + user.id + " " + updatedUser.name);
+
+        if(updatedUser!=null) updatedUser.SetName(name);
+
+        interfaceMG.ClearLobby();
+        interfaceMG.UpdateLobby(lobbyList);
+
+        if(netState == CurrentNetState.Server)
+        {
+            server.SendOther(messageProcessing.ServerUsersListMsg(lobbyList));
+        }
+
+        if(netState == CurrentNetState.Client)
+        {
+            client.SendServer(messageProcessing.ClientUpdateUserMsg(user));
+        }
     }
 
-    public void PauseUser(string name, int conId)
+    public void UpdateUser(int conId, int host, string newName) 
     {
-        //pause code
+        User updatedUser = lobbyList.Find(x=> x.id == conId);
+        if(updatedUser!=null) 
+        {
+            updatedUser.SetName(newName);
+            interfaceMG.ClearLobby();
+            interfaceMG.UpdateLobby(lobbyList);
+        }
+
+        if(netState == CurrentNetState.Server)
+        {
+            Debug.Log("SENDING OTHER");
+            server.SendOther(conId, host, messageProcessing.ServerUsersListMsg(lobbyList));
+        }
+    }
+
+    public void SetGlobalId(int globalConId)
+    {
+        user.id = globalConId;
+        Debug.Log("Global id is now " + user.id);
+        client.SendServer(messageProcessing.ClientNewUserMsg(user));
+    }
+
+    public void ClearLobbyList()
+    {
+        lobbyList.Clear();
+        interfaceMG.UpdateLobby(lobbyList);
+    }
+
+    public void LeaveUser(int conId)
+    {
+        User deletingUser = lobbyList.Find(x => x.id == conId);
+        if(deletingUser!=null) 
+        {
+            lobbyList.Remove(deletingUser);
+            interfaceMG.UpdateLobby(lobbyList);
+        }
+        else Debug.Log("Err during deleting!");
+
+        
     }
 
     public void UpdateUsersList(List<User> newList)
     {
-        connectedList = newList;
-        UpdateLobby();
+        lobbyList = newList;
+        interfaceMG.UpdateLobby(lobbyList);
         interfaceMG.SwitchToLobby();
         Debug.Log("List was updated!");
     }
 
-    private void UpdateLobby()
-    {
-        for(int i = 0; i < connectedList.Count; i++) 
-            interfaceMG.AddUserToList(connectedList[i].name, i+1, connectedList[i].isHost);
-    }
+    #endregion
 
-    private bool IsEmpty(string[] cards)
+    #region GameManager
+    private bool CardsAreEmpty(string[] cards)
     {
         bool flag = false; int i;
         for (i = 0; i < cards.Length; i++)
@@ -206,16 +295,20 @@ public class GameManager : MonoBehaviour
     {
         string[] cards;
         cards = Decryption(cardsNew);
-        if (conId < connectedList.Count && !IsEmpty(connectedList[conId].cards))
+        if (conId < lobbyList.Count && !IsEmpty(lobbyList[conId].cards))
         {
-            connectedList[conId].SetName(name);
-            connectedList[conId].SetCards(cards);
+            lobbyList[conId].SetName(name);
+            lobbyList[conId].SetCards(cards);
             return true;
         }
         else return false;
     }*/
 
-    public string Encryption(string[] cards)
+    #endregion
+    
+    #region CardEncrypting
+
+    public string CardsToString(string[] cards)
     {
         string en_cards = ""; 
         int i;
@@ -224,7 +317,7 @@ public class GameManager : MonoBehaviour
         return en_cards;
     }
 
-    public string[] Decryption(string en_cards)
+    public string[] StringToCards(string en_cards)
     {
         int i, count_separator = 0, k = 0;
         for (i = 0; i < en_cards.Length; i++)
@@ -241,6 +334,10 @@ public class GameManager : MonoBehaviour
         }
         return dc_cards;
     }
+
+    #endregion
+
+    #region TriggerredFunctions
 
     //////////////////////////////////////////////////////////////////
     /////////////////// Reversed Ladder of events ////////////////////
@@ -259,16 +356,22 @@ public class GameManager : MonoBehaviour
     {
         server = Instantiate(serverPref);
         server.OnData += messageProcessing.OnData;
-        server.OnConnect += OnClientConnection;
+        server.OnConnect += ServerOnClientConnected;
+        server.OnDisconnect += ServerOnClientDisconnection;
         netState = CurrentNetState.Server;
+        user.ToggleHost(true);
+        lobbyList.Add(user);
+        interfaceMG.UpdateLobby(lobbyList);
     }
 
     public void GameManager_StartClient(object sender, EventArgs e)
     {
         client = Instantiate(clientPref);
         client.OnData += messageProcessing.OnData;
-        client.OnConnect += OnServerConnection;
+        client.OnConnect += ClientOnServerConnection;
+        client.OnDisconnect += ClientOnServerDisonnection;
         netState = CurrentNetState.Client;
+        user.ToggleHost(false);
     }
 
     public void GameManager_DeleteNetworkObjects(object sender, EventArgs e)
@@ -277,15 +380,22 @@ public class GameManager : MonoBehaviour
         {
             server.Shutdown();
             server.OnData -= messageProcessing.OnData;
+            server.OnConnect -= ServerOnClientConnected;
+            server.OnDisconnect -= ServerOnClientDisconnection;
             Destroy(server.gameObject);
         }
         if(client!=null) 
         {
             client.Shutdown();
             client.OnData -= messageProcessing.OnData;
+            client.OnConnect -= ClientOnServerConnection;
+            client.OnDisconnect -= ClientOnServerDisonnection;
             Destroy(client.gameObject);
         }
         netState = CurrentNetState.None;
+        ClearLobbyList();
+        user.ToggleHost(false);
     }
 
+    #endregion
 }

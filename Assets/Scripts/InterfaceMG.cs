@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 
-
 public enum CanvasType
 {
     MainMenu,
@@ -15,6 +14,7 @@ public enum CanvasType
 
 public class InterfaceMG : MonoBehaviour
 {
+    #region Events
     public event EventHandler<OnClickConnectEventArgs> OnClickConnect;
     public event EventHandler OnChooseClient;
     public event EventHandler OnChooseServer;
@@ -24,8 +24,9 @@ public class InterfaceMG : MonoBehaviour
     {
         public string server_ip;
     }
+    #endregion
 
-    private User user;
+    #region InterfaceFields
     [SerializeField] private GameManager gm;
     [SerializeField] private Text userNickDisplay;
     [SerializeField] private GameObject userInfo;
@@ -33,36 +34,32 @@ public class InterfaceMG : MonoBehaviour
     [SerializeField] private InputField NicknameField;
     [SerializeField] private InputField ipAdressField;
     [SerializeField] private Text errMsg;
-    [SerializeField] public Text connectionStatusText;
+    [SerializeField] private Text connectionStatusText;
 
     List<CanvasController> canvasControllerList;
     CanvasController lastActiveCanvas;
 
+    #endregion
+
     public void Start()
     {
-        user = new User(0,"PLAYER");
         canvasControllerList = GetComponentsInChildren<CanvasController>().ToList();
         canvasControllerList.ForEach(x => x.gameObject.SetActive(false));
-        resetErrorMsg();
         SwitchCanvas(CanvasType.MainMenu);
+
+        gm.OnUserUpdated += WhenNicknameChanged;
     }
 
-
-    public void RefreshUserDisplay()
+    public void Update()
     {
-        userNickDisplay.text = user.name;
-        UpdateUserFromList(user.id,user.name);
+        lobbyList.GetComponent<GridLayoutGroup>().cellSize = new Vector3((lobbyList.GetComponent<RectTransform>().rect.width - 15)/2, 15, 1);
     }
 
-    public void SetInfo()
-    {
-        if(NicknameField.text != "") user.name = NicknameField.text;
-        else
-        {
-            errMsg.text = "Nickname is empty!";
-        }
-        RefreshUserDisplay();
-    }
+    #region MultipleMenuNavigation
+
+    /////////////////////////////////////////////////////////////////////////////////
+    ////////////////         Switching between menu types            ////////////////
+    /////////////////////////////////////////////////////////////////////////////////
 
     public void SwitchCanvas(CanvasType _type)
     {
@@ -82,123 +79,129 @@ public class InterfaceMG : MonoBehaviour
 
     public void SwitchToMainMenu()
     {
-        OnReturnToMenu?.Invoke(this, EventArgs.Empty);
-        OnLobbyClosed();
         SwitchCanvas(CanvasType.MainMenu);
     }
 
     public void SwitchToLobby()
     {
-        if(user.name == "") 
+        if(gm.user.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
         }
         else 
         {
-            resetErrorMsg();
-            OnChooseServer?.Invoke(this, EventArgs.Empty);
             SwitchCanvas(CanvasType.LobbyMenu);
         }
     }
 
     public void SwitchToConnectionMenu()
     {
-        if(user.name == "") 
+        if(gm.user.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
         }
         else
         {
-            resetErrorMsg();
-            OnChooseClient?.Invoke(this, EventArgs.Empty);
             SwitchCanvas(CanvasType.ConnectionMenu);
         }
     }
     
-    public void resetErrorMsg()
+    #endregion
+
+    #region InterfaceInterraction
+
+    /////////////////////////////////////////////////////////////////////////////////
+    ////////////////          Reading info from interface            ////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+
+    public void ClientClick() 
     {
-        if(errMsg != null && user.name != "") errMsg.text = "";
-        connectionStatusText.text = "";
+        OnChooseClient?.Invoke(this, EventArgs.Empty);
+        SwitchToConnectionMenu();
     }
 
-    public void AddUserToList(string Nickname, int num, bool host)
+    public void HostClick() 
     {
-        GameObject connectedUser = Instantiate(userInfo) as GameObject;
-        UserInfo temp = connectedUser.GetComponent<UserInfo>();
-
-        temp.setNickname(Nickname);
-        temp.toggleHost(host);
-        temp.setNum(num);
-        temp.setPanelToList(lobbyList);
-    }
-
-    public void RemoveUserFromList(int id)
-    {
-        List<GameObject> info = new List<GameObject>();
-        foreach (Transform child in lobbyList.transform) 
-        {
-            info.Add(child.gameObject);
-        }
-
-        GameObject deletingUser = info.Find(x => x.GetComponent<UserInfo>().num == id);
-        
-        if(deletingUser!=null) Destroy(deletingUser);
-        else Debug.Log("Err during deletion!");
-    }
-    public void UpdateUserFromList(int id, string newNickname)
-    {
-        List<GameObject> info = new List<GameObject>();
-        foreach (Transform child in lobbyList.transform) 
-        {
-            info.Add(child.gameObject);
-        }
-
-        GameObject updatingUser = info.Find(x => x.GetComponent<UserInfo>().num == id);
-        
-        if(updatingUser!=null) 
-        {
-            updatingUser.GetComponent<UserInfo>().nickname = newNickname;
-            updatingUser.GetComponent<UserInfo>().setNickname(newNickname);
-        }
-        else Debug.Log("Err during Updating!");
-    }
-
-    public void ClickConnect() 
-    {
-        if(ipAdressField.text != "")
-        {
-            string ip = ipAdressField.text;
-            connectionStatusText.text = "Connecting to " + ip.ToString() + "...";
-            OnClickConnect?.Invoke(this, new OnClickConnectEventArgs {server_ip = ip});
-        }
-        else connectionStatusText.text = "Ip field is empty!";
-    }
-
-    public void OnHost()
-    {
-        if(user.name!="") AddUserToList(user.name, user.id, true);
+        OnChooseServer?.Invoke(this, EventArgs.Empty);
         SwitchToLobby();
     }
 
-    public void OnLobbyClosed() 
+    public void ConnectClick()
     {
-        List<GameObject> info = new List<GameObject>();
-        foreach (Transform child in lobbyList.transform) 
-        {
-            info.Add(child.gameObject);
-        }
-        
-        foreach(GameObject deletingUser in info) 
-        {
-            Debug.Log(deletingUser.GetComponent<UserInfo>().num);
-            Destroy(deletingUser);
-        }
+        if(ipAdressField.text != string.Empty) 
+            {
+                NewConnectionStatus("Connecting to " + ipAdressField.text + "...");
+                OnClickConnect?.Invoke(this, new OnClickConnectEventArgs {server_ip = ipAdressField.text});
+            }
+        else NewConnectionStatus("Enter adress first!");
     }
-    
-    public void OnExit() 
+
+    public void BackClick() 
+    {
+        OnReturnToMenu?.Invoke(this, EventArgs.Empty);
+        SwitchToMainMenu();
+    }
+
+    public void ApplyNickClick() 
+    {
+        if(NicknameField.text != "")
+            gm.UpdateUsername(NicknameField.text);
+        else errMsg.text = "Empty nickname not allowed!";
+    }
+
+    public void ExitClick() 
     {
         Application.Quit();
     }
+
+    #endregion
+
+    #region UpdateInterface
+
+    /////////////////////////////////////////////////////////////////////////////////
+    ////////////////              Updating UI elements               ////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+
+    public void UpdateLobby(List<User> users)
+    {
+        ClearLobby();
+        int i = 0;
+        foreach (User u in users)
+        {
+            GameObject panel = Instantiate(userInfo) as GameObject;
+            UserInfo panelInfo = panel.GetComponent<UserInfo>();
+
+            panelInfo.setId(u.id);
+            panelInfo.setNickname(u.name);
+            panelInfo.toggleHost(u.isHost);
+            panelInfo.setNum(++i);
+
+            panelInfo.setPanelToList(lobbyList);
+        }
+    }
+
+    public void ClearLobby()
+    {
+        foreach (Transform p in lobbyList.transform) Destroy(p.gameObject);
+    }
+
+    public void NewConnectionStatus(string status)
+    {
+        connectionStatusText.text = status;
+    }
+
+    public void ResetErrors()
+    {
+        connectionStatusText.text = "";
+        errMsg.text = "";
+    }
+
+    public void WhenNicknameChanged(object sender, GameManager.OnUserUpdatedEventArgs e)
+    {
+        userNickDisplay.text = e.newName;
+    }
+
+    #endregion
 }
