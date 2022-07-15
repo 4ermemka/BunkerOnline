@@ -1,7 +1,7 @@
 [System.Serializable]
-public  class Net_LeaveUser : NetMsg
+public  class NetUser_Leave : NetMsg
 {
-    public Net_LeaveUser()
+    public NetUser_Leave()
     {
         OP = NetOP.LeaveUser;
     }

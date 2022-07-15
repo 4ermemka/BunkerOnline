@@ -1,7 +1,7 @@
 [System.Serializable]
-public  class Net_AddUser:NetMsg
+public class NetUser_Add : NetMsg
 {
-    public Net_AddUser()
+    public NetUser_Add()
     {
         OP = NetOP.AddUser;
     }

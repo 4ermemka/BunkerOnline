@@ -27,7 +27,7 @@ public class InterfaceMG : MonoBehaviour
     #endregion
 
     #region InterfaceFields
-    [SerializeField] private GameManager gm;
+    [SerializeField] private NetManager nm;
     [SerializeField] private Text userNickDisplay;
     [SerializeField] private GameObject userInfo;
     [SerializeField] private GameObject lobbyList;
@@ -47,7 +47,7 @@ public class InterfaceMG : MonoBehaviour
         canvasControllerList.ForEach(x => x.gameObject.SetActive(false));
         SwitchCanvas(CanvasType.MainMenu);
 
-        gm.OnUserUpdated += WhenNicknameChanged;
+        nm.OnUserUpdated += WhenNicknameChanged;
     }
 
     public void Update()
@@ -84,7 +84,7 @@ public class InterfaceMG : MonoBehaviour
 
     public void SwitchToLobby()
     {
-        if(gm.user.name == "") 
+        if(nm.user.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
@@ -97,7 +97,7 @@ public class InterfaceMG : MonoBehaviour
 
     public void SwitchToConnectionMenu()
     {
-        if(gm.user.name == "") 
+        if(nm.user.name == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
@@ -147,7 +147,7 @@ public class InterfaceMG : MonoBehaviour
     public void ApplyNickClick() 
     {
         if(NicknameField.text != "")
-            gm.UpdateUsername(NicknameField.text);
+            nm.UpdateUsername(NicknameField.text);
         else errMsg.text = "Empty nickname not allowed!";
     }
 
@@ -198,7 +198,7 @@ public class InterfaceMG : MonoBehaviour
         errMsg.text = "";
     }
 
-    public void WhenNicknameChanged(object sender, GameManager.OnUserUpdatedEventArgs e)
+    public void WhenNicknameChanged(object sender, NetManager.OnUserUpdatedEventArgs e)
     {
         userNickDisplay.text = e.newName;
     }
