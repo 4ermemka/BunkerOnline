@@ -101,6 +101,7 @@ public class Server : MonoBehaviour
     {
         isStarted = false;
         NetworkTransport.Shutdown();
+        Destroy(this.gameObject);
     }
 
     #endregion
