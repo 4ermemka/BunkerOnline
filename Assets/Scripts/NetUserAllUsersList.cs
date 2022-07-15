@@ -1,7 +1,7 @@
 [System.Serializable]
-public  class Net_AllUserList:NetMsg
+public  class NetUser_AllUserList : NetMsg
 {
-    public Net_AllUserList()
+    public NetUser_AllUserList()
     {
         OP = NetOP.AllUsersInfo;
     }
