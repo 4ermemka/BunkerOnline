@@ -6,40 +6,50 @@ using UnityEngine.Networking;
 
 public class Client : MonoBehaviour
 {
+    #region ClientEvents
+
     public event EventHandler<OnConnectEventArgs> OnConnect;
     public event EventHandler OnDisconnect;
     public event EventHandler<OnDataEventArgs> OnData;
     public class OnConnectEventArgs:EventArgs
     {
         public int conId;
+        public int hostId;
     }
     public class OnDataEventArgs:EventArgs
     {
+        public int conId;
+        public int hostId;
         public  byte[] buffer;
     }
 
-    private const int BYTE_SIZE = 1024;
+    #endregion
 
+    #region ClientConsts
+
+    private const int BYTE_SIZE = 1024;
     private const int MAX_USER = 100;
     private const int PORT = 28120;
     private const int WEB_PORT = 28121;
+
+    #endregion
+
+    #region ClientVars
 
     private byte reliableChannel;
     private int connectionId; 
     private int hostId;
     private byte error;
-
     private bool isStarted;
+
+    #endregion
+
+    #region ClientStartAndShut
 
     private void Start()// При старте выполнить код ниже
     {
         DontDestroyOnLoad(gameObject); // гарантия перехода между сценами
         Init();
-    }
-
-    private void Update() // каждый кадр
-    {
-        UpdateMessagePump();
     }
 
     public void Init()
@@ -56,6 +66,16 @@ public class Client : MonoBehaviour
         hostId = NetworkTransport.AddHost(topo, 0);
     }
 
+    public void Shutdown() 
+    {
+        isStarted = false;
+        NetworkTransport.Shutdown();
+    }
+
+    #endregion
+
+    #region ClientNetworking
+
     public void Connect(string SERVER_IP)
     {
         #if UNITY_WEBGL && !UNITY_EDITOR
@@ -66,6 +86,8 @@ public class Client : MonoBehaviour
         //standalone client
         connectionId = NetworkTransport.Connect(hostId, SERVER_IP, PORT, 0, out error);
         Debug.Log("Standalone connection");
+
+        Debug.Log("My connection id is " + connectionId);
         #endif
 
         Debug.Log(string.Format("Connecting to {0}...", SERVER_IP));
@@ -73,10 +95,9 @@ public class Client : MonoBehaviour
         isStarted = true;
     }
 
-    public void  Shutdown() 
+    private void Update() // каждый кадр
     {
-        isStarted = false;
-        NetworkTransport.Shutdown();
+        UpdateMessagePump();
     }
 
     public void UpdateMessagePump() //ожидание и принятие сообщений
@@ -104,7 +125,7 @@ public class Client : MonoBehaviour
             break;
 
             case NetworkEventType.ConnectEvent:
-            OnConnect?.Invoke(this, new OnConnectEventArgs {conId = connectionId});
+            OnConnect?.Invoke(this, new OnConnectEventArgs {conId = connectionId, hostId = recHostId});
             Debug.Log("Connected to the server!");
             break;
 
@@ -120,11 +141,15 @@ public class Client : MonoBehaviour
         }
     }
 
-    #region Send
+    #endregion
+
+    #region ClientSendMethod
+    
     public void SendServer(byte[] buffer) 
     {
         NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
         Debug.Log("Sending msg...");
     }
+    
     #endregion
 }
