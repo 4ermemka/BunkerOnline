@@ -129,7 +129,7 @@ public class MessageProcessing
                 break;
 
             case NetOP.SetGlobalId:
-                OnSetGlobalId((Net_SetGlobalId)msg);
+                OnSetGlobalId((NetUser_SetGlobalId)msg);
                 break;
 
             case NetOP.AddUser:
@@ -180,7 +180,7 @@ public class MessageProcessing
         Debug.Log(string.Format("Player {0} disconnected.", msg.Username));
     }
 
-    private void OnSetGlobalId(Net_SetGlobalId msg)
+    private void OnSetGlobalId(NetUser_SetGlobalId msg)
     {
         Debug.Log("Global id set to " + msg.globalConId);
         netManager.SetGlobalId(msg.globalConId);
@@ -222,7 +222,7 @@ public class MessageProcessing
 
     public byte[] ServerSetGlobalId(int globalConId)
     {
-        Net_SetGlobalId msg = new Net_SetGlobalId();
+        NetUser_SetGlobalId msg = new NetUser_SetGlobalId();
         msg.globalConId = globalConId;
 
         return MakeBuffer(msg);
