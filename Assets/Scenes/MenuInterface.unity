@@ -275,12 +275,12 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 784190577}
-  m_Father: {fileID: 518144236}
-  m_RootOrder: 3
+  m_Father: {fileID: 1302879026}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0.13999939, y: 31}
+  m_AnchoredPosition: {x: -0.0000063628, y: 40}
   m_SizeDelta: {x: 197.16, y: 46.154}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &229248646
@@ -327,7 +327,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: SwitchWindowMode
         m_Mode: 1
@@ -690,10 +690,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 282198875}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c16e9850b00ef624ca827edbabe533a7, type: 3}
+  m_Script: {fileID: 11500000, guid: 5c286051b0a55ab40b38342a9e393ddf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gm: {fileID: 1858045150}
+  nm: {fileID: 1858045150}
   userNickDisplay: {fileID: 483613241}
   userInfo: {fileID: 6296282613421308917, guid: d1921aab1a66af14ba30590202540ee4, type: 3}
   lobbyList: {fileID: 596423039}
@@ -701,8 +701,6 @@ MonoBehaviour:
   ipAdressField: {fileID: 1690146586}
   errMsg: {fileID: 602117672}
   connectionStatusText: {fileID: 722550702}
-  canvasControllerList: []
-  lastActiveCanvas: {fileID: 0}
 --- !u!1 &324765533
 GameObject:
   m_ObjectHideFlags: 0
@@ -865,7 +863,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: BackClick
         m_Mode: 1
@@ -1104,9 +1102,8 @@ RectTransform:
   - {fileID: 1780615704}
   - {fileID: 602117671}
   - {fileID: 1858943151}
-  - {fileID: 229248645}
   m_Father: {fileID: 1302879026}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -1887,7 +1884,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: ExitClick
         m_Mode: 1
@@ -2310,6 +2307,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 483613240}
+  - {fileID: 229248645}
   - {fileID: 518144236}
   m_Father: {fileID: 252801311}
   m_RootOrder: 0
@@ -2863,7 +2861,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: ResetErrors
         m_Mode: 1
@@ -3097,7 +3095,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: ResetErrors
         m_Mode: 1
@@ -3238,7 +3236,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: ClientClick
         m_Mode: 1
@@ -3450,7 +3448,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: ConnectClick
         m_Mode: 1
@@ -3511,7 +3509,7 @@ GameObject:
   - component: {fileID: 1858045151}
   - component: {fileID: 1858045150}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: NetManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3526,12 +3524,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1858045149}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e21f32012c9d52547aa15aa04ad1a1c6, type: 3}
+  m_Script: {fileID: 11500000, guid: 0242a9508eb21834eb6deedbbe73d7da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   serverPref: {fileID: 2983579215548617299, guid: 7093bcdec0677aa499c927369213e2a3, type: 3}
   clientPref: {fileID: 5272291164228663794, guid: b19e5043a8a568644ad23045ebdc5e06, type: 3}
-  MenuInterfaceManager: {fileID: 0}
+  MenuInterfaceManager: {fileID: 282198880}
   hostId: 0
   user:
     isHost: 0
@@ -3635,7 +3633,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: ApplyNickClick
         m_Mode: 1
@@ -3768,7 +3766,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: BackClick
         m_Mode: 1
@@ -3901,7 +3899,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 282198880}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: InterfaceMG, Assembly-CSharp
         m_MethodName: HostClick
         m_Mode: 1

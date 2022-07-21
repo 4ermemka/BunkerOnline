@@ -107,7 +107,7 @@ public class Player : User
 }
 #endregion
 
-public class GameManager : MonoBehaviour
+public class NetManager : MonoBehaviour
 {
     #region Events
     public event EventHandler<OnUserUpdatedEventArgs> OnUserUpdated;
@@ -118,7 +118,7 @@ public class GameManager : MonoBehaviour
     }
     #endregion
 
-    #region GamemanagerFields
+    #region NetmanagerFields
 
     private CurrentNetState netState = CurrentNetState.None;
     [SerializeField] private Server serverPref;
@@ -142,10 +142,10 @@ public class GameManager : MonoBehaviour
         lobbyList = new List<User>();
         messageProcessing = new MessageProcessing(this);
 
-        MenuInterfaceManager.OnClickConnect += GameManager_ConnectPressed;
-        MenuInterfaceManager.OnChooseClient += GameManager_StartClient;
-        MenuInterfaceManager.OnChooseServer += GameManager_StartServer;
-        MenuInterfaceManager.OnReturnToMenu += GameManager_DeleteNetworkObjects;
+        MenuInterfaceManager.OnClickConnect += NetManager_ConnectPressed;
+        MenuInterfaceManager.OnChooseClient += NetManager_StartClient;
+        MenuInterfaceManager.OnChooseServer += NetManager_StartServer;
+        MenuInterfaceManager.OnReturnToMenu += NetManager_DeleteNetworkObjects;
     }
 
     #region OnConnection  
@@ -342,8 +342,8 @@ public class GameManager : MonoBehaviour
     //////////////////////////////////////////////////////////////////
     /////////////////// Reversed Ladder of events ////////////////////
     //////////////////////////////////////////////////////////////////
-
-    public void GameManager_ConnectPressed(object sender, MenuInterfaceManager.OnClickConnectEventArgs e)
+    
+    public void NetManager_ConnectPressed(object sender, MenuInterfaceManager.OnClickConnectEventArgs e)
     {
         if(client!=null)
         {
@@ -352,7 +352,7 @@ public class GameManager : MonoBehaviour
         else Debug.Log("Err! No Client O_o");
     }
 
-    public void GameManager_StartServer(object sender, EventArgs e)
+    public void NetManager_StartServer(object sender, EventArgs e)
     {
         server = Instantiate(serverPref);
         server.OnData += messageProcessing.OnData;
@@ -364,7 +364,7 @@ public class GameManager : MonoBehaviour
         MenuInterfaceManager.UpdateLobby(lobbyList);
     }
 
-    public void GameManager_StartClient(object sender, EventArgs e)
+    public void NetManager_StartClient(object sender, EventArgs e)
     {
         client = Instantiate(clientPref);
         client.OnData += messageProcessing.OnData;
@@ -374,7 +374,7 @@ public class GameManager : MonoBehaviour
         user.ToggleHost(false);
     }
 
-    public void GameManager_DeleteNetworkObjects(object sender, EventArgs e)
+    public void NetManager_DeleteNetworkObjects(object sender, EventArgs e)
     {
         if(server!=null) 
         {

@@ -9,7 +9,7 @@ public class MessageProcessing
 {
     #region MessageProcessingFields
 
-    private GameManager gameManager;
+    private NetManager netManager;
     private byte error;
     private const int BYTE_SIZE = 1024;
 
@@ -18,12 +18,12 @@ public class MessageProcessing
     #region MessageProcessingConstructors
     public MessageProcessing()
     {
-        this.gameManager = null;
+        this.netManager = null;
     }
 
-    public MessageProcessing(GameManager gameManager)
+    public MessageProcessing(NetManager netManager)
     {
-        this.gameManager = gameManager;
+        this.netManager = netManager;
     }
     
     #endregion
@@ -71,11 +71,11 @@ public class MessageProcessing
                 break;
 
             case NetOP.AddUser:
-                OnNewUser(e.conId, e.host, (Net_AddUser)msg);
+                OnNewUser(e.conId, e.host, (NetUser_Add)msg);
                 break;
 
             case NetOP.UpdateUser:
-                OnUpdateUser(e.conId, e.host, (Net_UpdateUser)msg);
+                OnUpdateUser(e.conId, e.host, (NetUser_UpdateInfo)msg);
                 break;
 
             /*case NetOP.UpdateCardPlayer:
@@ -92,21 +92,21 @@ public class MessageProcessing
         }
     }
       
-    private void OnNewUser(int conId, int host, Net_AddUser msg)
+    private void OnNewUser(int conId, int host, NetUser_Add msg)
     {
         Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
-        gameManager.AddNewUser(msg.Username, conId, false, host);
+        netManager.AddNewUser(msg.Username, conId, false, host);
     }
 
-    private void OnUpdateUser(int conId, int host, Net_UpdateUser msg)
+    private void OnUpdateUser(int conId, int host, NetUser_UpdateInfo msg)
     {
         Debug.Log(string.Format("Player {1} changed nick to {0} ", msg.Username, conId));
-        gameManager.UpdateUser(conId, host, msg.Username);
+        netManager.UpdateUser(conId, host, msg.Username);
     }
 
     /*private void OnUpdatePlayer(int conId, int host, Net_UpdateCardPlayer msg)
     {
-        gameManager.UpdatePlayerInformation(msg.Username, conId, msg.NewCardsOnTable);
+        netManager.UpdatePlayerInformation(msg.Username, conId, msg.NewCardsOnTable);
         Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
     }*/
 
@@ -129,15 +129,15 @@ public class MessageProcessing
                 break;
 
             case NetOP.SetGlobalId:
-                OnSetGlobalId((Net_SetGlobalId)msg);
+                OnSetGlobalId((NetUser_SetGlobalId)msg);
                 break;
 
             case NetOP.AddUser:
-                OnNewUser((Net_AddUser)msg);
+                OnNewUser((NetUser_Add)msg);
                 break;
 
             case NetOP.UpdateUser:
-                OnUpdateUser((Net_UpdateUser)msg);
+                OnUpdateUser((NetUser_UpdateInfo)msg);
                 break;
 
             case NetOP.UpdateCardPlayer:
@@ -146,12 +146,12 @@ public class MessageProcessing
                 break;
 
             case NetOP.LeaveUser:
-                OnLeaveUser((Net_LeaveUser)msg);
+                OnLeaveUser((NetUser_Leave)msg);
                 break;
 
             case NetOP.AllUsersInfo:
                 Debug.Log("AllUsersInfo case!");
-                SetListOfUsers((Net_AllUserList)msg);
+                SetListOfUsers((NetUser_AllUserList)msg);
                 break;
 
             case NetOP.CastCardPlayer:
@@ -164,26 +164,26 @@ public class MessageProcessing
         }
     }
     
-    private void OnNewUser(Net_AddUser msg)
+    private void OnNewUser(NetUser_Add msg)
     {
         Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
     }
 
-    private void OnUpdateUser(Net_UpdateUser msg)
+    private void OnUpdateUser(NetUser_UpdateInfo msg)
     {
         Debug.Log(string.Format("Other player changed nick to {0}", msg.Username));
-        gameManager.UpdateUser(msg.conId, msg.hostId, msg.Username);
+        netManager.UpdateUser(msg.conId, msg.hostId, msg.Username);
     }
 
-    private void OnLeaveUser(Net_LeaveUser msg)
+    private void OnLeaveUser(NetUser_Leave msg)
     {
         Debug.Log(string.Format("Player {0} disconnected.", msg.Username));
     }
 
-    private void OnSetGlobalId(Net_SetGlobalId msg)
+    private void OnSetGlobalId(NetUser_SetGlobalId msg)
     {
         Debug.Log("Global id set to " + msg.globalConId);
-        gameManager.SetGlobalId(msg.globalConId);
+        netManager.SetGlobalId(msg.globalConId);
     }
 
     private void OnUpdatePlayer(Net_UpdateCardPlayer msg)
@@ -191,11 +191,11 @@ public class MessageProcessing
         Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
     }
 
-    private void SetListOfUsers(Net_AllUserList msg)
+    private void SetListOfUsers(NetUser_AllUserList msg)
     {
         List<User> newList = new List<User>();
         foreach (User p in msg.users) newList.Add(p);
-        gameManager.UpdateUsersList(newList);
+        netManager.UpdateUsersList(newList);
     }
 
     #endregion
@@ -204,7 +204,7 @@ public class MessageProcessing
 
     public byte[] ServerUsersListMsg(List<User> lobbyList)
     {
-        Net_AllUserList msg = new Net_AllUserList();
+        NetUser_AllUserList msg = new NetUser_AllUserList();
         msg.users = lobbyList.ToArray();
 
         return MakeBuffer(msg);
@@ -212,7 +212,7 @@ public class MessageProcessing
 
     public byte[] ServerUdateUser(User user, int hostId)
     {
-        Net_UpdateUser msg = new Net_UpdateUser();
+        NetUser_UpdateInfo msg = new NetUser_UpdateInfo();
         msg.conId = user.id;
         msg.hostId = hostId;
         msg.Username = user.name;
@@ -222,7 +222,7 @@ public class MessageProcessing
 
     public byte[] ServerSetGlobalId(int globalConId)
     {
-        Net_SetGlobalId msg = new Net_SetGlobalId();
+        NetUser_SetGlobalId msg = new NetUser_SetGlobalId();
         msg.globalConId = globalConId;
 
         return MakeBuffer(msg);
@@ -234,7 +234,7 @@ public class MessageProcessing
 
     public byte[] ClientNewUserMsg(User user)
     {
-        Net_AddUser msg = new Net_AddUser();
+        NetUser_Add msg = new NetUser_Add();
         msg.Username = user.name;
 
         return MakeBuffer(msg);
@@ -242,9 +242,9 @@ public class MessageProcessing
 
     public byte[] ClientUpdateUserMsg(User user)
     {
-        Net_UpdateUser msg = new Net_UpdateUser();
+        NetUser_UpdateInfo msg = new NetUser_UpdateInfo();
         msg.Username = user.name;
-        msg.hostId = gameManager.hostId;
+        msg.hostId = netManager.hostId;
         msg.conId = user.id;
 
         return MakeBuffer(msg);

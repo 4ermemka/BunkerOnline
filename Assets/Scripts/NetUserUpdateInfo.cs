@@ -1,7 +1,7 @@
 [System.Serializable]
-public  class Net_UpdateUser : NetMsg
+public  class NetUser_UpdateInfo : NetMsg
 {
-    public Net_UpdateUser()
+    public NetUser_UpdateInfo()
     {
         OP = NetOP.UpdateUser;
     }
