@@ -70,6 +70,7 @@ public class Client : MonoBehaviour
     {
         isStarted = false;
         NetworkTransport.Shutdown();
+        Destroy(this.gameObject);
     }
 
     #endregion

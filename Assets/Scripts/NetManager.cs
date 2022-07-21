@@ -123,7 +123,7 @@ public class NetManager : MonoBehaviour
     private CurrentNetState netState = CurrentNetState.None;
     [SerializeField] private Server serverPref;
     [SerializeField] private Client clientPref;
-    [SerializeField] private InterfaceMG interfaceMG;
+    [SerializeField] private MenuInterfaceManager MenuInterfaceManager;
 
     private MessageProcessing messageProcessing;
 
@@ -142,17 +142,17 @@ public class NetManager : MonoBehaviour
         lobbyList = new List<User>();
         messageProcessing = new MessageProcessing(this);
 
-        interfaceMG.OnClickConnect += NetManager_ConnectPressed;
-        interfaceMG.OnChooseClient += NetManager_StartClient;
-        interfaceMG.OnChooseServer += NetManager_StartServer;
-        interfaceMG.OnReturnToMenu += NetManager_DeleteNetworkObjects;
+        MenuInterfaceManager.OnClickConnect += NetManager_ConnectPressed;
+        MenuInterfaceManager.OnChooseClient += NetManager_StartClient;
+        MenuInterfaceManager.OnChooseServer += NetManager_StartServer;
+        MenuInterfaceManager.OnReturnToMenu += NetManager_DeleteNetworkObjects;
     }
 
     #region OnConnection  
 
     public void ClientOnServerConnection(object sender, Client.OnConnectEventArgs e)
     {
-        interfaceMG.NewConnectionStatus("Connected!");
+        MenuInterfaceManager.NewConnectionStatus("Connected!");
         hostId = e.hostId;
     }
 
@@ -170,7 +170,7 @@ public class NetManager : MonoBehaviour
     {
         Debug.Log("We have been disconnected from server!");
         ClearLobbyList();
-        interfaceMG.SwitchToMainMenu();
+        MenuInterfaceManager.SwitchToMainMenu();
     }
 
     public void ServerOnClientDisconnection(object sender, Server.OnDisconnectEventArgs e)
@@ -190,7 +190,7 @@ public class NetManager : MonoBehaviour
         User newUser = new User(conId, name);
         lobbyList.Add(newUser);
 
-        interfaceMG.UpdateLobby(lobbyList);
+        MenuInterfaceManager.UpdateLobby(lobbyList);
     }
 
     public void AddNewUser(string name, int conId, bool host, int recHost)
@@ -201,7 +201,7 @@ public class NetManager : MonoBehaviour
         server.SendClient(recHost, conId, messageProcessing.ServerUsersListMsg(lobbyList));
         server.SendOther(conId, recHost, messageProcessing.ServerUsersListMsg(lobbyList));
 
-        interfaceMG.UpdateLobby(lobbyList);
+        MenuInterfaceManager.UpdateLobby(lobbyList);
     }
 
     public void UpdateUsername(string name)
@@ -213,8 +213,8 @@ public class NetManager : MonoBehaviour
 
         if(updatedUser!=null) updatedUser.SetName(name);
 
-        interfaceMG.ClearLobby();
-        interfaceMG.UpdateLobby(lobbyList);
+        MenuInterfaceManager.ClearLobby();
+        MenuInterfaceManager.UpdateLobby(lobbyList);
 
         if(netState == CurrentNetState.Server)
         {
@@ -233,8 +233,8 @@ public class NetManager : MonoBehaviour
         if(updatedUser!=null) 
         {
             updatedUser.SetName(newName);
-            interfaceMG.ClearLobby();
-            interfaceMG.UpdateLobby(lobbyList);
+            MenuInterfaceManager.ClearLobby();
+            MenuInterfaceManager.UpdateLobby(lobbyList);
         }
 
         if(netState == CurrentNetState.Server)
@@ -254,7 +254,7 @@ public class NetManager : MonoBehaviour
     public void ClearLobbyList()
     {
         lobbyList.Clear();
-        interfaceMG.UpdateLobby(lobbyList);
+        MenuInterfaceManager.UpdateLobby(lobbyList);
     }
 
     public void LeaveUser(int conId)
@@ -263,7 +263,7 @@ public class NetManager : MonoBehaviour
         if(deletingUser!=null) 
         {
             lobbyList.Remove(deletingUser);
-            interfaceMG.UpdateLobby(lobbyList);
+            MenuInterfaceManager.UpdateLobby(lobbyList);
         }
         else Debug.Log("Err during deleting!");
 
@@ -273,8 +273,8 @@ public class NetManager : MonoBehaviour
     public void UpdateUsersList(List<User> newList)
     {
         lobbyList = newList;
-        interfaceMG.UpdateLobby(lobbyList);
-        interfaceMG.SwitchToLobby();
+        MenuInterfaceManager.UpdateLobby(lobbyList);
+        MenuInterfaceManager.SwitchToLobby();
         Debug.Log("List was updated!");
     }
 
@@ -342,8 +342,8 @@ public class NetManager : MonoBehaviour
     //////////////////////////////////////////////////////////////////
     /////////////////// Reversed Ladder of events ////////////////////
     //////////////////////////////////////////////////////////////////
-
-    public void NetManager_ConnectPressed(object sender, InterfaceMG.OnClickConnectEventArgs e)
+    
+    public void NetManager_ConnectPressed(object sender, MenuInterfaceManager.OnClickConnectEventArgs e)
     {
         if(client!=null)
         {
@@ -361,7 +361,7 @@ public class NetManager : MonoBehaviour
         netState = CurrentNetState.Server;
         user.ToggleHost(true);
         lobbyList.Add(user);
-        interfaceMG.UpdateLobby(lobbyList);
+        MenuInterfaceManager.UpdateLobby(lobbyList);
     }
 
     public void NetManager_StartClient(object sender, EventArgs e)
@@ -378,19 +378,17 @@ public class NetManager : MonoBehaviour
     {
         if(server!=null) 
         {
-            server.Shutdown();
             server.OnData -= messageProcessing.OnData;
             server.OnConnect -= ServerOnClientConnected;
             server.OnDisconnect -= ServerOnClientDisconnection;
-            Destroy(server.gameObject);
+            server.Shutdown();
         }
         if(client!=null) 
         {
-            client.Shutdown();
             client.OnData -= messageProcessing.OnData;
             client.OnConnect -= ClientOnServerConnection;
             client.OnDisconnect -= ClientOnServerDisonnection;
-            Destroy(client.gameObject);
+            client.Shutdown();
         }
         netState = CurrentNetState.None;
         ClearLobbyList();
