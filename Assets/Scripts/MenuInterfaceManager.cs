@@ -12,7 +12,7 @@ public enum CanvasType
     LobbyMenu
 }
 
-public class InterfaceMG : MonoBehaviour
+public class MenuInterfaceManager : MonoBehaviour
 {
     #region Events
     public event EventHandler<OnClickConnectEventArgs> OnClickConnect;
@@ -52,7 +52,10 @@ public class InterfaceMG : MonoBehaviour
 
     public void Update()
     {
-        lobbyList.GetComponent<GridLayoutGroup>().cellSize = new Vector3((lobbyList.GetComponent<RectTransform>().rect.width - 15)/2, 15, 1);
+        float coefficient = (float)(15/138.89);
+        float newWidth = (float)((lobbyList.GetComponent<RectTransform>().rect.width - 15)/2);
+        Vector3 newSize = new Vector3(newWidth, coefficient*newWidth, 1);
+        lobbyList.GetComponent<GridLayoutGroup>().cellSize = newSize;
     }
 
     #region MultipleMenuNavigation
@@ -115,6 +118,11 @@ public class InterfaceMG : MonoBehaviour
     /////////////////////////////////////////////////////////////////////////////////
     ////////////////          Reading info from interface            ////////////////
     /////////////////////////////////////////////////////////////////////////////////
+
+    public void SwitchWindowMode()
+    {
+        Screen.fullScreen = !Screen.fullScreen;
+    }
 
     public void ClientClick() 
     {
