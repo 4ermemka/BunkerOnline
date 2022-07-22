@@ -5,19 +5,19 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 
-/* Поля:
- * OnEndTimer - ивент, срабатывающий при достижении таймером нуля.
- * float time - время до конца таймера.
- * private bool timerRunning - таймер запущен или нет.
- * float remainingTimeFloat - для вывода на экран с плавающей запятой.
- * int remainingTimeInt - для вывода на экран целочисленного значения секунд.
+/* РўРђР™РњР•Р :
+ * OnEndTimer - РЎРѕР±С‹С‚РёРµ. РЎСЂР°Р±Р°С‚С‹РІР°РµС‚ РїСЂРё РёСЃС‚РµС‡РµРЅРёРё РІСЂРµРјРµРЅРё С‚Р°Р№РјРµСЂР°.
+ * float time - РЎС‡РµС‚С‡РёРє С‚Р°Р№РјРµСЂР°.
+ * private bool timerRunning - РРЅРґРёРєР°С‚РѕСЂ Р·Р°РїСѓС‰РµРЅРЅРѕСЃС‚Рё С‚Р°Р№РјРµСЂР°.
+ * float remainingTimeFloat - РџСѓР±Р»РёС‡РЅР°СЏ РїРµСЂРµРјРµРЅРЅР°СЏ, РѕСЃС‚Р°РІС€РµРµСЃСЏ РІСЂРµРјСЏ СЃ РјРёР»Р»РёСЃРµРєСѓРЅРґР°РјРё.
+ * int remainingTimeInt - РџСѓР±Р»РёС‡РЅР°СЏ РїРµСЂРµРјРµРЅРЅР°СЏ, РѕСЃС‚Р°РІС€РµРµСЃСЏ РІСЂРµРјСЏ РІ С†РµР»С‹С… СЃРµРєСѓРЅРґР°С….
  * 
- * Методы:
- * public Timer(), public Timer(float timeStart) - конструкторы класса.
- * public void SetTime (float timeStart) - метод для установки нового значения таймера.
- * bool GetTimerRunning() - метод для получения информации о запуске/остановке таймера.
- * public bool TimeIsUp() - проверка на обнуление таймера.
- * void Update() - обновление таймера.
+ * РњР•РўРћР”Р«:
+ * Timer(), public Timer(float timeStart) - РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹.
+ * void SetTime (float timeStart) - Р—Р°РґР°С‚СЊ РІСЂРµРјСЏ.
+ * bool GetTimerRunning() - РћС‚СЃР»РµРґРёС‚СЊ, Р·Р°РїСѓС‰РµРЅ Р»Рё С‚Р°Р№РјРµСЂ.
+ * bool TimeIsUp() - РРЅРґРёРєР°С‚РѕСЂ РёСЃС‚РµРєС€РµРіРѕ С‚Р°Р№РјРµСЂР°.
+ * void Update() - РћР±РЅРѕРІР»РµРЅРёРµ С‚Р°Р№РјРµСЂР°.
  */
 
 public class Timer : MonoBehaviour
@@ -60,11 +60,6 @@ public class Timer : MonoBehaviour
     {
         if (time == 0) return true;
         else return false;
-    }
-
-    void Start()
-    {
-        
     }
 
     void Update()

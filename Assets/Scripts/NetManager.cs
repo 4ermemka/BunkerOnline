@@ -20,7 +20,7 @@ public enum CurrentNetState
 #region UserClass
 
 [Serializable]
-public class User
+public class User : MonoBehaviour
 {
     public bool isHost;
     public int id;
@@ -64,45 +64,6 @@ public class User
     public void ToggleHost(bool host)
     {
         this.isHost = host;
-    }
-}
-#endregion
-
-#region PlayerClass
-
-[Serializable]
-public class Player : User
-{
-    public bool isActive;
-    public string[] cards;
-
-    public Player() : base() 
-    {
-        isActive = true;
-        cards = new string[10];
-    }
-
-    public Player(int id, string name) : base(id, name)
-    {
-        this.isActive = true;
-        this.cards = new string[10];
-    }
-
-    public Player(int id, string name, bool host,string[] cards) : base(id, name, host)
-    {
-        this.isActive = true;
-        this.cards = cards;
-    }
-
-    //public static implicit operator Player(User user) => new Player (user.id, user.name);
-
-    public void SetCards(string[] cards)
-    {
-        this.cards = cards;
-    }
-    public void SetStatus(bool isActive)
-    {
-        this.isActive = isActive;
     }
 }
 #endregion
