@@ -5,19 +5,19 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 
-/* Ïîëÿ:
- * OnEndTimer - èâåíò, ñðàáàòûâàþùèé ïðè äîñòèæåíèè òàéìåðîì íóëÿ.
- * float time - âðåìÿ äî êîíöà òàéìåðà.
- * private bool timerRunning - òàéìåð çàïóùåí èëè íåò.
- * float remainingTimeFloat - äëÿ âûâîäà íà ýêðàí ñ ïëàâàþùåé çàïÿòîé.
- * int remainingTimeInt - äëÿ âûâîäà íà ýêðàí öåëî÷èñëåííîãî çíà÷åíèÿ ñåêóíä.
+/* Ð¢ÐÐ™ÐœÐ•Ð :
+ * OnEndTimer - Ð¡Ð¾Ð±Ñ‹Ñ‚Ð¸Ðµ. Ð¡Ñ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÐµÑ‚ Ð¿Ñ€Ð¸ Ð¸ÑÑ‚ÐµÑ‡ÐµÐ½Ð¸Ð¸ Ð²Ñ€ÐµÐ¼ÐµÐ½Ð¸ Ñ‚Ð°Ð¹Ð¼ÐµÑ€Ð°.
+ * float time - Ð¡Ñ‡ÐµÑ‚Ñ‡Ð¸Ðº Ñ‚Ð°Ð¹Ð¼ÐµÑ€Ð°.
+ * private bool timerRunning - Ð˜Ð½Ð´Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ Ð·Ð°Ð¿ÑƒÑ‰ÐµÐ½Ð½Ð¾ÑÑ‚Ð¸ Ñ‚Ð°Ð¹Ð¼ÐµÑ€Ð°.
+ * float remainingTimeFloat - ÐŸÑƒÐ±Ð»Ð¸Ñ‡Ð½Ð°Ñ Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½Ð°Ñ, Ð¾ÑÑ‚Ð°Ð²ÑˆÐµÐµÑÑ Ð²Ñ€ÐµÐ¼Ñ Ñ Ð¼Ð¸Ð»Ð»Ð¸ÑÐµÐºÑƒÐ½Ð´Ð°Ð¼Ð¸.
+ * int remainingTimeInt - ÐŸÑƒÐ±Ð»Ð¸Ñ‡Ð½Ð°Ñ Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½Ð°Ñ, Ð¾ÑÑ‚Ð°Ð²ÑˆÐµÐµÑÑ Ð²Ñ€ÐµÐ¼Ñ Ð² Ñ†ÐµÐ»Ñ‹Ñ… ÑÐµÐºÑƒÐ½Ð´Ð°Ñ….
  * 
- * Ìåòîäû:
- * public Timer(), public Timer(float timeStart) - êîíñòðóêòîðû êëàññà.
- * public void SetTime (float timeStart) - ìåòîä äëÿ óñòàíîâêè íîâîãî çíà÷åíèÿ òàéìåðà.
- * bool GetTimerRunning() - ìåòîä äëÿ ïîëó÷åíèÿ èíôîðìàöèè î çàïóñêå/îñòàíîâêå òàéìåðà.
- * public bool TimeIsUp() - ïðîâåðêà íà îáíóëåíèå òàéìåðà.
- * void Update() - îáíîâëåíèå òàéìåðà.
+ * ÐœÐ•Ð¢ÐžÐ”Ð«:
+ * Timer(), public Timer(float timeStart) - ÐšÐ¾Ð½ÑÑ‚Ñ€ÑƒÐºÑ‚Ð¾Ñ€Ñ‹.
+ * void SetTime (float timeStart) - Ð—Ð°Ð´Ð°Ñ‚ÑŒ Ð²Ñ€ÐµÐ¼Ñ.
+ * bool GetTimerRunning() - ÐžÑ‚ÑÐ»ÐµÐ´Ð¸Ñ‚ÑŒ, Ð·Ð°Ð¿ÑƒÑ‰ÐµÐ½ Ð»Ð¸ Ñ‚Ð°Ð¹Ð¼ÐµÑ€.
+ * bool TimeIsUp() - Ð˜Ð½Ð´Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ Ð¸ÑÑ‚ÐµÐºÑˆÐµÐ³Ð¾ Ñ‚Ð°Ð¹Ð¼ÐµÑ€Ð°.
+ * void Update() - ÐžÐ±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ Ñ‚Ð°Ð¹Ð¼ÐµÑ€Ð°.
  */
 
 public class Timer : MonoBehaviour
@@ -61,12 +61,7 @@ public class Timer : MonoBehaviour
         if (time == 0) return true;
         else return false;
     }
-
-    void Start()
-    {
-       
-    }
-
+    
     void Update()
     {
         if (time > 0)
