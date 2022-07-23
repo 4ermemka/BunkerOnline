@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: ea645438d9ff51445acf89ba3345b5ca
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 70
+  forceTextureCase: -1
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - KUVAS
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: f36f310444da5704a8324d95a1bf07a0, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

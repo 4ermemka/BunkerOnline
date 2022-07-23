@@ -11,8 +11,9 @@ GameObject:
   - component: {fileID: 125902756156189495}
   - component: {fileID: 5134449796153989196}
   - component: {fileID: 2580123772204667067}
+  - component: {fileID: 4148599752045009188}
   m_Layer: 5
-  m_Name: Atribute
+  m_Name: Card
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67,7 +68,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 10243052c4e3db54d9a204bec9cf2ca5, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e71d779268017634792437c4a2946ffa, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -77,6 +78,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4148599752045009188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757504919633844647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb7e882e9ebe3de419dfa0f7fa11d3d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  icon: {fileID: 0}
+  color: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &4714215017613001436
 GameObject:
   m_ObjectHideFlags: 0
@@ -135,7 +150,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.061795726, b: 0.49056602, a: 1}
+  m_Color: {r: 0.155689, g: 0.509434, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -217,7 +232,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 56df86ede61d9f24e9ae44be527f15e8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 52255070e462abd46ae5671a2becd4da, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
