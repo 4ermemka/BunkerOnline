@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.2987967, g: 0, b: 0.6792453, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -156,7 +156,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_Font: {fileID: 12800000, guid: 794210fc566de7c41abe8d5dfaa128f0, type: 3}
     m_FontSize: 10
     m_FontStyle: 0
     m_BestFit: 1
@@ -278,7 +278,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isHost: 0
   id: 0
-  name: PLAYER
+  Nickname: PLAYER
   isReady: 0
   avatar: {fileID: 7551094348615941176}
   attributePanel: {fileID: 2179793286073032157}
