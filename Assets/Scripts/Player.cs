@@ -25,11 +25,7 @@ public class Player : User
     public Player(int id, string name) : base(id, name)
     {
         this.isActive = true;
-<<<<<<< HEAD
-        //this.cards = new string;
-=======
         cards = new List<string>();
->>>>>>> a6b27f0f9cab7fc27aacd6f7a430aa7f31993b28
     }
 
     public Player(int id, string name, bool host, string[] cards) : base(id, name, host)

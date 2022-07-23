@@ -11,36 +11,36 @@ public class User : MonoBehaviour
 {
     public bool isHost;
     public int id;
-    public string name;
+    public string Nickname;
     public bool isReady;
 
     public User()
     {
         isHost = false;
         id = 0;
-        name = "PLAYER";
+        Nickname = "PLAYER";
         isReady = false;
     }
 
-    public User(int id, string name)
+    public User(int id, string Nickname)
     {
         this.isHost = false;
         this.id = id;
-        this.name = name;
+        this.Nickname = Nickname;
         isReady = false;
     }
 
-    public User(int id, string name, bool host)
+    public User(int id, string Nickname, bool host)
     {
         this.isHost = host;
         this.id = id;
-        this.name = name;
+        this.Nickname = Nickname;
         isReady = false;
     }
 
-    public void SetName(string name)
+    public void SetNickname(string Nickname)
     {
-        this.name = name;
+        this.Nickname = Nickname;
     }
 
     public void SetId(int id)
