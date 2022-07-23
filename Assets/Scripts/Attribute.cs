@@ -8,7 +8,7 @@ public class Attribute : MonoBehaviour
     private int id = 0;
     [SerializeField] private Sprite icon;
     [SerializeField] private Color color;
-
+    
     public int GetId() 
     {
         return id;
@@ -23,11 +23,6 @@ public class Attribute : MonoBehaviour
     {
         icon = GetComponent<Image>().sprite;
         color = GetComponent<Image>().color;
-    }
-
-    void Update()
-    {
-        
     }
 
     public void UpdateIcon(Sprite newIcon)

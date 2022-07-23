@@ -12,6 +12,7 @@ public class Player : User
     [SerializeField] private PlayerPanel attributePanel;
     [SerializeField] private Text nicknameText;
 
+
     public bool isActive;
     public List<string> cards;
 
@@ -32,7 +33,7 @@ public class Player : User
         this.isActive = true;
         SetCards(cards);
     }
-
+    
     //public static implicit operator Player(User user) => new Player (user.id, user.name);
 
     public void SetCards(string[] cards)
