@@ -23,7 +23,7 @@ public class Player : User
     public Player(int id, string name) : base(id, name)
     {
         this.isActive = true;
-        this.cards = new string[10];
+        //this.cards = new string;
     }
 
     public Player(int id, string name, bool host, string[] cards) : base(id, name, host)

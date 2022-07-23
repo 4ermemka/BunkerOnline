@@ -4,23 +4,40 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum CurrentStage
+{
+    Turn,
+    Voting,
+    Kick
+}
+
 public class GameManager : MonoBehaviour
 {
+    public List<Player> players;
+
+    public float timeToTurn;
+    public float timeToVote;
     public Timer playerTimer;
-    //public Timer votingTimer;
+    public Timer votingTimer;
     public Text timerText;
-    public GameObject button1;
-    public GameObject button2;
-    public GameObject button3;
     public int currentPlayer = 0;
+    public bool isAllPlayersReadyToVote = false;
+
+    GameManager()
+    {
+        players = null;
+    }
+
+    GameManager(Player players, float timeToTurn)
+    {
+        this.players = players;
+        this.timeToTurn = timeToTurn;
+    }
 
     void Start()
     {
-        button1.GetComponent<Button>().interactable = true;
-        button2.GetComponent<Button>().interactable = false;
-        button3.GetComponent<Button>().interactable = false;
         playerTimer = GetComponent<Timer>();
-        //votingTimer = GetComponent<Timer>();
+        votingTimer = GetComponent<Timer>();
         timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
         playerTimer.OnEndTimer += ChangePlayer;
     }
@@ -32,33 +49,19 @@ public class GameManager : MonoBehaviour
 
     public void ChangePlayer(object sender, EventArgs e)
     {
-        if (currentPlayer == 0)
+        if (players.Count < currentPlayer)
         {
-            button1.GetComponent<Button>().interactable = false;
-            button2.GetComponent<Button>().interactable = true;
-            button3.GetComponent<Button>().interactable = false;
-            playerTimer.timerRunning = true;
-            currentPlayer = 1;
-            playerTimer.SetTime(15f);
-        }
-        else if (currentPlayer == 1)
-        {
-            button1.GetComponent<Button>().interactable = false;
-            button2.GetComponent<Button>().interactable = false;
-            button3.GetComponent<Button>().interactable = true;
-            playerTimer.timerRunning = true;
-            currentPlayer = 2;
-            playerTimer.SetTime(15f);
+            currentPlayer++;
+            playerTimer.SetTime(timeToTurn);
         }
         else
         {
-            button1.GetComponent<Button>().interactable = true;
-            button2.GetComponent<Button>().interactable = false;
-            button3.GetComponent<Button>().interactable = false;
-            playerTimer.timerRunning = true;
             currentPlayer = 0;
-            playerTimer.SetTime(15f);
+            isAllPlayersReadyToVote = true;
+            voitingTimer.SetTime(timeToVote);
         }
+        
+
     }
 
     public void ButtonTimerClick()
