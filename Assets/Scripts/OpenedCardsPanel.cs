@@ -1,18 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class OpenedCardsPanel : MonoBehaviour
+public class OpenedCardsPanel : MonoBehaviour, IDropHandler
 {
-    // Start is called before the first frame update
-    void Start()
+    public void OnDrop(PointerEventData eventData)
     {
-        
-    }
+        Card card = eventData.pointerDrag.GetComponent<Card>();
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        if(card)
+            card.defaultParent = transform;
     }
 }

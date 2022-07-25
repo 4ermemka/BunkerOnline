@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 125902756156189495}
   - component: {fileID: 5134449796153989196}
+  - component: {fileID: 7827787892964416899}
   - component: {fileID: 2580123772204667067}
   - component: {fileID: 4148599752045009188}
   m_Layer: 5
@@ -48,6 +49,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1757504919633844647}
   m_CullTransparentMesh: 1
+--- !u!225 &7827787892964416899
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757504919633844647}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &2580123772204667067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90,8 +103,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb7e882e9ebe3de419dfa0f7fa11d3d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 0}
-  color: {r: 0, g: 0, b: 0, a: 0}
+  id: 0
+  category: empty
+  attributeName: empty
+  description: empty
+  Sprite: {fileID: 0}
+  Color: {r: 0, g: 0, b: 0, a: 0}
+  icon: {fileID: 1869584486754861955}
+  cardInfoPref: {fileID: 4628756792145902271, guid: 67c4c06fc5a36d447af682bfa2178659, type: 3}
+  defaultParent: {fileID: 0}
 --- !u!1 &4714215017613001436
 GameObject:
   m_ObjectHideFlags: 0
@@ -150,7 +170,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.155689, g: 0.509434, b: 0, a: 1}
+  m_Color: {r: 0.3584906, g: 0, b: 0.03609125, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
