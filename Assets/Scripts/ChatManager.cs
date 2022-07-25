@@ -6,15 +6,21 @@ using UnityEngine.UI;
 public class ChatManager : MonoBehaviour
 {
     private int messagesCount;
-    [SerializeField] private Text Nickname;
-    [SerializeField] private Text MessageText;
+    private string myNickname = "4ermemka";
     [SerializeField] private GameObject chatList;
 
     [SerializeField] private ChatMessage msgPref;
 
+    [SerializeField] private InputField msgField;
+
     public void Start() 
     {
         
+    }
+
+    public void SetNickname(string nick) 
+    {
+        myNickname = nick;
     }
 
     public void AddMessage(string author, string msg) 
@@ -25,5 +31,12 @@ public class ChatManager : MonoBehaviour
         chatMsg.SetNickname(author);
 
         chatMsg.transform.SetParent(chatList.transform);
+        chatMsg.transform.localScale = new Vector3(1,1,1);
+    }
+
+    public void WriteMessage()
+    {
+        if(msgField.text!=string.Empty) AddMessage(this.myNickname, msgField.text);
+        msgField.text = string.Empty;
     }
 }
