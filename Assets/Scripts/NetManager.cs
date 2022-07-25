@@ -3,70 +3,12 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Text;
 
-public enum CurrentStage 
-{
-    Turn,
-    Voting,
-    Kick
-}
-
 public enum CurrentNetState
 {
     None,
     Server,
     Client
 }
-
-#region UserClass
-
-[Serializable]
-public class User : MonoBehaviour
-{
-    public bool isHost;
-    public int id;
-    public string name;
-    public bool isReady;
-
-    public User()
-    {
-        isHost = false;
-        id = 0;
-        name = "PLAYER";
-        isReady = false;
-    }
-
-    public User(int id, string name)
-    {
-        this.isHost = false;
-        this.id = id;
-        this.name = name;
-        isReady = false;
-    }
-
-    public User(int id, string name, bool host)
-    {
-        this.isHost = host;
-        this.id = id;
-        this.name = name;
-        isReady = false;
-    }
-
-    public void SetName(string name)
-    {
-        this.name = name;
-    }
-
-    public void SetId(int id)
-    {
-        this.id = id;
-    }
-
-    public void ToggleHost(bool host)
-    {
-        this.isHost = host;
-    }
-}
-#endregion
 
 public class NetManager : MonoBehaviour
 {
@@ -146,17 +88,17 @@ public class NetManager : MonoBehaviour
 
     #region UserManager
 
-    public void AddNewUser(string name, int conId)
+    public void AddNewUser(string Nickname, int conId)
     {
-        User newUser = new User(conId, name);
+        User newUser = new User(conId, Nickname);
         lobbyList.Add(newUser);
 
         MenuInterfaceManager.UpdateLobby(lobbyList);
     }
 
-    public void AddNewUser(string name, int conId, bool host, int recHost)
+    public void AddNewUser(string Nickname, int conId, bool host, int recHost)
     {
-        User newUser = new User(conId, name, host);
+        User newUser = new User(conId, Nickname, host);
         lobbyList.Add(newUser);
 
         server.SendClient(recHost, conId, messageProcessing.ServerUsersListMsg(lobbyList));
@@ -165,14 +107,14 @@ public class NetManager : MonoBehaviour
         MenuInterfaceManager.UpdateLobby(lobbyList);
     }
 
-    public void UpdateUsername(string name)
+    public void UpdateUsername(string Nickname)
     {
-        user.SetName(name);
-        OnUserUpdated?.Invoke(this, new OnUserUpdatedEventArgs{newName = name});
+        user.SetNickname(Nickname);
+        OnUserUpdated?.Invoke(this, new OnUserUpdatedEventArgs{newName = Nickname});
         User updatedUser = lobbyList.Find(x=> x.id == user.id);
-        if(updatedUser!=null) Debug.Log("ID USER: " + user.id + " " + updatedUser.name);
+        if(updatedUser!=null) Debug.Log("ID USER: " + user.id + " " + updatedUser.Nickname);
 
-        if(updatedUser!=null) updatedUser.SetName(name);
+        if(updatedUser!=null) updatedUser.SetNickname(Nickname);
 
         MenuInterfaceManager.ClearLobby();
         MenuInterfaceManager.UpdateLobby(lobbyList);
@@ -188,12 +130,12 @@ public class NetManager : MonoBehaviour
         }
     }
 
-    public void UpdateUser(int conId, int host, string newName) 
+    public void UpdateUser(int conId, int host, string newNickname) 
     {
         User updatedUser = lobbyList.Find(x=> x.id == conId);
         if(updatedUser!=null) 
         {
-            updatedUser.SetName(newName);
+            updatedUser.SetNickname(newNickname);
             MenuInterfaceManager.ClearLobby();
             MenuInterfaceManager.UpdateLobby(lobbyList);
         }
@@ -247,18 +189,18 @@ public class NetManager : MonoBehaviour
         bool flag = false; int i;
         for (i = 0; i < cards.Length; i++)
             if (cards[i] == string.Empty) flag = true;
-        if (!flag && name == string.Empty)
+        if (!flag && user.Nickname == string.Empty)
             return true;
         else return false;
     }
 
-    /*public bool UpdatePlayerInformation(string name, int conId, string cardsNew)
+    /*public bool UpdatePlayerInformation(string Nickname, int conId, string cardsNew)
     {
         string[] cards;
         cards = Decryption(cardsNew);
         if (conId < lobbyList.Count && !IsEmpty(lobbyList[conId].cards))
         {
-            lobbyList[conId].SetName(name);
+            lobbyList[conId].SetNickname(Nickname);
             lobbyList[conId].SetCards(cards);
             return true;
         }

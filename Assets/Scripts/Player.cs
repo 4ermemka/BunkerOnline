@@ -1,8 +1,9 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 [Serializable]
 public class Player : User
@@ -10,6 +11,7 @@ public class Player : User
     [SerializeField] private Image avatar;
     [SerializeField] private PlayerPanel attributePanel;
     [SerializeField] private Text nicknameText;
+
 
     public bool isActive;
     public List<string> cards;
@@ -23,20 +25,15 @@ public class Player : User
     public Player(int id, string name) : base(id, name)
     {
         this.isActive = true;
-        this.cards = new string[10];
+        cards = new List<string>();
     }
 
     public Player(int id, string name, bool host, string[] cards) : base(id, name, host)
     {
         this.isActive = true;
-        this.cards.Clear();
-
-        foreach(var c in cards) 
-        {
-        this.cards.Add(c);    
-        }
+        SetCards(cards);
     }
-
+    
     //public static implicit operator Player(User user) => new Player (user.id, user.name);
 
     public void SetCards(string[] cards)
@@ -45,7 +42,7 @@ public class Player : User
 
         foreach(var c in cards) 
         {
-        this.cards.Add(c);    
+            this.cards.Add(c);    
         }
     }
     public void SetActiveStatus(bool isActive)
@@ -58,17 +55,22 @@ public class Player : User
         return this.isActive;
     }
 
-    public void AddAtribute() 
+    public Attribute FindAttribute(int id)
     {
-        
+        List<Attribute> attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
+
+        Attribute attribute = attributesList.Find(x => x.GetComponent<Attribute>().GetId() == id);
+        return attribute;
     }
-    public void UpdateAtribute() 
+
+    public void UpdateAttribute(int id) 
     {
         
     }
 
-    public void DeleteAtribute() 
+    public void DeleteAttribute(int id) 
     {
-        
+        Attribute deletedAttribute = FindAttribute(id);
+        if (deletedAttribute!=null) Destroy(deletedAttribute.gameObject);
     }
 }

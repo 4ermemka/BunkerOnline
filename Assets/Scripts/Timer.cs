@@ -61,6 +61,8 @@ public class Timer : MonoBehaviour
         if (time == 0) return true;
         else return false;
     }
+
+    void Start() { }
     
     void Update()
     {

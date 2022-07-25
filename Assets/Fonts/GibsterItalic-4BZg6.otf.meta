@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: bc8167adfcb853640a336e5dc5a6590c
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 70
+  forceTextureCase: -1
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Gibster
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 794210fc566de7c41abe8d5dfaa128f0, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
