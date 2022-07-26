@@ -21,9 +21,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] Text hostStatus;
     [SerializeField] ChatManager chat;
 
-    private int CountForEndGame;
-    private float timeToTurn;
-    private float timeToVote;
+    public int CountForEndGame = 1;
+    public float timeToTurn = 15;
+    public float timeToVote = 15;
     private Timer playerTimer;
     private Timer DebateTimer;
     private Text timerText;
@@ -31,14 +31,23 @@ public class GameManager : MonoBehaviour
 
     CurrentStage currentStage = CurrentStage.Turn;
 
+    public void FromUsersToPlayers(List<User> users)
+    {
+        for (int i = 0; i < users.Count; i++)
+        {
+            Player player = new Player(users[i].id, users[i].Nickname);
+            players.Add(player);
+        }
+    }
+
     GameManager()
     {
         players = null;
     }
 
-    GameManager(List<Player> players, float timeToTurn, float timeToVote, int CountForEndGame)
+    GameManager(List<User> users, float timeToTurn, float timeToVote, int CountForEndGame)
     {
-        this.players = players;
+        FromUsersToPlayers(users);
         this.timeToTurn = timeToTurn;
         this.timeToVote = timeToVote;
         this.CountForEndGame = CountForEndGame;
@@ -46,17 +55,20 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        players = new List<Player>();
+
+
         chat.SetNickname(user.Nickname);
         displayNickname.text = user.Nickname;
 
-        if(user.isHost) hostStatus.text = "HOST";
+        if (user.isHost) hostStatus.text = "HOST";
         else hostStatus.text = string.Empty;
 
         playerTimer = GetComponent<Timer>();
         DebateTimer = GetComponent<Timer>();
         timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
         playerTimer.OnEndTimer += ChangePlayer;
-        Game();
+        MenuInterfaceManager.OnStartGame += Game;
     }
 
     void Update()
@@ -64,7 +76,7 @@ public class GameManager : MonoBehaviour
         timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
     }
 
-    public string GetMyNick() 
+    public string GetMyNick()
     {
         return user.Nickname;
     }
@@ -84,7 +96,7 @@ public class GameManager : MonoBehaviour
         playerTimer.timerRunning = !playerTimer.timerRunning;
     }
 
-    public void Game()
+    public void Game(object sender, EventArgs e)
     {
         while (players.Count > CountForEndGame)
         {
