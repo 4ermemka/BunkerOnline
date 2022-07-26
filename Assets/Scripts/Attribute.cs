@@ -46,6 +46,16 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         return id;
     }
 
+    public Sprite GetIcon() 
+    {
+        return Sprite;
+    }
+
+    public Color GetColor() 
+    {
+        return Color;
+    }
+
     public string GetDescription() 
     {
         return description;
@@ -61,13 +71,13 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         return attributeName;
     }
 
+    #endregion
+
+    #region SetFields
     public void SetId(int newId) 
     {
         id = newId;
     }
-    #endregion
-
-    #region SetFields
 
     public void SetDescription(string descr)
     {
