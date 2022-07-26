@@ -19,6 +19,7 @@ public class MenuInterfaceManager : MonoBehaviour
     public event EventHandler OnChooseClient;
     public event EventHandler OnChooseServer;
     public event EventHandler OnReturnToMenu;
+    public event EventHandler OnStartGame;
 
     public class OnClickConnectEventArgs:EventArgs
     {
@@ -34,7 +35,11 @@ public class MenuInterfaceManager : MonoBehaviour
     [SerializeField] private InputField NicknameField;
     [SerializeField] private InputField ipAdressField;
     [SerializeField] private Text errMsg;
+    [SerializeField] private Text lobbyErrMsg;
     [SerializeField] private Text connectionStatusText;
+
+    private int minPlayersCountToStart;
+    private int maxPlayersCountToStart;
 
     List<CanvasController> canvasControllerList;
     CanvasController lastActiveCanvas;
@@ -159,6 +164,20 @@ public class MenuInterfaceManager : MonoBehaviour
         else errMsg.text = "Empty nickname not allowed!";
     }
 
+    public void StartGameClick()
+    {
+        int connectedCount = 0;
+        foreach (Transform child in lobbyList.transform)
+        {
+            connectedCount++;
+        }
+        if(connectedCount > minPlayersCountToStart)
+        {
+            OnStartGame?.Invoke(this, EventArgs.Empty);
+        }
+        else lobbyErrMsg.text = "Not enough players!";
+    }
+
     public void ExitClick() 
     {
         Application.Quit();
@@ -203,6 +222,7 @@ public class MenuInterfaceManager : MonoBehaviour
     public void ResetErrors()
     {
         connectionStatusText.text = "";
+        lobbyErrMsg.text = "";
         errMsg.text = "";
     }
 
