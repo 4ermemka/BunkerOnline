@@ -19,7 +19,7 @@ public class MenuInterfaceManager : MonoBehaviour
     public event EventHandler OnChooseClient;
     public event EventHandler OnChooseServer;
     public event EventHandler OnReturnToMenu;
-    public event EventHandler OnStartGame;
+    public static event EventHandler OnStartGame;
 
     public class OnClickConnectEventArgs:EventArgs
     {
@@ -38,7 +38,7 @@ public class MenuInterfaceManager : MonoBehaviour
     [SerializeField] private Text lobbyErrMsg;
     [SerializeField] private Text connectionStatusText;
 
-    private int minPlayersCountToStart;
+    private int minPlayersCountToStart = 2;
     private int maxPlayersCountToStart;
 
     List<CanvasController> canvasControllerList;
@@ -171,7 +171,7 @@ public class MenuInterfaceManager : MonoBehaviour
         {
             connectedCount++;
         }
-        if(connectedCount > minPlayersCountToStart)
+        if(connectedCount >= minPlayersCountToStart)
         {
             OnStartGame?.Invoke(this, EventArgs.Empty);
         }
