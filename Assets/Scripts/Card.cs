@@ -2,35 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class Card : Attribute, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    private Camera cam;
+    public Transform defaultParent;
 
-    void Awake()
-    {
-        cam = Camera.allCameras[0];
-    }
-
-    void Update()
-    {
-        
-    }
-    
     public void OnBeginDrag(PointerEventData eventData)
+    {
+        defaultParent = transform.parent;
+        transform.SetParent(defaultParent.parent);
+        GetComponent<CanvasGroup>().blocksRaycasts = false;
+    }
+
+    public void OnDrag(PointerEventData eventData)
     {
         Vector3 newPos = cam.ScreenToWorldPoint(eventData.position);
         newPos.z = 0;
         transform.position = newPos;
     }
 
-    public void OnDrag(PointerEventData eventData)
-    {
-        
-    }
-
     public void OnEndDrag(PointerEventData eventData)
     {
-
+        transform.SetParent(defaultParent);
+        GetComponent<CanvasGroup>().blocksRaycasts = true;
     }
 }
