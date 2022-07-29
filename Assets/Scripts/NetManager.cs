@@ -263,6 +263,7 @@ public class NetManager : MonoBehaviour
         server.OnDisconnect += ServerOnClientDisconnection;
         netState = CurrentNetState.Server;
         user.ToggleHost(true);
+        if(user == null) Debug.Log("NULL");
         lobbyList.Add(user);
         MenuInterfaceManager.UpdateLobby(lobbyList);
     }
