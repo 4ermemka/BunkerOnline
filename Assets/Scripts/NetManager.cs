@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.SceneManagement;
 
 public enum CurrentNetState
 {
@@ -27,6 +28,7 @@ public class NetManager : MonoBehaviour
     [SerializeField] private Server serverPref;
     [SerializeField] private Client clientPref;
     [SerializeField] private MenuInterfaceManager MenuInterfaceManager;
+    private GameManager gm;
 
     private MessageProcessing messageProcessing;
 
@@ -41,6 +43,7 @@ public class NetManager : MonoBehaviour
 
     public void Start()
     {
+        DontDestroyOnLoad(this);
         user = new User();
         lobbyList = new List<User>();
         messageProcessing = new MessageProcessing(this);
@@ -300,4 +303,23 @@ public class NetManager : MonoBehaviour
     }
 
     #endregion
+
+    #region GetInfo
+
+    public List<User> GetUsersList()
+    {
+        return lobbyList;
+    }
+
+    public User GetUser()
+    {
+        return user;
+    }
+
+    #endregion
+
+    public void ChangeScene()
+    {
+        SceneManager.LoadScene("GameInterface");
+    }
 }

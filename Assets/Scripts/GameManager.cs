@@ -15,11 +15,21 @@ public class GameManager : MonoBehaviour
 {
     private User user;
     private int inlistId;
-    private List<Player> players;
+    private List<User> users;
 
+    [SerializeField] PlayerInfo playerInfoPref; 
+    [SerializeField] Gameobject playersGrid;
+    //PlayerInfo temp = Instantiate(playerInfoPref) as PlayerInfo;
+    //temp.SetNickname() (образец, дописать методы).
+    //temp.gameObject.SetParent(playersGrid.transfrom) (либо transform.SetParent)
+    //temp.gameObject.transform.localScale = new Vector3(1,1,1);
     [SerializeField] Text displayNickname;
     [SerializeField] Text hostStatus;
     [SerializeField] ChatManager chat;
+
+    private Server server;
+    private Client client;
+    private NetManager nm;
 
     public int CountForEndGame = 1;
     public float timeToTurn = 15;
@@ -31,13 +41,10 @@ public class GameManager : MonoBehaviour
 
     CurrentStage currentStage = CurrentStage.Turn;
 
-    public void FromUsersToPlayers(List<User> users)
+    public void ConvertToGameManager(List<User> users, User user)
     {
-        for (int i = 0; i < users.Count; i++)
-        {
-            Player player = new Player(users[i].id, users[i].Nickname);
-            players.Add(player);
-        }
+        this.user = user;
+        this.users = users;
     }
 
     GameManager()
@@ -47,7 +54,7 @@ public class GameManager : MonoBehaviour
 
     GameManager(List<User> users, float timeToTurn, float timeToVote, int CountForEndGame)
     {
-        FromUsersToPlayers(users);
+        ConvertFromUsersToPlayers(users);
         this.timeToTurn = timeToTurn;
         this.timeToVote = timeToVote;
         this.CountForEndGame = CountForEndGame;
@@ -55,8 +62,10 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        players = new List<Player>();
-
+        nm = FindObjectOfType<NetManager>();
+        server = FindObjectOfType<Server>();
+        client = FindObjectOfType<Client>();
+        ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
 
         chat.SetNickname(user.Nickname);
         displayNickname.text = user.Nickname;
