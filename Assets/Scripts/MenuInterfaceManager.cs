@@ -92,7 +92,7 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void SwitchToLobby()
     {
-        if(nm.user.name == "") 
+        if(nm.user.Nickname == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
@@ -105,7 +105,7 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void SwitchToConnectionMenu()
     {
-        if(nm.user.name == "") 
+        if(nm.user.Nickname == "") 
         {
             SwitchToMainMenu();
             errMsg.text = "Nickname is empty!";
@@ -193,6 +193,7 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void UpdateLobby(List<User> users)
     {
+        Debug.Log(users == null);
         ClearLobby();
         int i = 0;
         foreach (User u in users)
@@ -201,7 +202,7 @@ public class MenuInterfaceManager : MonoBehaviour
             UserInfo panelInfo = panel.GetComponent<UserInfo>();
 
             panelInfo.setId(u.id);
-            panelInfo.setNickname(u.name);
+            panelInfo.setNickname(u.Nickname);
             panelInfo.toggleHost(u.isHost);
             panelInfo.setNum(++i);
 

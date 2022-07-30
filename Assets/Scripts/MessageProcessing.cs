@@ -215,7 +215,7 @@ public class MessageProcessing
         NetUser_UpdateInfo msg = new NetUser_UpdateInfo();
         msg.conId = user.id;
         msg.hostId = hostId;
-        msg.Username = user.name;
+        msg.Username = user.Nickname;
 
         return MakeBuffer(msg);
     }
@@ -235,7 +235,7 @@ public class MessageProcessing
     public byte[] ClientNewUserMsg(User user)
     {
         NetUser_Add msg = new NetUser_Add();
-        msg.Username = user.name;
+        msg.Username = user.Nickname;
 
         return MakeBuffer(msg);
     }
@@ -243,7 +243,7 @@ public class MessageProcessing
     public byte[] ClientUpdateUserMsg(User user)
     {
         NetUser_UpdateInfo msg = new NetUser_UpdateInfo();
-        msg.Username = user.name;
+        msg.Username = user.Nickname;
         msg.hostId = netManager.hostId;
         msg.conId = user.id;
 
