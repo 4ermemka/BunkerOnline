@@ -207,7 +207,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1506739345391947252, guid: 845bc48f5b94ce54597f3b826cf71eee, type: 3}
+      - m_Target: {fileID: 5583387097825479557}
         m_TargetAssemblyTypeName: SceneChanger, Assembly-CSharp
         m_MethodName: ChangeScene
         m_Mode: 5
@@ -216,7 +216,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: GameInterface
+          m_StringArgument: GameInteface
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &32605385
@@ -4008,7 +4008,11 @@ MonoBehaviour:
   clientPref: {fileID: 5272291164228663794, guid: b19e5043a8a568644ad23045ebdc5e06, type: 3}
   MenuInterfaceManager: {fileID: 282198880}
   hostId: 0
-  user: {fileID: 0}
+  user:
+    isHost: 0
+    id: 0
+    Nickname: PLAYER
+    isReady: 0
 --- !u!4 &1858045151
 Transform:
   m_ObjectHideFlags: 0
@@ -4716,3 +4720,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 845bc48f5b94ce54597f3b826cf71eee, type: 3}
+--- !u!114 &5583387097825479557 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1506739345391947252, guid: 845bc48f5b94ce54597f3b826cf71eee, type: 3}
+  m_PrefabInstance: {fileID: 5583387097825479556}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35bcca681489326409bc7bee072894cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
