@@ -5,11 +5,10 @@ using UnityEngine.SceneManagement;
 
 public class SceneChanger : MonoBehaviour
 {
-    private AssetBundle myLoadedAssetBundle;
 
-    public void ChangeScene(string name)
+    public void ChangeScene()
     {
-        SceneManager.LoadScene(name, LoadSceneMode.Single);
+        SceneManager.LoadScene("GameInterface");
     }
 
 }
