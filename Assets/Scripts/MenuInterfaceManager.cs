@@ -38,6 +38,8 @@ public class MenuInterfaceManager : MonoBehaviour
     [SerializeField] private Text lobbyErrMsg;
     [SerializeField] private Text connectionStatusText;
 
+    [SerializeField] private Button StartBtn;
+
     private int minPlayersCountToStart = 2;
     private int maxPlayersCountToStart;
 
@@ -133,12 +135,14 @@ public class MenuInterfaceManager : MonoBehaviour
     {
         OnChooseClient?.Invoke(this, EventArgs.Empty);
         SwitchToConnectionMenu();
+        StartBtn.gameObject.SetActive(false);
     }
 
     public void HostClick() 
     {
         OnChooseServer?.Invoke(this, EventArgs.Empty);
         SwitchToLobby();
+        StartBtn.gameObject.SetActive(true);
     }
 
     public void ConnectClick()
