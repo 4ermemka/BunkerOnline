@@ -7,7 +7,7 @@ using UnityEngine;
 #region UserClass
 
 [Serializable]
-public class User : MonoBehaviour
+public class User
 {
     public bool isHost;
     public int id;
