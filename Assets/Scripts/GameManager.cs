@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,14 +19,19 @@ public class GameManager : MonoBehaviour
     private List<User> users;
 
     [SerializeField] PlayerInfo playerInfoPref; 
-    [SerializeField] Gameobject playersGrid;
+    [SerializeField] GameObject playersGrid;
+
     //PlayerInfo temp = Instantiate(playerInfoPref) as PlayerInfo;
-    //temp.SetNickname() (образец, дописать методы).
-    //temp.gameObject.SetParent(playersGrid.transfrom) (либо transform.SetParent)
+    //temp.SetNickname() (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ).
+    //temp.gameObject.SetParent(playersGrid.transfrom) (пїЅпїЅпїЅпїЅ transform.SetParent)
     //temp.gameObject.transform.localScale = new Vector3(1,1,1);
-    [SerializeField] Text displayNickname;
-    [SerializeField] Text hostStatus;
-    [SerializeField] ChatManager chat;
+    [SerializeField] private TextMeshProUGUI displayNickname;
+    [SerializeField] private TextMeshProUGUI hostStatus;
+    [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI stageText;
+    [SerializeField] private TextMeshProUGUI currentPlayerTurnText;
+
+    [SerializeField] private ChatManager chat;
 
     private Server server;
     private Client client;
@@ -35,8 +41,6 @@ public class GameManager : MonoBehaviour
     public float timeToTurn = 15;
     public float timeToVote = 15;
     private Timer playerTimer;
-    private Timer DebateTimer;
-    private Text timerText;
     private int currentPlayer = 0;
 
     CurrentStage currentStage = CurrentStage.Turn;
@@ -46,19 +50,13 @@ public class GameManager : MonoBehaviour
         this.user = user;
         this.users = users;
     }
-
-    GameManager()
-    {
-        players = null;
-    }
-
-    GameManager(List<User> users, float timeToTurn, float timeToVote, int CountForEndGame)
-    {
-        ConvertFromUsersToPlayers(users);
-        this.timeToTurn = timeToTurn;
-        this.timeToVote = timeToVote;
-        this.CountForEndGame = CountForEndGame;
-    }
+    //GameManager(List<User> users, float timeToTurn, float timeToVote, int CountForEndGame)
+    //{
+    //    ConvertFromUsersToPlayers(users);
+    //    this.timeToTurn = timeToTurn;
+    //    this.timeToVote = timeToVote;
+    //    this.CountForEndGame = CountForEndGame;
+    //}
 
     void Start()
     {
@@ -66,6 +64,7 @@ public class GameManager : MonoBehaviour
         server = FindObjectOfType<Server>();
         client = FindObjectOfType<Client>();
         ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
+        playerTimer = FindObjectOfType<Timer>();
 
         chat.SetNickname(user.Nickname);
         displayNickname.text = user.Nickname;
@@ -73,31 +72,21 @@ public class GameManager : MonoBehaviour
         if (user.isHost) hostStatus.text = "HOST";
         else hostStatus.text = string.Empty;
 
-        playerTimer = GetComponent<Timer>();
-        DebateTimer = GetComponent<Timer>();
+        playerTimer.SetTime(120);
         timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
-        playerTimer.OnEndTimer += ChangePlayer;
+        //playerTimer.OnEndTimer += ChangePlayer;
         MenuInterfaceManager.OnStartGame += Game;
     }
 
     void Update()
     {
+        if(playerTimer == null) Debug.Log("TIMER NULL");
         timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
     }
 
     public string GetMyNick()
     {
         return user.Nickname;
-    }
-
-    public void ChangePlayer(object sender, EventArgs e)
-    {
-        if (players.Count < currentPlayer)
-        {
-            currentPlayer++;
-            playerTimer.SetTime(timeToTurn);
-        }
-        else currentPlayer = 0;
     }
 
     public void ButtonTimerClick()
@@ -107,13 +96,13 @@ public class GameManager : MonoBehaviour
 
     public void Game(object sender, EventArgs e)
     {
-        while (players.Count > CountForEndGame)
+        while (users.Count > CountForEndGame)
         {
             switch (currentStage)
             {
 
                 case CurrentStage.Turn:
-                    foreach (Player element in players)
+                    foreach (User element in users)
                     {
 
                     }
@@ -122,7 +111,7 @@ public class GameManager : MonoBehaviour
 
                 case CurrentStage.Debate:
                     playerTimer.SetTime(timeToVote);
-                    foreach (Player element in players)
+                    foreach (User element in users)
                     {
 
                     }
@@ -130,7 +119,7 @@ public class GameManager : MonoBehaviour
                     break;
 
                 case CurrentStage.Voting:
-                    foreach (Player element in players)
+                    foreach (User element in users)
                     {
 
                     }
