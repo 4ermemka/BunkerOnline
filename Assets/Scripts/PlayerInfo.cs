@@ -6,19 +6,16 @@ using System.Text;
 using System.Linq;
 
 [Serializable]
-public class Player : MonoBehaviour
+public class PlayerInfo : MonoBehaviour
 {
     [SerializeField] private Image avatar;
     [SerializeField] private PlayerPanel attributePanel;
     [SerializeField] private Text nicknameText;
 
-    public bool isHost;
-    public int id;
     public string Nickname;
-    public bool isActive;
     public List<string> cards;
 
-    public Player() 
+    public PlayerInfo() 
     {
         isActive = true;
         cards = new List<string>();
