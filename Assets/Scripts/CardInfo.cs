@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class CardInfo : MonoBehaviour
 {
-    [SerializeField] Text categoryDisplay;
-    [SerializeField] Text attributeNameDisplay;
-    [SerializeField] Text descriptionDisplay;
+    [SerializeField] TextMeshProUGUI categoryDisplay;
+    [SerializeField] TextMeshProUGUI attributeNameDisplay;
+    [SerializeField] TextMeshProUGUI descriptionDisplay;
     [SerializeField] Image iconDisplay;
     [SerializeField] Color iconColor;
 

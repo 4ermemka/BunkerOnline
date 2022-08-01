@@ -14,29 +14,6 @@ public class PlayerInfo : MonoBehaviour
 
     public string Nickname;
     public List<string> cards;
-
-    public PlayerInfo() 
-    {
-        isActive = true;
-        cards = new List<string>();
-    }
-
-    public Player(int id, string name)
-    {
-        this.id = id;
-        this.Nickname = name;
-        this.isActive = true;
-        cards = new List<string>();
-    }
-
-    public Player(User user, string[] cards)
-    {
-        this.id = user.id;
-        this.Nickname = user.Nickname;
-        this.isHost = user.isHost;
-        this.isActive = true;
-        SetCards(cards);
-    }
     
     //public static implicit operator Player(User user) => new Player (user.id, user.name);
 
@@ -48,15 +25,6 @@ public class PlayerInfo : MonoBehaviour
         {
             this.cards.Add(c);    
         }
-    }
-    public void SetActiveStatus(bool isActive)
-    {
-        this.isActive = isActive;
-    }
-
-    public bool IsActive()
-    {
-        return this.isActive;
     }
 
     public Attribute FindAttribute(int id)

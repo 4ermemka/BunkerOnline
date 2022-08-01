@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using TMPro;
 
 public enum CanvasType
 {
@@ -29,14 +30,14 @@ public class MenuInterfaceManager : MonoBehaviour
 
     #region InterfaceFields
     [SerializeField] private NetManager nm;
-    [SerializeField] private Text userNickDisplay;
+    [SerializeField] private TextMeshProUGUI userNickDisplay;
     [SerializeField] private GameObject userInfo;
     [SerializeField] private GameObject lobbyList;
     [SerializeField] private InputField NicknameField;
     [SerializeField] private InputField ipAdressField;
-    [SerializeField] private Text errMsg;
-    [SerializeField] private Text lobbyErrMsg;
-    [SerializeField] private Text connectionStatusText;
+    [SerializeField] private TextMeshProUGUI errMsg;
+    [SerializeField] private TextMeshProUGUI lobbyErrMsg;
+    [SerializeField] private TextMeshProUGUI connectionStatusText;
 
     [SerializeField] private Button StartBtn;
 
