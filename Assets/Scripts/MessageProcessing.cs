@@ -77,10 +77,9 @@ public class MessageProcessing
             case NetOP.UpdateUser:
                 OnUpdateUser(e.conId, e.host, (NetUser_UpdateInfo)msg);
                 break;
-
-            /*case NetOP.UpdateCardPlayer:
-                OnUpdatePlayer(e.conId, e.host, (Net_UpdateCardPlayer)msg);
-                break;*/
+            case NetOP.UpdateChat:
+                OnUpdateChat((Net_UpdateChat)msg);
+                break;
 
             case NetOP.CastCardPlayer:
                 //Soon          
@@ -109,6 +108,11 @@ public class MessageProcessing
         netManager.UpdatePlayerInformation(msg.Username, conId, msg.NewCardsOnTable);
         Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
     }*/
+
+    private void OnUpdateChat(Net_UpdateChat msg)
+    {
+        Debug.Log("New message in chat!");
+    }
 
     #endregion
 
@@ -156,6 +160,9 @@ public class MessageProcessing
 
             case NetOP.CastCardPlayer:
                 //Soon          
+                break;
+            case NetOP.UpdateChat:
+                OnUpdateChat((Net_UpdateChat)msg);
                 break;
 
             default:
@@ -210,7 +217,7 @@ public class MessageProcessing
         return MakeBuffer(msg);
     }
 
-    public byte[] ServerUdateUser(User user, int hostId)
+    public byte[] ServerUpdateUser(User user, int hostId)
     {
         NetUser_UpdateInfo msg = new NetUser_UpdateInfo();
         msg.conId = user.id;
@@ -224,6 +231,15 @@ public class MessageProcessing
     {
         NetUser_SetGlobalId msg = new NetUser_SetGlobalId();
         msg.globalConId = globalConId;
+
+        return MakeBuffer(msg);
+    }
+
+    public byte[] ServerUpdateChat(User user, string message)
+    {
+        Net_UpdateChat msg = new Net_UpdateChat();
+        msg.Nickname = user.Nickname;
+        msg.message = message;
 
         return MakeBuffer(msg);
     }
@@ -249,6 +265,15 @@ public class MessageProcessing
 
         return MakeBuffer(msg);
     }
-    
+
+    public byte[] ClientUpdateChat(User user, string message)
+    {
+        Net_UpdateChat msg = new Net_UpdateChat();
+        msg.Nickname = user.Nickname;
+        msg.message = message;
+
+        return MakeBuffer(msg);
+    }
+
     #endregion
 }

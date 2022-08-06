@@ -8,6 +8,9 @@ public static class NetOP
     public const int UpdateCardPlayer = 5;
     public const int AllUsersInfo = 6;
     public const int CastCardPlayer = 7;
+    public const int KickPlayer = 8;
+    public const int PlayerVote = 9;
+    public const int UpdateChat = 10;
 }
 
 [System.Serializable]

@@ -17,6 +17,11 @@ public class PlayerInfo : MonoBehaviour
     
     //public static implicit operator Player(User user) => new Player (user.id, user.name);
 
+    public void SetNickname (string Nickname)
+    {
+        this.Nickname = Nickname;
+    }
+
     public void SetCards(string[] cards)
     {
         this.cards.Clear();

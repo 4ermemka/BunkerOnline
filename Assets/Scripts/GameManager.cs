@@ -20,11 +20,8 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] PlayerInfo playerInfoPref; 
     [SerializeField] GameObject playersGrid;
+    List<PlayerInfo> playerInfoList;
 
-    //PlayerInfo temp = Instantiate(playerInfoPref) as PlayerInfo;
-    //temp.SetNickname() (�������, �������� ������).
-    //temp.gameObject.SetParent(playersGrid.transfrom) (���� transform.SetParent)
-    //temp.gameObject.transform.localScale = new Vector3(1,1,1);
     [SerializeField] private TextMeshProUGUI displayNickname;
     [SerializeField] private TextMeshProUGUI hostStatus;
     [SerializeField] private TextMeshProUGUI timerText;
@@ -63,7 +60,18 @@ public class GameManager : MonoBehaviour
         nm = FindObjectOfType<NetManager>();
         server = FindObjectOfType<Server>();
         client = FindObjectOfType<Client>();
+
         ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
+        playerInfoList = new List<PlayerInfo>();
+        for (int i = 0; i < users.Count; i++)
+        {
+            PlayerInfo temp = Instantiate(playerInfoPref) as PlayerInfo;
+            temp.SetNickname(users[i].Nickname);
+            temp.gameObject.transform.SetParent(playersGrid.transform);
+            temp.gameObject.transform.localScale = new Vector3(1, 1, 1);
+            playerInfoList.Add(temp);
+        }
+
         playerTimer = FindObjectOfType<Timer>();
 
         chat.SetNickname(user.Nickname);
