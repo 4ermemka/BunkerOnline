@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PlayerPanel : MonoBehaviour
@@ -7,6 +9,7 @@ public class PlayerPanel : MonoBehaviour
     
     private float offset = Mathf.PI/2;
     [SerializeField] private LineRenderer gridRenderer;
+    private List<Attribute> attributesList;
 
     private void Start() 
     {
@@ -41,7 +44,6 @@ public class PlayerPanel : MonoBehaviour
 
         Circle ch = new Circle(children.Count, maxContainerSize/2 - maxWidth/2);
 
-        float newScale = 1 + 1/(float)ch.GetVertexCount();
         ch.SetOffset(offset);
 
         List<Vector3> coords = new List<Vector3>();
@@ -50,8 +52,9 @@ public class PlayerPanel : MonoBehaviour
         for(int i = 0; i < ch.GetVertexCount(); i++) 
         {
             children[i].transform.parent = transform;
-            children[i].transform.localScale = new Vector3(newScale,newScale,1); 
+            children[i].transform.localScale = new Vector3(1,1,1); 
             children[i].transform.localPosition = coords[i];
+
             gridRenderer.SetPosition(i, coords[i]);
         }
     }

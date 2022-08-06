@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
 using TMPro;
 
 public enum CanvasType
@@ -33,8 +33,8 @@ public class MenuInterfaceManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI userNickDisplay;
     [SerializeField] private GameObject userInfo;
     [SerializeField] private GameObject lobbyList;
-    [SerializeField] private InputField NicknameField;
-    [SerializeField] private InputField ipAdressField;
+    [SerializeField] private TMP_InputField NicknameField;
+    [SerializeField] private TMP_InputField ipAdressField;
     [SerializeField] private TextMeshProUGUI errMsg;
     [SerializeField] private TextMeshProUGUI lobbyErrMsg;
     [SerializeField] private TextMeshProUGUI connectionStatusText;
