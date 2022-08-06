@@ -114,6 +114,8 @@ public class MessageProcessing
         Debug.Log("New message in chat!");
     }
 
+    //need to add message about player's vote (for Alina)
+
     #endregion
 
     #region ClientReadMsg
@@ -204,7 +206,7 @@ public class MessageProcessing
         foreach (User p in msg.users) newList.Add(p);
         netManager.UpdateUsersList(newList);
     }
-
+    //need to add message about kick, player's vote (for Alina)
     #endregion
 
     #region ServerWriteMsg
@@ -243,7 +245,7 @@ public class MessageProcessing
 
         return MakeBuffer(msg);
     }
-
+    //need to add message about kick, player's vote (for Alina)
     #endregion
 
     #region ClientWriteMsg
@@ -271,6 +273,14 @@ public class MessageProcessing
         Net_UpdateChat msg = new Net_UpdateChat();
         msg.Nickname = user.Nickname;
         msg.message = message;
+
+        return MakeBuffer(msg);
+    }
+
+    public byte[] ClientPlayerVote(User user, int num_user)
+    {
+        Net_PlayerVote msg = new Net_PlayerVote();
+        msg.id = num_user;
 
         return MakeBuffer(msg);
     }

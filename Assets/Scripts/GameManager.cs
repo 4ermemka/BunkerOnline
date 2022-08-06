@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     private User user;
     private int inlistId;
     private List<User> users;
+    private int[] votingArray;
 
     [SerializeField] PlayerInfo playerInfoPref; 
     [SerializeField] GameObject playersGrid;
@@ -34,7 +35,7 @@ public class GameManager : MonoBehaviour
     private Client client;
     private NetManager nm;
 
-    public int CountForEndGame = 1;
+    public int countForEndGame = 1;
     public float timeToTurn = 15;
     public float timeToVote = 15;
     private Timer playerTimer;
@@ -71,6 +72,8 @@ public class GameManager : MonoBehaviour
             temp.gameObject.transform.localScale = new Vector3(1, 1, 1);
             playerInfoList.Add(temp);
         }
+        voringArray = new int[users.Count];
+        NullArray(votingArray);
 
         playerTimer = FindObjectOfType<Timer>();
 
@@ -84,6 +87,7 @@ public class GameManager : MonoBehaviour
         timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
         //playerTimer.OnEndTimer += ChangePlayer;
         MenuInterfaceManager.OnStartGame += Game;
+        Debug.Log("Game started!");
     }
 
     void Update()
@@ -104,7 +108,7 @@ public class GameManager : MonoBehaviour
 
     public void Game(object sender, EventArgs e)
     {
-        while (users.Count > CountForEndGame)
+        while (users.Count > countForEndGame)
         {
             switch (currentStage)
             {
@@ -135,5 +139,33 @@ public class GameManager : MonoBehaviour
                     break;
             }
         }
+    }
+
+    //Voting methods
+    private void NullArray(int[] array)
+    {
+        for (int i = 0; i < array.Length; i++)
+            array[i] = 0;
+    }
+
+    public void Voting(int id)
+    {
+        for (int i = 0; i < votingArray.Length; i++)
+            if (i == id) votingArray[i]++;
+    }
+
+    private int FindPlayerToKick()
+    {
+        int max = 0;
+        for (int i = 0; i < votingArray.Length; i++)
+            if (votingArray[i] > max) max = votingArray[i];
+        return max;
+    }
+
+    public void Kick()
+    {
+        int playerToKick = FindPlayerToKick();
+        NullArray(votingArray);
+        users.RemoveAt(playerToKick);
     }
 }

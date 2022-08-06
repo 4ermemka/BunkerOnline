@@ -226,6 +226,9 @@ MonoBehaviour:
   num: 0
   isHost: 0
   nickname: /*default nick*/
+  nick: {fileID: 0}
+  hostStatus: {fileID: 0}
+  number: {fileID: 0}
 --- !u!1 &4031770307040970736
 GameObject:
   m_ObjectHideFlags: 0
@@ -590,3 +593,6 @@ MonoBehaviour:
   num: 0
   isHost: 0
   nickname: /*default nick*/
+  nick: {fileID: 8102654398490779508}
+  hostStatus: {fileID: 8389633823676947452}
+  number: {fileID: 5362098895341728357}
