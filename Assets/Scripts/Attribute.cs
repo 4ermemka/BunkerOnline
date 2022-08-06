@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System;
 
 public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -18,6 +19,7 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     [SerializeField] private CardInfo cardInfoPref;
 
     protected Canvas mainCanvas;
+
     private CardInfo currCardInfo;
 
     protected Camera cam;

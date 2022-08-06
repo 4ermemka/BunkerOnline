@@ -2,35 +2,34 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
+using TMPro;
 
 [Serializable]
 public class PlayerInfo : MonoBehaviour
 {
     [SerializeField] private Image avatar;
     [SerializeField] private PlayerPanel attributePanel;
-    [SerializeField] private Text nicknameText;
+    [SerializeField] private TextMeshProUGUI nicknameText;
 
-    public string Nickname;
-    public List<string> cards;
+    private List<Attribute> attributesList;
+
+    private string Nickname;
     
     //public static implicit operator Player(User user) => new Player (user.id, user.name);
 
-    public void SetCards(string[] cards)
+    public void Start() 
     {
-        this.cards.Clear();
+        attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
+    }
 
-        foreach(var c in cards) 
-        {
-            this.cards.Add(c);    
-        }
+    public void Update()
+    {
+        
     }
 
     public Attribute FindAttribute(int id)
     {
-        List<Attribute> attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
-
         Attribute attribute = attributesList.Find(x => x.GetComponent<Attribute>().GetId() == id);
         return attribute;
     }
