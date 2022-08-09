@@ -23,10 +23,7 @@ public class CircleLayoutGroup : LayoutGroup
             Circle ch = new Circle(rectChildren.Count, 
             maxContainerSize/2 - cellSize.x/2);
             ch.SetOffset(offset);
-            List<Vector3> coords = new List<Vector3>();
-
-
-            coords = ch.GetCoords();
+            List<Vector2> coords = ch.GetCoords();
 
             for(int i = 0; i < rectChildren.Count; i++) 
             {

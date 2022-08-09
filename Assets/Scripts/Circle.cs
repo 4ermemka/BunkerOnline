@@ -48,19 +48,19 @@ public class Circle
         offset = o;
     }
 
-    public List<Vector3> GetCoords()
+    public List<Vector2> GetCoords()
     {
         if(vertexCount == 0) return null;
 
-        List<Vector3> list = new List<Vector3>();
+        List<Vector2> list = new List<Vector2>();
 
         float deltaTheta = 2f * Mathf.PI / (float)(vertexCount);
         float theta = offset;
 
         for(int i = 0; i < vertexCount; i++) 
         {
-            Vector3 vertex = new Vector3(radius * Mathf.Cos(theta), radius * Mathf.Sin(theta), 1f);
-            Vector3 point;
+            Vector2 vertex = new Vector2(radius * Mathf.Cos(theta), radius * Mathf.Sin(theta));
+            Vector2 point;
             point = vertex;
 
             list.Add(point);
