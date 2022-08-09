@@ -13,14 +13,15 @@ public enum LayoutType
 
 public class FlexibleLayoutGroup : LayoutGroup
 {
-    public LayoutType layoutType;
+    [SerializeField] private LayoutType layoutType;
 
-    public int rows;
-    public int columns;
-    public Vector2 cellSize;
-    public Vector2 spacing;
+    [SerializeField] private int rows;
+    [SerializeField] private int columns;
+    [SerializeField] private Vector2 cellSize;
+    [SerializeField] private Vector2 spacing;
 
-    public bool squareElems;
+    [SerializeField] private bool squareElems;
+    [SerializeField] private bool centreLastRow;
 
     public override void CalculateLayoutInputHorizontal()
     {
@@ -92,7 +93,7 @@ public class FlexibleLayoutGroup : LayoutGroup
 
             float offsetX = Mathf.Min(cellSize.x,cellSize.y) - cellSize.x;
             float offsetY = Mathf.Min(cellSize.x,cellSize.y) - cellSize.y;
-            if(rowCount == rows-1 && rectChildren.Count%columns!=0) offsetX -= (cellSize.x + spacing.x) * (columns-rectChildren.Count%columns);
+            if(centreLastRow && rowCount == rows-1 && rectChildren.Count%columns!=0) offsetX -= (cellSize.x + spacing.x) * (columns-rectChildren.Count%columns);
 
             SetChildAlongAxis(item, 0, xPos - offsetX/2, Mathf.Min(cellSize.x,cellSize.y));
             SetChildAlongAxis(item, 1, yPos - offsetY/2, Mathf.Min(cellSize.x,cellSize.y));
