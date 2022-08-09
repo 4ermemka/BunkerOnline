@@ -11,6 +11,7 @@ public static class NetOP
     public const int KickPlayer = 8;
     public const int PlayerVote = 9;
     public const int UpdateChat = 10;
+    public const int UpdateVotingArray = 11;
 }
 
 [System.Serializable]

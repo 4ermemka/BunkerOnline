@@ -14,10 +14,11 @@ public enum CurrentStage
 
 public class GameManager : MonoBehaviour
 {
+    #region GameManagerFields
     private User user;
     private int inlistId;
     private List<User> users;
-    private int[] votingArray;
+    public int[] votingArray;
 
     [SerializeField] PlayerInfo playerInfoPref; 
     [SerializeField] GameObject playersGrid;
@@ -43,12 +44,14 @@ public class GameManager : MonoBehaviour
     private int currentPlayer = 0;
 
     CurrentStage currentStage = CurrentStage.Turn;
+    #endregion
 
     public void ConvertToGameManager(List<User> users, User user)
     {
         this.user = user;
         this.users = users;
     }
+
     //GameManager(List<User> users, float timeToTurn, float timeToVote, int CountForEndGame)
     //{
     //    ConvertFromUsersToPlayers(users);
@@ -75,7 +78,7 @@ public class GameManager : MonoBehaviour
             playerInfoList.Add(temp);
         }
         votingArray = new int[users.Count];
-        NullArray(votingArray);
+        NullArray();
 
         playerTimer = gameObject.GetComponent<Timer>();
 
@@ -118,7 +121,7 @@ public class GameManager : MonoBehaviour
                 case CurrentStage.Turn:
                     foreach (User element in users)
                     {
-                        
+                        Turn();
                     }
                     currentStage = CurrentStage.Debate;
                     break;
@@ -135,26 +138,31 @@ public class GameManager : MonoBehaviour
                 case CurrentStage.Voting:
                     playerTimer.SetTime(timeToVote);
                     //here user click on another player and get id of him
-                    int id;
-                    client.SendServer(messageProcessing.ClientPlayerVote(user, id));
+                    int playerToKick = FindPlayerToKick();
+                    Kick();
                     currentStage = CurrentStage.Turn;
                     break;
             }
         }
     }
 
-    //Voting methods
-    private void NullArray(int[] array)
+    #region VotingMethods
+    private void NullArray()
     {
-        for (int i = 0; i < array.Length; i++)
-            array[i] = 0;
+        for (int i = 0; i < votingArray.Length; i++)
+            votingArray[i] = 0;
     }
 
     public void Voting(int id)
     {
-        Debug.Log("This voted for" + id);
+        Debug.Log(user.id + " voted for " + id);
         votingArray[id]++;
-        //if(server!=null) server.SendOther();
+        if (server != null)
+        {
+            server.SendOther(messageProcessing.ServerUpdateVotingArray(votingArray));
+            server.SendOther(messageProcessing.ServerPlayerVoteMsg(user, id));
+        }
+        else client.SendServer(messageProcessing.ServerPlayerVoteMsg(user, id));
     }
 
     private int FindPlayerToKick()
@@ -168,9 +176,10 @@ public class GameManager : MonoBehaviour
     public void Kick()
     {
         int playerToKick = FindPlayerToKick();
-        NullArray(votingArray);
+        NullArray();
         users.RemoveAt(playerToKick);
     }
+    #endregion
 
     public void Turn ()
     {

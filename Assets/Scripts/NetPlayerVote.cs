@@ -1,9 +1,10 @@
 [System.Serializable]
-public  class Net_PlayerVote : NetMsg
+public class Net_PlayerVote : NetMsg
 {
     public Net_PlayerVote()
     {
         OP = NetOP.PlayerVote;
     }
-    public int id;
+    public User user;
+    public int id { get; set; }
 }

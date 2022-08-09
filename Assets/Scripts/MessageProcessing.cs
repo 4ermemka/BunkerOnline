@@ -10,6 +10,7 @@ public class MessageProcessing
     #region MessageProcessingFields
 
     private NetManager netManager;
+    private GameManager gameManager;
     private byte error;
     private const int BYTE_SIZE = 1024;
 
@@ -80,7 +81,9 @@ public class MessageProcessing
             case NetOP.UpdateChat:
                 OnUpdateChat((Net_UpdateChat)msg);
                 break;
-
+            case NetOP.PlayerVote:
+                OnPlayerVote(e.conId, e.host, (Net_PlayerVote)msg);
+                break;
             case NetOP.CastCardPlayer:
                 //Soon          
                 break;
@@ -113,8 +116,11 @@ public class MessageProcessing
     {
         Debug.Log("New message in chat!");
     }
-
-    //need to add message about player's vote (for Alina)
+    private void OnPlayerVote(int conId, int host, Net_PlayerVote msg)
+    {
+        Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
+        gameManager.Voting(msg.id);
+    }
 
     #endregion
 
@@ -166,6 +172,12 @@ public class MessageProcessing
             case NetOP.UpdateChat:
                 OnUpdateChat((Net_UpdateChat)msg);
                 break;
+            case NetOP.UpdateVotingArray:
+                OnUpdateVotingArray((Net_UpdateVotingArray)msg);
+                break;
+            case NetOP.PlayerVote:
+                OnPlayerVote((Net_PlayerVote) msg);
+                break;
 
             default:
                 Debug.Log("Unexpected msg type!");
@@ -206,7 +218,16 @@ public class MessageProcessing
         foreach (User p in msg.users) newList.Add(p);
         netManager.UpdateUsersList(newList);
     }
-    //need to add message about kick, player's vote (for Alina)
+
+    private void OnUpdateVotingArray(Net_UpdateVotingArray msg)
+    {
+        gameManager.votingArray = msg.votingArray;
+    }
+
+    private void OnPlayerVote (Net_PlayerVote msg) {
+        Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
+    }
+
     #endregion
 
     #region ServerWriteMsg
@@ -242,6 +263,23 @@ public class MessageProcessing
         Net_UpdateChat msg = new Net_UpdateChat();
         msg.Nickname = user.Nickname;
         msg.message = message;
+
+        return MakeBuffer(msg);
+    }
+
+    public byte[] ServerUpdateVotingArray(int[] votingArray)
+    {
+        Net_UpdateVotingArray msg = new Net_UpdateVotingArray();
+        msg.votingArray = votingArray;
+
+        return MakeBuffer(msg);
+    }
+
+    public byte[] ServerPlayerVoteMsg (User user, int id)
+    {
+        Net_PlayerVote msg = new Net_PlayerVote();
+        msg.user = user;
+        msg.id = id;
 
         return MakeBuffer(msg);
     }
