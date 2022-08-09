@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -66,7 +67,8 @@ public class GameManager : MonoBehaviour
         server = FindObjectOfType<Server>();
         client = FindObjectOfType<Client>();
 
-        ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
+        playerTimer = gameObject.GetComponent<Timer>();
+        //ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
         playerInfoList = new List<PlayerInfo>();
         for (int i = 0; i < users.Count; i++)
         {
@@ -79,8 +81,6 @@ public class GameManager : MonoBehaviour
         }
         votingArray = new int[users.Count];
         NullArray();
-
-        playerTimer = gameObject.GetComponent<Timer>();
 
         chat.SetNickname(user.Nickname);
         displayNickname.text = user.Nickname;
@@ -98,7 +98,16 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         if(playerTimer == null) Debug.Log("TIMER NULL");
-        timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
+        if(playerTimer.remainingTimeFloat<=10f) 
+        {
+            timerText.color = Color.red;
+            timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
+        }
+        else
+        {
+            timerText.color = Color.white;
+            timerText.text = playerTimer.remainingTimeInt.ToString();
+        }
     }
 
     public string GetMyNick()

@@ -8,14 +8,12 @@ public class PlayerPanel : MonoBehaviour
 {
     
     private float offset = Mathf.PI/2;
-    [SerializeField] private LineRenderer gridRenderer;
     private List<Attribute> attributesList;
 
     private void Start() 
     {
         SetChildrenOnCircle();
         //gridRenderer = GetComponent<LineRenderer>();
-        gridRenderer.gameObject.transform.localScale = new Vector3(1,1,1);
     }
 
      public void Update()
@@ -46,16 +44,12 @@ public class PlayerPanel : MonoBehaviour
 
         ch.SetOffset(offset);
 
-        List<Vector3> coords = new List<Vector3>();
-        coords = ch.GetCoords();
-        gridRenderer.positionCount = ch.GetVertexCount();
+        List<Vector2> coords = ch.GetCoords();
         for(int i = 0; i < ch.GetVertexCount(); i++) 
         {
             children[i].transform.parent = transform;
             children[i].transform.localScale = new Vector3(1,1,1); 
             children[i].transform.localPosition = coords[i];
-
-            gridRenderer.SetPosition(i, coords[i]);
         }
     }
 }
