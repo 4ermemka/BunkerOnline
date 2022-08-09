@@ -17,14 +17,12 @@ public class GameManager : MonoBehaviour
     private User user;
     private int inlistId;
     private List<User> users;
+    private int[] votingArray;
 
     [SerializeField] PlayerInfo playerInfoPref; 
     [SerializeField] GameObject playersGrid;
+    List<PlayerInfo> playerInfoList;
 
-    //PlayerInfo temp = Instantiate(playerInfoPref) as PlayerInfo;
-    //temp.SetNickname() (�������, �������� ������).
-    //temp.gameObject.SetParent(playersGrid.transfrom) (���� transform.SetParent)
-    //temp.gameObject.transform.localScale = new Vector3(1,1,1);
     [SerializeField] private TextMeshProUGUI displayNickname;
     [SerializeField] private TextMeshProUGUI hostStatus;
     [SerializeField] private TextMeshProUGUI timerText;
@@ -37,7 +35,7 @@ public class GameManager : MonoBehaviour
     private Client client;
     private NetManager nm;
 
-    public int CountForEndGame = 1;
+    public int countForEndGame = 1;
     public float timeToTurn = 15;
     public float timeToVote = 15;
     private Timer playerTimer;
@@ -63,7 +61,21 @@ public class GameManager : MonoBehaviour
         nm = FindObjectOfType<NetManager>();
         server = FindObjectOfType<Server>();
         client = FindObjectOfType<Client>();
+
         ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
+        playerInfoList = new List<PlayerInfo>();
+        for (int i = 0; i < users.Count; i++)
+        {
+            PlayerInfo temp = Instantiate(playerInfoPref) as PlayerInfo;
+            temp.SetNickname(users[i].Nickname);
+            temp.gameObject.transform.SetParent(playersGrid.transform);
+            temp.gameObject.transform.localScale = new Vector3(1, 1, 1);
+            temp.gameObject.transform.localPosition = new Vector3(0, 0, 0);
+            playerInfoList.Add(temp);
+        }
+        votingArray = new int[users.Count];
+        NullArray(votingArray);
+
         playerTimer = FindObjectOfType<Timer>();
 
         chat.SetNickname(user.Nickname);
@@ -76,6 +88,7 @@ public class GameManager : MonoBehaviour
         timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
         //playerTimer.OnEndTimer += ChangePlayer;
         MenuInterfaceManager.OnStartGame += Game;
+        Debug.Log("Game started!");
     }
 
     void Update()
@@ -96,7 +109,7 @@ public class GameManager : MonoBehaviour
 
     public void Game(object sender, EventArgs e)
     {
-        while (users.Count > CountForEndGame)
+        while (users.Count > countForEndGame)
         {
             switch (currentStage)
             {
@@ -127,5 +140,33 @@ public class GameManager : MonoBehaviour
                     break;
             }
         }
+    }
+
+    //Voting methods
+    private void NullArray(int[] array)
+    {
+        for (int i = 0; i < array.Length; i++)
+            array[i] = 0;
+    }
+
+    public void Voting(int id)
+    {
+        for (int i = 0; i < votingArray.Length; i++)
+            if (i == id) votingArray[i]++;
+    }
+
+    private int FindPlayerToKick()
+    {
+        int max = 0;
+        for (int i = 0; i < votingArray.Length; i++)
+            if (votingArray[i] > max) max = votingArray[i];
+        return max;
+    }
+
+    public void Kick()
+    {
+        int playerToKick = FindPlayerToKick();
+        NullArray(votingArray);
+        users.RemoveAt(playerToKick);
     }
 }

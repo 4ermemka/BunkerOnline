@@ -77,10 +77,9 @@ public class MessageProcessing
             case NetOP.UpdateUser:
                 OnUpdateUser(e.conId, e.host, (NetUser_UpdateInfo)msg);
                 break;
-
-            /*case NetOP.UpdateCardPlayer:
-                OnUpdatePlayer(e.conId, e.host, (Net_UpdateCardPlayer)msg);
-                break;*/
+            case NetOP.UpdateChat:
+                OnUpdateChat((Net_UpdateChat)msg);
+                break;
 
             case NetOP.CastCardPlayer:
                 //Soon          
@@ -109,6 +108,13 @@ public class MessageProcessing
         netManager.UpdatePlayerInformation(msg.Username, conId, msg.NewCardsOnTable);
         Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
     }*/
+
+    private void OnUpdateChat(Net_UpdateChat msg)
+    {
+        Debug.Log("New message in chat!");
+    }
+
+    //need to add message about player's vote (for Alina)
 
     #endregion
 
@@ -157,6 +163,9 @@ public class MessageProcessing
             case NetOP.CastCardPlayer:
                 //Soon          
                 break;
+            case NetOP.UpdateChat:
+                OnUpdateChat((Net_UpdateChat)msg);
+                break;
 
             default:
                 Debug.Log("Unexpected msg type!");
@@ -197,7 +206,7 @@ public class MessageProcessing
         foreach (User p in msg.users) newList.Add(p);
         netManager.UpdateUsersList(newList);
     }
-
+    //need to add message about kick, player's vote (for Alina)
     #endregion
 
     #region ServerWriteMsg
@@ -210,7 +219,7 @@ public class MessageProcessing
         return MakeBuffer(msg);
     }
 
-    public byte[] ServerUdateUser(User user, int hostId)
+    public byte[] ServerUpdateUser(User user, int hostId)
     {
         NetUser_UpdateInfo msg = new NetUser_UpdateInfo();
         msg.conId = user.id;
@@ -228,6 +237,15 @@ public class MessageProcessing
         return MakeBuffer(msg);
     }
 
+    public byte[] ServerUpdateChat(User user, string message)
+    {
+        Net_UpdateChat msg = new Net_UpdateChat();
+        msg.Nickname = user.Nickname;
+        msg.message = message;
+
+        return MakeBuffer(msg);
+    }
+    //need to add message about kick, player's vote (for Alina)
     #endregion
 
     #region ClientWriteMsg
@@ -249,6 +267,23 @@ public class MessageProcessing
 
         return MakeBuffer(msg);
     }
-    
+
+    public byte[] ClientUpdateChat(User user, string message)
+    {
+        Net_UpdateChat msg = new Net_UpdateChat();
+        msg.Nickname = user.Nickname;
+        msg.message = message;
+
+        return MakeBuffer(msg);
+    }
+
+    public byte[] ClientPlayerVote(User user, int num_user)
+    {
+        Net_PlayerVote msg = new Net_PlayerVote();
+        msg.id = num_user;
+
+        return MakeBuffer(msg);
+    }
+
     #endregion
 }

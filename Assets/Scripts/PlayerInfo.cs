@@ -9,7 +9,7 @@ using TMPro;
 public class PlayerInfo : MonoBehaviour
 {
     [SerializeField] private Image avatar;
-    [SerializeField] private PlayerPanel attributePanel;
+    [SerializeField] private CircleLayoutGroup attributePanel;
     [SerializeField] private TextMeshProUGUI nicknameText;
 
     private List<Attribute> attributesList;
@@ -18,6 +18,14 @@ public class PlayerInfo : MonoBehaviour
     
     //public static implicit operator Player(User user) => new Player (user.id, user.name);
 
+    public void SetNickname (string Nickname)
+    {
+        this.Nickname = Nickname;
+    }
+
+    public void SetCards(string[] cards) {
+    }
+
     public void Start() 
     {
         attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
@@ -25,7 +33,7 @@ public class PlayerInfo : MonoBehaviour
 
     public void Update()
     {
-        
+        nicknameText.text = Nickname;
     }
 
     public Attribute FindAttribute(int id)

@@ -10,16 +10,10 @@ public class UserInfo:MonoBehaviour
     public int num = 0;
     public bool isHost = false;
     public string nickname = "/*default nick*/";
-    private TextMeshProUGUI nick;
-    private TextMeshProUGUI hostStatus;
-    private TextMeshProUGUI number;
-    
-    public void Awake() 
-    {
-        number = GetComponentsInChildren<TextMeshProUGUI>()[0];
-        hostStatus = GetComponentsInChildren<TextMeshProUGUI>()[1];
-        nick = GetComponentsInChildren<TextMeshProUGUI>()[2];
-    }
+
+    [SerializeField] private TextMeshProUGUI nick;
+    [SerializeField] private TextMeshProUGUI hostStatus;
+    [SerializeField] private TextMeshProUGUI number;
 
     public void setId(int id)
     {
