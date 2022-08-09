@@ -9,7 +9,7 @@ using TMPro;
 public class PlayerInfo : MonoBehaviour
 {
     [SerializeField] private Image avatar;
-    [SerializeField] private PlayerPanel attributePanel;
+    [SerializeField] private CircleLayoutGroup attributePanel;
     [SerializeField] private TextMeshProUGUI nicknameText;
 
     private List<Attribute> attributesList;
@@ -33,7 +33,7 @@ public class PlayerInfo : MonoBehaviour
 
     public void Update()
     {
-        
+        nicknameText.text = Nickname;
     }
 
     public Attribute FindAttribute(int id)

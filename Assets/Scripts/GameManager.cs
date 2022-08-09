@@ -70,9 +70,10 @@ public class GameManager : MonoBehaviour
             temp.SetNickname(users[i].Nickname);
             temp.gameObject.transform.SetParent(playersGrid.transform);
             temp.gameObject.transform.localScale = new Vector3(1, 1, 1);
+            temp.gameObject.transform.localPosition = new Vector3(0, 0, 0);
             playerInfoList.Add(temp);
         }
-        voringArray = new int[users.Count];
+        votingArray = new int[users.Count];
         NullArray(votingArray);
 
         playerTimer = FindObjectOfType<Timer>();

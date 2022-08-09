@@ -363,7 +363,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   avatar: {fileID: 7551094348615941176}
-  attributePanel: {fileID: 0}
+  attributePanel: {fileID: 2517652011558790933}
   nicknameText: {fileID: 1486990133723920026}
 --- !u!1 &2179793285992075370
 GameObject:
