@@ -152,8 +152,9 @@ public class GameManager : MonoBehaviour
 
     public void Voting(int id)
     {
-        for (int i = 0; i < votingArray.Length; i++)
-            if (i == id) votingArray[i]++;
+        Debug.Log("This voted for" + id);
+        votingArray[id]++;
+        //if(server!=null) server.SendOther();
     }
 
     private int FindPlayerToKick()

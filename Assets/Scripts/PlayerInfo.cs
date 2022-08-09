@@ -14,7 +14,7 @@ public class PlayerInfo : MonoBehaviour
 
     private List<Attribute> attributesList;
 
-    private string Nickname;
+    private string Nickname = "Nickname";
     
     //public static implicit operator Player(User user) => new Player (user.id, user.name);
 
