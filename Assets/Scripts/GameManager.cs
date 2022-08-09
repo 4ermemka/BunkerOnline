@@ -77,7 +77,7 @@ public class GameManager : MonoBehaviour
         votingArray = new int[users.Count];
         NullArray(votingArray);
 
-        playerTimer = FindObjectOfType<Timer>();
+        playerTimer = gameObject.GetComponent<Timer>();
 
         chat.SetNickname(user.Nickname);
         displayNickname.text = user.Nickname;

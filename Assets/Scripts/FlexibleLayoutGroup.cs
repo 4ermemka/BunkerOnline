@@ -3,36 +3,66 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum LayoutType
+{
+    Flexible,
+    FlexibleSquare,
+    ConstantRows,
+    ConstantColumns
+}
+
 public class FlexibleLayoutGroup : LayoutGroup
 {
-    public int rows;
-    public int columns;
-    public Vector2 cellSize;
-    public Vector2 spacing;
+    [SerializeField] private LayoutType layoutType;
 
-    public bool squareElems;
+    [SerializeField] private int rows;
+    [SerializeField] private int columns;
+    [SerializeField] private Vector2 cellSize;
+    [SerializeField] private Vector2 spacing;
+
+    [SerializeField] private bool squareElems;
+    [SerializeField] private bool centreLastRow;
 
     public override void CalculateLayoutInputHorizontal()
     {
         base.CalculateLayoutInputHorizontal();
 
-        int count = transform.childCount;
+       switch (layoutType) 
+       {
+        case LayoutType.FlexibleSquare:
+            int count = transform.childCount;
+        
+            columns = 1;
+            rows = count;
 
-        int b = 1;
-        int a = count;
-
-        if (count > 0) 
-        {
-            while (b < a || a * b < count)// ...все влезло и при этом +-квадратная матрица
+            if (count > 0) 
             {
-                b++;
-                a = count / b;
-                if (count % b != 0) a++;
+                while (columns < rows || rows * columns < count)// ...все влезло и при этом +-квадратная матрица
+                {
+                    columns++;
+                    rows = count / columns;
+                    if (count % columns != 0) rows++;
+                }
             }
-        }
+            break;
+        
+        case LayoutType.Flexible:
+            float scr = Mathf.Sqrt(transform.childCount);
+            rows = Mathf.CeilToInt(scr);
+            columns = Mathf.CeilToInt(scr);
+        break;
 
-        rows = a;
-        columns = b;
+        case LayoutType.ConstantRows:
+            columns = transform.childCount/rows;
+            if(columns==0||transform.childCount%rows!=0) columns++;
+        break;
+
+        default :
+            rows = transform.childCount/columns;
+            if(rows==0||transform.childCount%columns!=0) rows++;
+            break;
+       }
+        
 
         float parentWidth = rectTransform.rect.width;
         float parentHeight = rectTransform.rect.height;
@@ -63,6 +93,7 @@ public class FlexibleLayoutGroup : LayoutGroup
 
             float offsetX = Mathf.Min(cellSize.x,cellSize.y) - cellSize.x;
             float offsetY = Mathf.Min(cellSize.x,cellSize.y) - cellSize.y;
+            if(centreLastRow && rowCount == rows-1 && rectChildren.Count%columns!=0) offsetX -= (cellSize.x + spacing.x) * (columns-rectChildren.Count%columns);
 
             SetChildAlongAxis(item, 0, xPos - offsetX/2, Mathf.Min(cellSize.x,cellSize.y));
             SetChildAlongAxis(item, 1, yPos - offsetY/2, Mathf.Min(cellSize.x,cellSize.y));
