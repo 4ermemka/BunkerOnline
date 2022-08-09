@@ -34,6 +34,7 @@ public class GameManager : MonoBehaviour
     private Server server;
     private Client client;
     private NetManager nm;
+    private MessageProcessing messageProcessing;
 
     public int countForEndGame = 1;
     public float timeToTurn = 15;
@@ -117,13 +118,13 @@ public class GameManager : MonoBehaviour
                 case CurrentStage.Turn:
                     foreach (User element in users)
                     {
-
+                        
                     }
                     currentStage = CurrentStage.Debate;
                     break;
 
                 case CurrentStage.Debate:
-                    playerTimer.SetTime(timeToVote);
+                    
                     foreach (User element in users)
                     {
 
@@ -132,10 +133,10 @@ public class GameManager : MonoBehaviour
                     break;
 
                 case CurrentStage.Voting:
-                    foreach (User element in users)
-                    {
-
-                    }
+                    playerTimer.SetTime(timeToVote);
+                    //here user click on another player and get id of him
+                    int id;
+                    client.SendServer(messageProcessing.ClientPlayerVote(user, id));
                     currentStage = CurrentStage.Turn;
                     break;
             }
@@ -168,5 +169,10 @@ public class GameManager : MonoBehaviour
         int playerToKick = FindPlayerToKick();
         NullArray(votingArray);
         users.RemoveAt(playerToKick);
+    }
+
+    public void Turn ()
+    {
+        //on/off the buttons and other...
     }
 }
