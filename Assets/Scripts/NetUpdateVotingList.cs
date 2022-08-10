@@ -1,5 +1,3 @@
-using UnityEngine.Ge
-
 [System.Serializable]
 public  class Net_UpdateVotingArray : NetMsg
 {

@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     private User user;
     private int inlistId;
     private List<User> users;
-    private int[] votingArray;
+    private List<int> votingList;
 
     [SerializeField] PlayerInfo playerInfoPref; 
     [SerializeField] GameObject playersGrid;
@@ -75,8 +75,8 @@ public class GameManager : MonoBehaviour
             temp.gameObject.transform.localPosition = new Vector3(0, 0, 0);
             playerInfoList.Add(temp);
         }
-        votingArray = new int[users.Count];
-        NullArray(votingArray);
+        votingList = new List<int>();
+        NullList(votingList);
 
         chat.SetNickname(user.Nickname);
         displayNickname.text = user.Nickname;
@@ -110,7 +110,7 @@ public class GameManager : MonoBehaviour
         return user.Nickname;
     }
 
-    public void SetVotingArray()
+    public void SetvotingList()
     {
         
     }
@@ -155,32 +155,44 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    //Voting methods
-    private void NullArray(int[] array)
+    public List<int> GetVotingList()
     {
-        for (int i = 0; i < array.Length; i++)
-            array[i] = 0;
+        return votingList;
+    }
+
+    public void SetVotingList(List<int> newList)
+    {
+        this.votingList = newList;
+    }
+
+    //Voting methods
+    private void NullList(List<int> votingList)
+    {
+        for(int i = 0; i < votingList.Count; i++) 
+        {
+            votingList[i] = 0;
+        }
     }
 
     public void Voting(int id)
     {
         Debug.Log("This voted for" + id);
-        votingArray[id]++;
+        votingList[id]++;
         //if(server!=null) server.SendOther();
     }
 
     private int FindPlayerToKick()
     {
         int max = 0;
-        for (int i = 0; i < votingArray.Length; i++)
-            if (votingArray[i] > max) max = votingArray[i];
+        foreach (int p in votingList)
+            if (p > max) max = p;
         return max;
     }
 
     public void Kick()
     {
         int playerToKick = FindPlayerToKick();
-        NullArray(votingArray);
+        NullList(votingList);
         users.RemoveAt(playerToKick);
     }
 }

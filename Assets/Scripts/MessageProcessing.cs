@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
@@ -221,7 +222,7 @@ public class MessageProcessing
 
     private void OnUpdateVotingArray(Net_UpdateVotingArray msg)
     {
-        gameManager.votingArray = msg.votingArray;
+        gameManager.SetVotingList(msg.votingArray.ToList());
     }
 
     private void OnPlayerVote (Net_PlayerVote msg) {
