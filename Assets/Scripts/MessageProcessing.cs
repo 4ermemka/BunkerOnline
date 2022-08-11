@@ -178,6 +178,9 @@ public class MessageProcessing
             case NetOP.PlayerVote:
                 OnPlayerVote((Net_PlayerVote) msg);
                 break;
+            case NetOP.KickPlayer:
+                OnKickPlayer((Net_KickPlayer)msg);
+                break;
 
             default:
                 Debug.Log("Unexpected msg type!");
@@ -226,6 +229,11 @@ public class MessageProcessing
 
     private void OnPlayerVote (Net_PlayerVote msg) {
         Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
+    }
+
+    private void OnKickPlayer(Net_KickPlayer msg)
+    {
+        Debug.Log("Player" + gameManager.users[msg.id] + " kicked by voting.");
     }
 
     #endregion
@@ -283,7 +291,14 @@ public class MessageProcessing
 
         return MakeBuffer(msg);
     }
-    //need to add message about kick, player's vote (for Alina)
+
+    public byte[] ServerKickPlayer (int id)
+    {
+        Net_KickPlayer msg = new Net_KickPlayer();
+        msg.id = id;
+
+        return MakeBuffer(msg);
+    }
     #endregion
 
     #region ClientWriteMsg

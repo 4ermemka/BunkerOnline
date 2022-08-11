@@ -18,8 +18,8 @@ public class GameManager : MonoBehaviour
     #region GameManagerFields
     private User user;
     private int inlistId;
-    private List<User> users;
-    public int[] votingArray;
+    public List<User> users;
+    public List<int> votingArray;
 
     [SerializeField] PlayerInfo playerInfoPref; 
     [SerializeField] GameObject playersGrid;
@@ -79,7 +79,7 @@ public class GameManager : MonoBehaviour
             temp.gameObject.transform.localPosition = new Vector3(0, 0, 0);
             playerInfoList.Add(temp);
         }
-        votingArray = new int[users.Count];
+        votingArray = new List<int>[users.Count];
         NullArray();
 
         chat.SetNickname(user.Nickname);
