@@ -93,10 +93,23 @@ public class FlexibleLayoutGroup : LayoutGroup
 
             float offsetX = Mathf.Min(cellSize.x,cellSize.y) - cellSize.x;
             float offsetY = Mathf.Min(cellSize.x,cellSize.y) - cellSize.y;
-            if(centreLastRow && rowCount == rows-1 && rectChildren.Count%columns!=0) offsetX -= (cellSize.x + spacing.x) * (columns-rectChildren.Count%columns);
 
-            SetChildAlongAxis(item, 0, xPos - offsetX/2, Mathf.Min(cellSize.x,cellSize.y));
-            SetChildAlongAxis(item, 1, yPos - offsetY/2, Mathf.Min(cellSize.x,cellSize.y));
+            float centreOffset = 0;
+            if(centreLastRow && rowCount == rows-1 && rectChildren.Count%columns!=0) 
+                centreOffset = (cellSize.x + spacing.x) * (columns-rectChildren.Count%columns);
+            offsetX -= centreOffset;
+
+            if(squareElems)
+            {
+                SetChildAlongAxis(item, 0, xPos - offsetX/2, Mathf.Min(cellSize.x,cellSize.y));
+                SetChildAlongAxis(item, 1, yPos - offsetY/2, Mathf.Min(cellSize.x,cellSize.y));
+            }
+            else
+            {
+                SetChildAlongAxis(item, 0, xPos + centreOffset/2, cellSize.x);
+                SetChildAlongAxis(item, 1, yPos, cellSize.y);
+            }
+            
         }
     }
 
