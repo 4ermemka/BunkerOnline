@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
         client = FindObjectOfType<Client>();
 
         playerTimer = gameObject.GetComponent<Timer>();
-        //ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
+        ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
         playerInfoList = new List<PlayerInfo>();
         for (int i = 0; i < users.Count; i++)
         {
