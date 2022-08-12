@@ -60,10 +60,6 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void Update()
     {
-        float coefficient = (float)(15/138.89);
-        float newWidth = (float)((lobbyList.GetComponent<RectTransform>().rect.width - 15)/2);
-        Vector3 newSize = new Vector3(newWidth, coefficient*newWidth, 1);
-        lobbyList.GetComponent<GridLayoutGroup>().cellSize = newSize;
     }
 
     #region MultipleMenuNavigation

@@ -24,8 +24,8 @@ public class RotatingHitbox : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         float rX, rY;
         pos.z = 0;
         Vector3 rectPos = hitbox.transform.position;
-        rY = pos.x - rectPos.x;
-        rX = rectPos.y - pos.y;
+        rY = rectPos.x - pos.x;
+        rX = pos.y - rectPos.y;
         //Debug.Log("C:" + pos.x + "," + pos.y + " P:" + rectPos.x + "," + rectPos.y);
         Vector3 newRot = new Vector3(rX,rY,0);
         float radius = Mathf.Max(hitbox.GetComponent<RectTransform>().rect.height, hitbox.GetComponent<RectTransform>().rect.width)/2;
