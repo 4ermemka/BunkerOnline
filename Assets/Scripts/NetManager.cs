@@ -316,6 +316,11 @@ public class NetManager : MonoBehaviour
         return user;
     }
 
+    public MessageProcessing GetMessageProcessing()
+    {
+        return messageProcessing;
+    }
+
     #endregion
 
     public void ChangeScene()

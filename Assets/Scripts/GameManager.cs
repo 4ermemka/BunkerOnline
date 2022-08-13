@@ -5,12 +5,19 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = System.Random;
 
 public enum CurrentStage
 {
     Turn,
     Debate,
     Voting
+}
+
+public struct PlayerKit
+{
+    public string playerName;
+    public List<DeckCard> cardsKit;
 }
 
 public class GameManager : MonoBehaviour
@@ -35,6 +42,7 @@ public class GameManager : MonoBehaviour
     private Server server;
     private Client client;
     private NetManager nm;
+    private MessageProcessing mp;
 
     public int countForEndGame = 1;
     public float timeToTurn = 15;
@@ -59,15 +67,20 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        List<Category> allCards = gameObject.GetComponent<Deck>().GetCategories();
+        playerTimer = gameObject.GetComponent<Timer>();
+
         nm = FindObjectOfType<NetManager>();
+        mp = nm.GetMessageProcessing();
         server = FindObjectOfType<Server>();
         client = FindObjectOfType<Client>();
 
-        playerTimer = gameObject.GetComponent<Timer>();
         ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
         playerInfoList = new List<PlayerInfo>();
+
         for (int i = 0; i < users.Count; i++)
         {
+            Debug.Log(users[i].Nickname);
             PlayerInfo temp = Instantiate(playerInfoPref) as PlayerInfo;
             temp.SetNickname(users[i].Nickname);
             temp.gameObject.transform.SetParent(playersGrid.transform);
@@ -84,11 +97,44 @@ public class GameManager : MonoBehaviour
         if (user.isHost) hostStatus.text = "HOST";
         else hostStatus.text = string.Empty;
 
-        playerTimer.SetTime(120);
+        playerTimer.SetTime(15);
+
         timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
         //playerTimer.OnEndTimer += ChangePlayer;
+        if(server!=null)
+        {
+
+            List<PlayerKit> kits = SortDeckForKits(allCards,users);
+            foreach(User us in users)
+            {
+                if(us != user)
+                server.SendClient(nm.hostId, us.id, 
+                mp.ServerPlayerKitMsg(kits.Find(x=>x.playerName==us.Nickname).cardsKit.ToArray<DeckCard>()));
+            }
+        }
         MenuInterfaceManager.OnStartGame += Game;
         Debug.Log("Game started!");
+    }
+
+    public List<PlayerKit> SortDeckForKits(List<Category> categories, List<User> users)
+    {
+        Random random = new Random();
+        List<PlayerKit> kits = new List<PlayerKit>();
+        for(int i = 0; i < users.Count; i++) 
+        {
+            PlayerKit kit = new PlayerKit();
+            kit.cardsKit = new List<DeckCard>();
+            foreach(Category category in categories) 
+            {
+                int randomIndex = random.Next(category.GetCategoryCards().Count);
+                DeckCard randomCard = category.GetCategoryCards()[randomIndex];
+                category.GetCategoryCards().RemoveAt(randomIndex);
+                kit.cardsKit.Add(randomCard);
+            }
+            kit.playerName = users[i].Nickname;
+            kits.Add(kit);
+        }
+        return kits;
     }
 
     void Update()

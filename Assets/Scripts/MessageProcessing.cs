@@ -285,6 +285,14 @@ public class MessageProcessing
         return MakeBuffer(msg);
     }
     //need to add message about kick, player's vote (for Alina)
+
+    public byte[] ServerPlayerKitMsg (DeckCard[] cards)
+    {
+        Net_PlayerKit msg = new Net_PlayerKit();
+        msg.cards = cards;
+
+        return MakeBuffer(msg);
+    }
     #endregion
 
     #region ClientWriteMsg
