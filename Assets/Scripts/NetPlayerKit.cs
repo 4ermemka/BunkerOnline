@@ -5,5 +5,5 @@ public class Net_PlayerKit : NetMsg
     {
         OP = NetOP.PlayerKit;
     }
-    public DeckCard[] cards { get; set; }
+    public DeckCardSerializable card { get; set; }
 }

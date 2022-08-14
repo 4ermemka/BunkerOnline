@@ -12,6 +12,15 @@ public struct DeckCard
     public string iconName;
     public Color color;
 }
+[Serializable]
+public struct DeckCardSerializable
+{
+    public string name;    
+    public string category;
+    public string description;
+    public string iconName;
+    public float r,g,b;
+}
 
 public class Category
 {
@@ -46,13 +55,19 @@ public class Deck : MonoBehaviour
     private List<Category> categories;
     void Start()
     {
+        UpdateDeck("DefaultDeck.json");
+        //CheckCategories();
+    }
+
+    public void UpdateDeck(string deckName)
+    {
         deck = new List<DeckCard>();
-        deck = FileHandler.ReadListFromJSON<DeckCard>("DefaultDeck.json");
+        deck = FileHandler.ReadListFromJSON<DeckCard>(deckName);
 
         categories = new List<Category>();
         SplitCategories(deck);
-        //CheckCategories();
     }
+
     public void SplitCategories(List<DeckCard> deck)
     {
         foreach(DeckCard card in deck) 

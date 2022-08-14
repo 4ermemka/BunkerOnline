@@ -32,7 +32,7 @@ public class NetManager : MonoBehaviour
 
     private MessageProcessing messageProcessing;
 
-    private Server server;
+    public Server server;
     private Client client;
     public int hostId;
 

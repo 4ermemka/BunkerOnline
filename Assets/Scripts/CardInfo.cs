@@ -10,6 +10,7 @@ public class CardInfo : MonoBehaviour
     [SerializeField] TextMeshProUGUI attributeNameDisplay;
     [SerializeField] TextMeshProUGUI descriptionDisplay;
     [SerializeField] Image iconDisplay;
+    [SerializeField] Image PanelColor;
     [SerializeField] Color iconColor;
 
     public void SetInfo(string attributeName, string category, string description, Sprite icon, Color color) 
@@ -19,5 +20,7 @@ public class CardInfo : MonoBehaviour
         this.descriptionDisplay.text = description; 
         this.iconDisplay.sprite = icon; 
         this.iconDisplay.color = color;
+        color.a = 0.2f;
+        this.PanelColor.color = color;
     }
 }

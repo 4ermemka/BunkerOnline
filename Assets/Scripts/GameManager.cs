@@ -28,8 +28,15 @@ public class GameManager : MonoBehaviour
     private List<int> votingList;
 
     [SerializeField] PlayerInfo playerInfoPref; 
+    [SerializeField] Attribute atrPref; 
+    [SerializeField] Card cardInHandPref;
     [SerializeField] GameObject playersGrid;
+    [SerializeField] GameObject handPanel;
+    [SerializeField] OpenedCardsPanel openedCardsPanel;
+
     List<PlayerInfo> playerInfoList;
+    PlayerInfo myPanel;
+    List<DeckCard> myCards;
 
     [SerializeField] private TextMeshProUGUI displayNickname;
     [SerializeField] private TextMeshProUGUI hostStatus;
@@ -67,25 +74,29 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        List<Category> allCards = gameObject.GetComponent<Deck>().GetCategories();
+        List<Category> allCards = new List<Category>();
         playerTimer = gameObject.GetComponent<Timer>();
 
         nm = FindObjectOfType<NetManager>();
         mp = nm.GetMessageProcessing();
         server = FindObjectOfType<Server>();
         client = FindObjectOfType<Client>();
+        myCards = new List<DeckCard>();
+
+        nm.GetMessageProcessing().SetGameManager(this);
 
         ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
         playerInfoList = new List<PlayerInfo>();
 
         for (int i = 0; i < users.Count; i++)
         {
-            Debug.Log(users[i].Nickname);
             PlayerInfo temp = Instantiate(playerInfoPref) as PlayerInfo;
             temp.SetNickname(users[i].Nickname);
+            temp.SetUser(users[i]);
             temp.gameObject.transform.SetParent(playersGrid.transform);
             temp.gameObject.transform.localScale = new Vector3(1, 1, 1);
             temp.gameObject.transform.localPosition = new Vector3(0, 0, 0);
+            if(users[i].id == user.id) myPanel = temp; 
             playerInfoList.Add(temp);
         }
         votingList = new List<int>();
@@ -101,18 +112,28 @@ public class GameManager : MonoBehaviour
 
         timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
         //playerTimer.OnEndTimer += ChangePlayer;
+        
         if(server!=null)
         {
-
-            List<PlayerKit> kits = SortDeckForKits(allCards,users);
-            foreach(User us in users)
+            server.SendOther(mp.ServerGameStartedMsg());
+            
+            gameObject.GetComponent<Deck>().UpdateDeck("DefaultDeck.json");
+            allCards = gameObject.GetComponent<Deck>().GetCategories();
+            List<PlayerKit> kits = new List<PlayerKit>();
+            kits = SortDeckForKits(allCards,users);
+            
+            for(int i=1; i<users.Count; i++)
             {
-                if(us != user)
-                server.SendClient(nm.hostId, us.id, 
-                mp.ServerPlayerKitMsg(kits.Find(x=>x.playerName==us.Nickname).cardsKit.ToArray<DeckCard>()));
+                foreach(DeckCard card in kits[i].cardsKit)
+                server.SendClient(nm.hostId, users[i].id, 
+                mp.ServerPlayerKitMsg(card));
             }
+
+            foreach(DeckCard card in kits[0].cardsKit)
+                SetCardToList(card);
         }
         MenuInterfaceManager.OnStartGame += Game;
+        openedCardsPanel.OnCastCard += AddCardToMyPanel;
         Debug.Log("Game started!");
     }
 
@@ -122,7 +143,7 @@ public class GameManager : MonoBehaviour
         List<PlayerKit> kits = new List<PlayerKit>();
         for(int i = 0; i < users.Count; i++) 
         {
-            PlayerKit kit = new PlayerKit();
+            PlayerKit kit;
             kit.cardsKit = new List<DeckCard>();
             foreach(Category category in categories) 
             {
@@ -135,6 +156,49 @@ public class GameManager : MonoBehaviour
             kits.Add(kit);
         }
         return kits;
+    }
+
+    public void SetCardToList(DeckCard card)
+    {
+        myCards.Add(card);
+        UpdateHand();
+    }
+
+    public void AddCardToPlayerPanel(User user, DeckCardSerializable card)
+    {
+        Attribute newAtr = Instantiate(atrPref) as Attribute;
+        newAtr.DeckCardSerializableToAttribute(card);
+        
+        playerInfoList.Find(x=> x.GetUser().id == user.id).AddAttribute(newAtr);
+    }
+
+    public void AddCardToMyPanel(object sender, OpenedCardsPanel.OnCastCardEventArgs e)
+    {
+        AddCardToPlayerPanel(user, e.card.AttributeToDeckCardSerializable());
+        if(client!=null) client.SendServer(mp.CastCardMsg(user, e.card));
+        if(server!=null) server.SendOther(mp.CastCardMsg(user, e.card));
+    }
+
+    public void UpdateHand()
+    {
+        foreach(Transform child in handPanel.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach(DeckCard card in myCards) 
+        {
+            Card cardInHand = Instantiate(cardInHandPref) as Card;
+
+            cardInHand.SetAttributeName(card.name);
+            cardInHand.SetCategory(card.category);
+            cardInHand.SetDescription(card.description);
+            cardInHand.SetIcon(card.iconName);
+            cardInHand.SetColor(card.color);
+
+            cardInHand.transform.SetParent(handPanel.transform);
+            cardInHand.transform.localScale = new Vector3(1,1,1);
+        }
     }
 
     void Update()
