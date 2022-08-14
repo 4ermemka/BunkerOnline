@@ -2,67 +2,61 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
+using TMPro;
+using UnityEngine.EventSystems;
 
 [Serializable]
 public class PlayerInfo : MonoBehaviour
 {
+    private User user;
     [SerializeField] private Image avatar;
-    [SerializeField] private PlayerPanel attributePanel;
-    [SerializeField] private Text nicknameText;
+    [SerializeField] private CircleLayoutGroup attributePanel;
+    [SerializeField] private TextMeshProUGUI nicknameText;
 
-    public string Nickname;
-    public List<string> cards;
+    private List<Attribute> attributesList;
 
-    public PlayerInfo() 
-    {
-        isActive = true;
-        cards = new List<string>();
-    }
-
-    public Player(int id, string name)
-    {
-        this.id = id;
-        this.Nickname = name;
-        this.isActive = true;
-        cards = new List<string>();
-    }
-
-    public Player(User user, string[] cards)
-    {
-        this.id = user.id;
-        this.Nickname = user.Nickname;
-        this.isHost = user.isHost;
-        this.isActive = true;
-        SetCards(cards);
-    }
+    private string Nickname = "Nickname";
     
     //public static implicit operator Player(User user) => new Player (user.id, user.name);
 
-    public void SetCards(string[] cards)
+    public User GetUser()
     {
-        this.cards.Clear();
-
-        foreach(var c in cards) 
-        {
-            this.cards.Add(c);    
-        }
-    }
-    public void SetActiveStatus(bool isActive)
-    {
-        this.isActive = isActive;
+        return user;
     }
 
-    public bool IsActive()
+    public void SetUser(User us)
     {
-        return this.isActive;
+        this.user = us;
+    }
+
+    public void SetNickname (string Nickname)
+    {
+        this.Nickname = Nickname;
+    }
+
+    public void SetCards(string[] cards) {
+    }
+
+    public void Start() 
+    {
+        attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
+    }
+
+    public void Update()
+    {
+        nicknameText.text = Nickname;
+    }
+
+    public void AddAttribute(Attribute attribute)
+    {
+        attribute.transform.SetParent(attributePanel.transform);
+        attribute.transform.localScale = new Vector3(1,1,1);
+        attribute.transform.localPosition = new Vector3(0,0,0);
     }
 
     public Attribute FindAttribute(int id)
     {
-        List<Attribute> attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
-
         Attribute attribute = attributesList.Find(x => x.GetComponent<Attribute>().GetId() == id);
         return attribute;
     }

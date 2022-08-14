@@ -32,7 +32,7 @@ public class NetManager : MonoBehaviour
 
     private MessageProcessing messageProcessing;
 
-    private Server server;
+    public Server server;
     private Client client;
     public int hostId;
 
@@ -314,6 +314,11 @@ public class NetManager : MonoBehaviour
     public User GetUser()
     {
         return user;
+    }
+
+    public MessageProcessing GetMessageProcessing()
+    {
+        return messageProcessing;
     }
 
     #endregion

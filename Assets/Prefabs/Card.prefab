@@ -13,6 +13,10 @@ GameObject:
   - component: {fileID: 7827787892964416899}
   - component: {fileID: 2580123772204667067}
   - component: {fileID: 4148599752045009188}
+<<<<<<< HEAD
+=======
+  - component: {fileID: 4086089694662165909}
+>>>>>>> Networking
   m_Layer: 5
   m_Name: Card
   m_TagString: Untagged
@@ -31,8 +35,13 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+<<<<<<< HEAD
   - {fileID: 9109891665339189322}
   - {fileID: 5269253239048061520}
+=======
+  - {fileID: 5269253239048061520}
+  - {fileID: 9109891665339189322}
+>>>>>>> Networking
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -112,6 +121,24 @@ MonoBehaviour:
   icon: {fileID: 1869584486754861955}
   cardInfoPref: {fileID: 4628756792145902271, guid: 67c4c06fc5a36d447af682bfa2178659, type: 3}
   defaultParent: {fileID: 0}
+<<<<<<< HEAD
+=======
+--- !u!114 &4086089694662165909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757504919633844647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
+  m_EffectDistance: {x: 3, y: -3}
+  m_UseGraphicAlpha: 1
+>>>>>>> Networking
 --- !u!1 &4714215017613001436
 GameObject:
   m_ObjectHideFlags: 0
@@ -123,6 +150,10 @@ GameObject:
   - component: {fileID: 5269253239048061520}
   - component: {fileID: 1930570913111409123}
   - component: {fileID: 1869584486754861955}
+<<<<<<< HEAD
+=======
+  - component: {fileID: 5869022344973318456}
+>>>>>>> Networking
   m_Layer: 5
   m_Name: Icon
   m_TagString: Untagged
@@ -142,7 +173,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 125902756156189495}
+<<<<<<< HEAD
   m_RootOrder: 1
+=======
+  m_RootOrder: 0
+>>>>>>> Networking
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -187,6 +222,24 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+<<<<<<< HEAD
+=======
+--- !u!114 &5869022344973318456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4714215017613001436}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
+>>>>>>> Networking
 --- !u!1 &6346837046408366684
 GameObject:
   m_ObjectHideFlags: 0
@@ -217,7 +270,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 125902756156189495}
+<<<<<<< HEAD
   m_RootOrder: 0
+=======
+  m_RootOrder: 1
+>>>>>>> Networking
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}

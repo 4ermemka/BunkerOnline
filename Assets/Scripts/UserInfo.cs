@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
+using TMPro;
 
 public class UserInfo:MonoBehaviour
 {
@@ -9,16 +10,10 @@ public class UserInfo:MonoBehaviour
     public int num = 0;
     public bool isHost = false;
     public string nickname = "/*default nick*/";
-    private Text nick;
-    private Text hostStatus;
-    private Text number;
-    
-    public void Awake() 
-    {
-        nick = GetComponentsInChildren<Text>()[0];
-        number = GetComponentsInChildren<Text>()[1];
-        hostStatus = GetComponentsInChildren<Text>()[2];
-    }
+
+    [SerializeField] private TextMeshProUGUI nick;
+    [SerializeField] private TextMeshProUGUI hostStatus;
+    [SerializeField] private TextMeshProUGUI number;
 
     public void setId(int id)
     {

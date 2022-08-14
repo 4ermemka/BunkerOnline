@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ChatMessage : MonoBehaviour
 {
-    [SerializeField] private Text Nickname;
-    [SerializeField] private Text MessageText;
+    [SerializeField] private TextMeshProUGUI Nickname;
+    [SerializeField] private TextMeshProUGUI MessageText;
 
     public void SetNickname(string nick) 
     {
