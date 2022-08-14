@@ -13,7 +13,14 @@ MonoBehaviour:
   m_Name: Blue to Purple - Vertical
   m_EditorClassIdentifier: 
   colorMode: 2
+<<<<<<< HEAD
   topLeft: {r: 1, g: 1, b: 1, a: 1}
   topRight: {r: 1, g: 1, b: 1, a: 1}
   bottomLeft: {r: 1, g: 1, b: 1, a: 1}
   bottomRight: {r: 1, g: 1, b: 1, a: 1}
+=======
+  topLeft: {r: 1, g: 0, b: 0, a: 1}
+  topRight: {r: 1, g: 0, b: 0, a: 1}
+  bottomLeft: {r: 1, g: 0.51687396, b: 0, a: 1}
+  bottomRight: {r: 1, g: 0.51687396, b: 0, a: 1}
+>>>>>>> dev

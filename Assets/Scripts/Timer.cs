@@ -64,6 +64,8 @@ public class Timer : MonoBehaviour
         if (time < 0 || !timerRunning)
         {
             time = 0;
+            remainingTimeFloat = (float)Math.Round(time, 2);
+            remainingTimeInt = (int)time;
             OnEndTimer?.Invoke(this, EventArgs.Empty);
         }
     }

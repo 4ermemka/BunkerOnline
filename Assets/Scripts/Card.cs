@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+[System.Serializable]
 public class Card : Attribute, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public Transform defaultParent;

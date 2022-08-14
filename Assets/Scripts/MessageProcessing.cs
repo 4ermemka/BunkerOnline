@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
@@ -26,7 +27,11 @@ public class MessageProcessing
     {
         this.netManager = netManager;
     }
-    
+
+    public void SetGameManager(GameManager gm)
+    {
+        gameManager = gm;
+    }    
     #endregion
 
     #region MessageTransformation
@@ -84,8 +89,8 @@ public class MessageProcessing
             case NetOP.PlayerVote:
                 OnPlayerVote(e.conId, e.host, (Net_PlayerVote)msg);
                 break;
-            case NetOP.CastCardPlayer:
-                //Soon          
+            case NetOP.CastCard:
+                OnPlayerCastCard(e.conId, e.host, (Net_CastCard)msg);
                 break;
 
             default:
@@ -106,11 +111,12 @@ public class MessageProcessing
         netManager.UpdateUser(conId, host, msg.Username);
     }
 
-    /*private void OnUpdatePlayer(int conId, int host, Net_UpdateCardPlayer msg)
+    private void OnPlayerCastCard(int conId, int host, Net_CastCard msg)
     {
-        netManager.UpdatePlayerInformation(msg.Username, conId, msg.NewCardsOnTable);
-        Debug.Log(string.Format("Player {0}, id: {1} opened new card.", msg.Username, conId));
-    }*/
+        Debug.Log("User" + msg.user.Nickname + " casted "+ msg.card.name);
+        gameManager.AddCardToPlayerPanel(msg.user, msg.card);
+        netManager.server.SendOther(conId,host, MakeBuffer(msg));
+    }
 
     private void OnUpdateChat(Net_UpdateChat msg)
     {
@@ -162,24 +168,29 @@ public class MessageProcessing
                 break;
 
             case NetOP.AllUsersInfo:
-                Debug.Log("AllUsersInfo case!");
                 SetListOfUsers((NetUser_AllUserList)msg);
                 break;
 
-            case NetOP.CastCardPlayer:
-                //Soon          
+            case NetOP.CastCard:
+                OnPlayerCastCard((Net_CastCard)msg);        
                 break;
+
             case NetOP.UpdateChat:
                 OnUpdateChat((Net_UpdateChat)msg);
                 break;
-            case NetOP.UpdateVotingArray:
+            case NetOP.UpdateVotingList:
                 OnUpdateVotingArray((Net_UpdateVotingArray)msg);
                 break;
             case NetOP.PlayerVote:
                 OnPlayerVote((Net_PlayerVote) msg);
                 break;
-            case NetOP.KickPlayer:
-                OnKickPlayer((Net_KickPlayer)msg);
+
+            case NetOP.GameStarted:
+                OnGameStarted();
+                break;
+            
+            case NetOP.PlayerKit:
+                OnPlayerKit((Net_PlayerKit) msg);
                 break;
 
             default:
@@ -224,16 +235,37 @@ public class MessageProcessing
 
     private void OnUpdateVotingArray(Net_UpdateVotingArray msg)
     {
-        gameManager.votingArray = msg.votingArray;
+        gameManager.SetVotingList(msg.votingArray.ToList());
     }
 
-    private void OnPlayerVote (Net_PlayerVote msg) {
+    private void OnPlayerVote (Net_PlayerVote msg) 
+    {
         Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
     }
 
-    private void OnKickPlayer(Net_KickPlayer msg)
+    private void OnPlayerKit (Net_PlayerKit msg) 
     {
-        Debug.Log("Player" + gameManager.users[msg.id] + " kicked by voting.");
+        Debug.Log("Got card!");
+        Debug.Log("GM EMPTY = "+gameManager==null);
+        DeckCard dc = new DeckCard();
+        dc.name = msg.card.name;
+        dc.category = msg.card.category;
+        dc.description = msg.card.description;
+        dc.iconName = msg.card.iconName;
+        Color color = new Color(msg.card.r,msg.card.g,msg.card.b, 1.0f);
+        dc.color = color;
+
+        gameManager.SetCardToList(dc);
+    }
+    
+    private void OnGameStarted() 
+    {
+        netManager.ChangeScene();    
+    }
+    private void OnPlayerCastCard(Net_CastCard msg)
+    {
+        Debug.Log("User" + msg.user.Nickname + " casted "+ msg.card.name);
+        gameManager.AddCardToPlayerPanel(msg.user, msg.card);
     }
 
     #endregion
@@ -291,11 +323,28 @@ public class MessageProcessing
 
         return MakeBuffer(msg);
     }
+    //need to add message about kick, player's vote (for Alina)
 
-    public byte[] ServerKickPlayer (int id)
+    public byte[] ServerPlayerKitMsg (DeckCard card)
     {
-        Net_KickPlayer msg = new Net_KickPlayer();
-        msg.id = id;
+        Net_PlayerKit msg = new Net_PlayerKit();
+        DeckCardSerializable dcs;
+        
+        dcs.name = card.name;
+        dcs.category = card.category;
+        dcs.description = card.description;
+        dcs.iconName = card.iconName;
+        dcs.r = card.color.r;
+        dcs.g = card.color.g;
+        dcs.b = card.color.b;
+
+        msg.card = dcs;
+        return MakeBuffer(msg);
+    }
+
+    public byte[] ServerGameStartedMsg ()
+    {
+        Net_GameStarted msg = new Net_GameStarted();
 
         return MakeBuffer(msg);
     }
@@ -339,4 +388,13 @@ public class MessageProcessing
     }
 
     #endregion
+    
+    public byte[] CastCardMsg (User user, Card card)
+    {
+        Net_CastCard msg = new Net_CastCard();
+        msg.user = user;
+        msg.card = card.AttributeToDeckCardSerializable();
+
+        return MakeBuffer(msg);
+    }
 }

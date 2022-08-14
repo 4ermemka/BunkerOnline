@@ -9,6 +9,7 @@ using UnityEngine.EventSystems;
 [Serializable]
 public class PlayerInfo : MonoBehaviour
 {
+    private User user;
     [SerializeField] private Image avatar;
     [SerializeField] private CircleLayoutGroup attributePanel;
     [SerializeField] private TextMeshProUGUI nicknameText;
@@ -18,6 +19,16 @@ public class PlayerInfo : MonoBehaviour
     private string Nickname = "Nickname";
     
     //public static implicit operator Player(User user) => new Player (user.id, user.name);
+
+    public User GetUser()
+    {
+        return user;
+    }
+
+    public void SetUser(User us)
+    {
+        this.user = us;
+    }
 
     public void SetNickname (string Nickname)
     {
@@ -35,6 +46,13 @@ public class PlayerInfo : MonoBehaviour
     public void Update()
     {
         nicknameText.text = Nickname;
+    }
+
+    public void AddAttribute(Attribute attribute)
+    {
+        attribute.transform.SetParent(attributePanel.transform);
+        attribute.transform.localScale = new Vector3(1,1,1);
+        attribute.transform.localPosition = new Vector3(0,0,0);
     }
 
     public Attribute FindAttribute(int id)
