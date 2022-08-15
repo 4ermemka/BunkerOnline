@@ -50,7 +50,6 @@ public class GameManager : MonoBehaviour
     private Server server;
     private Client client;
     private NetManager nm;
-    private MessageProcessing mp;
 
     public int countForEndGame = 1;
     public float timeToTurn = 15;
@@ -80,15 +79,15 @@ public class GameManager : MonoBehaviour
         playerTimer = gameObject.GetComponent<Timer>();
 
         nm = FindObjectOfType<NetManager>();
-        mp = nm.GetMessageProcessing();
         server = FindObjectOfType<Server>();
         client = FindObjectOfType<Client>();
         myCards = new List<DeckCard>();
 
-        nm.GetMessageProcessing().SetGameManager(this);
-
         ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
         playerInfoList = new List<PlayerInfo>();
+
+        MessageProcessing.SetGameManager(this);
+        MessageProcessing.SetNetManager(nm);
 
         for (int i = 0; i < users.Count; i++)
         {
@@ -117,20 +116,21 @@ public class GameManager : MonoBehaviour
         
         if(server!=null)
         {
-            server.SendOther(mp.ServerGameStartedMsg());
+            server.SendOther(MessageProcessing.ServerGameStartedMsg());
             
             gameObject.GetComponent<Deck>().UpdateDeck("DefaultDeck.json");
             allCards = gameObject.GetComponent<Deck>().GetCategories();
+            Debug.Log(allCards == null);
             List<PlayerKit> kits = new List<PlayerKit>();
             kits = SortDeckForKits(allCards,users);
             
             for(int i=1; i<users.Count; i++)
             {
                 foreach(DeckCard card in kits[i].cardsKit)
-                server.SendClient(nm.hostId, users[i].id, 
-                mp.ServerPlayerKitMsg(card));
+                server.SendClient(nm.hostId, users[i].id,
+                MessageProcessing.ServerPlayerKitMsg(card));
             }
-
+            Debug.Log(kits[0].cardsKit.Count);
             foreach(DeckCard card in kits[0].cardsKit)
                 SetCardToList(card);
         }
@@ -177,8 +177,8 @@ public class GameManager : MonoBehaviour
     public void AddCardToMyPanel(object sender, OpenedCardsPanel.OnCastCardEventArgs e)
     {
         AddCardToPlayerPanel(user, e.card.AttributeToDeckCardSerializable());
-        if(client!=null) client.SendServer(mp.CastCardMsg(user, e.card));
-        if(server!=null) server.SendOther(mp.CastCardMsg(user, e.card));
+        if(client!=null) client.SendServer(MessageProcessing.CastCardMsg(user, e.card));
+        if(server!=null) server.SendOther(MessageProcessing.CastCardMsg(user, e.card));
     }
 
     public void UpdateHand()

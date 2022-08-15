@@ -30,8 +30,6 @@ public class NetManager : MonoBehaviour
     [SerializeField] private MenuInterfaceManager MenuInterfaceManager;
     private GameManager gm;
 
-    private MessageProcessing messageProcessing;
-
     public Server server;
     private Client client;
     public int hostId;
@@ -46,7 +44,6 @@ public class NetManager : MonoBehaviour
         DontDestroyOnLoad(this);
         user = new User();
         lobbyList = new List<User>();
-        messageProcessing = new MessageProcessing(this);
 
         MenuInterfaceManager.OnClickConnect += NetManager_ConnectPressed;
         MenuInterfaceManager.OnChooseClient += NetManager_StartClient;
@@ -65,7 +62,7 @@ public class NetManager : MonoBehaviour
     public void ServerOnClientConnected(object sender, Server.OnConnectEventArgs e)
     {
         Debug.Log("New player connected! Sending him list...");
-        server.SendClient(hostId, e.conId, messageProcessing.ServerSetGlobalId(e.conId));
+        server.SendClient(hostId, e.conId, MessageProcessing.ServerSetGlobalId(e.conId));
     }
 
     #endregion
@@ -84,7 +81,7 @@ public class NetManager : MonoBehaviour
         Debug.Log(string.Format("Player {0} was disconnected! ", e.conId));
         LeaveUser(e.conId);
 
-        server.SendOther(messageProcessing.ServerUsersListMsg(lobbyList));
+        server.SendOther(MessageProcessing.ServerUsersListMsg(lobbyList));
     }
 
     #endregion
@@ -104,8 +101,8 @@ public class NetManager : MonoBehaviour
         User newUser = new User(conId, Nickname, host);
         lobbyList.Add(newUser);
 
-        server.SendClient(recHost, conId, messageProcessing.ServerUsersListMsg(lobbyList));
-        server.SendOther(conId, recHost, messageProcessing.ServerUsersListMsg(lobbyList));
+        server.SendClient(recHost, conId, MessageProcessing.ServerUsersListMsg(lobbyList));
+        server.SendOther(conId, recHost, MessageProcessing.ServerUsersListMsg(lobbyList));
 
         MenuInterfaceManager.UpdateLobby(lobbyList);
     }
@@ -124,12 +121,12 @@ public class NetManager : MonoBehaviour
 
         if(netState == CurrentNetState.Server)
         {
-            server.SendOther(messageProcessing.ServerUsersListMsg(lobbyList));
+            server.SendOther(MessageProcessing.ServerUsersListMsg(lobbyList));
         }
 
         if(netState == CurrentNetState.Client)
         {
-            client.SendServer(messageProcessing.ClientUpdateUserMsg(user));
+            client.SendServer(MessageProcessing.ClientUpdateUserMsg(user));
         }
     }
 
@@ -146,7 +143,7 @@ public class NetManager : MonoBehaviour
         if(netState == CurrentNetState.Server)
         {
             Debug.Log("SENDING OTHER");
-            server.SendOther(conId, host, messageProcessing.ServerUsersListMsg(lobbyList));
+            server.SendOther(conId, host, MessageProcessing.ServerUsersListMsg(lobbyList));
         }
     }
 
@@ -154,7 +151,7 @@ public class NetManager : MonoBehaviour
     {
         user.id = globalConId;
         Debug.Log("Global id is now " + user.id);
-        client.SendServer(messageProcessing.ClientNewUserMsg(user));
+        client.SendServer(MessageProcessing.ClientNewUserMsg(user));
     }
 
     public void ClearLobbyList()
@@ -261,7 +258,7 @@ public class NetManager : MonoBehaviour
     public void NetManager_StartServer(object sender, EventArgs e)
     {
         server = Instantiate(serverPref);
-        server.OnData += messageProcessing.OnData;
+        server.OnData += MessageProcessing.OnData;
         server.OnConnect += ServerOnClientConnected;
         server.OnDisconnect += ServerOnClientDisconnection;
         netState = CurrentNetState.Server;
@@ -274,7 +271,7 @@ public class NetManager : MonoBehaviour
     public void NetManager_StartClient(object sender, EventArgs e)
     {
         client = Instantiate(clientPref);
-        client.OnData += messageProcessing.OnData;
+        client.OnData += MessageProcessing.OnData;
         client.OnConnect += ClientOnServerConnection;
         client.OnDisconnect += ClientOnServerDisonnection;
         netState = CurrentNetState.Client;
@@ -285,14 +282,14 @@ public class NetManager : MonoBehaviour
     {
         if(server!=null) 
         {
-            server.OnData -= messageProcessing.OnData;
+            server.OnData -= MessageProcessing.OnData;
             server.OnConnect -= ServerOnClientConnected;
             server.OnDisconnect -= ServerOnClientDisconnection;
             server.Shutdown();
         }
         if(client!=null) 
         {
-            client.OnData -= messageProcessing.OnData;
+            client.OnData -= MessageProcessing.OnData;
             client.OnConnect -= ClientOnServerConnection;
             client.OnDisconnect -= ClientOnServerDisonnection;
             client.Shutdown();
@@ -314,11 +311,6 @@ public class NetManager : MonoBehaviour
     public User GetUser()
     {
         return user;
-    }
-
-    public MessageProcessing GetMessageProcessing()
-    {
-        return messageProcessing;
     }
 
     #endregion
