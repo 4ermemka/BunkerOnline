@@ -23,4 +23,20 @@ public class CardInfo : MonoBehaviour
         color.a = 0.2f;
         this.PanelColor.color = color;
     }
+
+    private void Start() 
+    {
+        gameObject.GetComponent<CanvasGroup>().alpha = 0;
+        LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(),1, 0.2f);
+    } 
+
+    public void UpdatePosition(Vector3 newPos)
+    {
+        gameObject.transform.position = newPos;
+    }
+
+    public void UpdateOffset(Vector3 offset)
+    {
+        gameObject.transform.localPosition += offset;
+    }
 }

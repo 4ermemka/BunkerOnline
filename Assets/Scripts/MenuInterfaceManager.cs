@@ -213,7 +213,8 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void ClearLobby()
     {
-        foreach (Transform p in lobbyList.transform) Destroy(p.gameObject);
+        if(lobbyList != null)
+            foreach (Transform p in lobbyList.transform) Destroy(p.gameObject);
     }
 
     public void NewConnectionStatus(string status)

@@ -11,7 +11,17 @@ public enum LayoutType
     ConstantColumns
 }
 
-public class FlexibleLayoutGroup : LayoutGroup
+[System.Serializable]
+public struct Padding
+{
+    [SerializeField] public float left;
+    [SerializeField] public float right;
+    [SerializeField] public float top;
+    [SerializeField] public float bottom;
+}
+
+[ExecuteAlways]
+public class FlexibleLayoutGroup : MonoBehaviour
 {
     [SerializeField] private LayoutType layoutType;
 
@@ -22,13 +32,86 @@ public class FlexibleLayoutGroup : LayoutGroup
 
     [SerializeField] private bool squareElems;
     [SerializeField] private bool centreLastRow;
+    [SerializeField] private bool enableAnimation;
+    [SerializeField] private AnimationCurve curve;
 
-    public override void CalculateLayoutInputHorizontal()
+    [SerializeField] private int childrenLastCount;
+    private Vector2 lastRectSize;
+
+    [SerializeField] private Padding padding;
+
+    public void Start()
     {
-        base.CalculateLayoutInputHorizontal();
+        childrenLastCount = 0;
+        lastRectSize = gameObject.GetComponent<RectTransform>().rect.size;
+    }
 
-       switch (layoutType) 
-       {
+    public void SetChildren()
+    {
+        RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
+
+        float parentWidth = rectTransform.rect.width;
+        float parentHeight = rectTransform.rect.height;
+
+        float cellWidth = (parentWidth / (float)columns) - 
+        ((spacing.x / (float)columns) * (columns - 1)) - 
+        (padding.left/(float)columns) - (padding.right/(float)columns);
+
+        float cellHeight = (parentHeight/(float)rows) - 
+        ((spacing.y / (float)rows) * (rows - 1)) -
+        (padding.top/(float)rows) - (padding.bottom/(float)rows);
+
+        cellSize.x = cellWidth;
+        cellSize.y = cellHeight;
+
+        int columnCount = 0;
+        int rowCount = 0;
+
+        for(int i = 0; i < transform.childCount; i++) 
+        {
+            rowCount = i / columns;
+            columnCount = i % columns;
+
+            var item = transform.GetChild(i);
+
+            var xPos = (cellSize.x + spacing.x) * columnCount + padding.left;
+            var yPos = (cellSize.y + spacing.y) * rowCount + padding.top;
+
+            float offsetX = parentWidth - cellSize.x;
+            float offsetY = parentHeight - cellSize.y;
+
+            float centreOffset = 0;
+            if(centreLastRow && rowCount == rows-1 && transform.childCount%columns!=0) 
+                centreOffset = (cellSize.x + spacing.x) * (columns-transform.childCount%columns);
+            offsetX -= centreOffset;
+
+            if(squareElems)
+            {   
+                if(enableAnimation && Application.isPlaying)
+                    LeanTween.moveLocal(item.gameObject, new Vector3(xPos - offsetX/2, -(yPos - offsetY/2), 0f), 0.5f).setEase(curve);
+                else
+                    item.transform.localPosition = new Vector3(xPos - offsetX/2,-(yPos - offsetY/2),0f);
+                
+                item.GetComponent<RectTransform>().sizeDelta = new Vector2(Mathf.Min(cellSize.x,cellSize.y), Mathf.Min(cellSize.x,cellSize.y));
+            }
+            else
+            {
+                item.GetComponent<RectTransform>().sizeDelta = new Vector2(cellSize.x, cellSize.y);
+        //#if UNITY_EDITOR
+                if(!enableAnimation)
+                item.transform.localPosition = new Vector3(xPos - offsetX/2, -(yPos - offsetY/2),0f);
+        //#else
+                if(enableAnimation) 
+                LeanTween.moveLocal(item.gameObject, new Vector3(xPos - offsetX/2, -(yPos - offsetY/2),0f), 0.5f).setEase(curve);
+        //#endif
+            }
+        }
+    }
+
+    public void Update()
+    {
+        switch (layoutType) 
+        {
         case LayoutType.FlexibleSquare:
             int count = transform.childCount;
         
@@ -61,70 +144,13 @@ public class FlexibleLayoutGroup : LayoutGroup
             rows = transform.childCount/columns;
             if(rows==0||transform.childCount%columns!=0) rows++;
             break;
-       }
-        
-
-        float parentWidth = rectTransform.rect.width;
-        float parentHeight = rectTransform.rect.height;
-
-        float cellWidth = (parentWidth / (float)columns) - 
-        ((spacing.x / (float)columns) * (columns - 1)) - 
-        (padding.left/(float)columns) - (padding.right/(float)columns);
-
-        float cellHeight = (parentHeight/(float)rows) - 
-        ((spacing.y / (float)rows) * (rows - 1)) -
-        (padding.top/(float)rows) - (padding.bottom/(float)rows);
-
-        cellSize.x = cellWidth;
-        cellSize.y = cellHeight;
-
-        int columnCount = 0;
-        int rowCount = 0;
-
-        for(int i = 0; i < rectChildren.Count; i++) 
-        {
-            rowCount = i / columns;
-            columnCount = i % columns;
-
-            var item = rectChildren[i];
-
-            var xPos = (cellSize.x + spacing.x) * columnCount + padding.left;
-            var yPos = (cellSize.y + spacing.y) * rowCount + padding.top;
-
-            float offsetX = Mathf.Min(cellSize.x,cellSize.y) - cellSize.x;
-            float offsetY = Mathf.Min(cellSize.x,cellSize.y) - cellSize.y;
-
-            float centreOffset = 0;
-            if(centreLastRow && rowCount == rows-1 && rectChildren.Count%columns!=0) 
-                centreOffset = (cellSize.x + spacing.x) * (columns-rectChildren.Count%columns);
-            offsetX -= centreOffset;
-
-            if(squareElems)
-            {
-                SetChildAlongAxis(item, 0, xPos - offsetX/2, Mathf.Min(cellSize.x,cellSize.y));
-                SetChildAlongAxis(item, 1, yPos - offsetY/2, Mathf.Min(cellSize.x,cellSize.y));
-            }
-            else
-            {
-                SetChildAlongAxis(item, 0, xPos + centreOffset/2, cellSize.x);
-                SetChildAlongAxis(item, 1, yPos, cellSize.y);
-            }
-            
         }
-    }
 
-    public override void CalculateLayoutInputVertical()
-    {
-
-    }
-
-    public override void SetLayoutHorizontal()
-    {
-
-    }
-
-    public override void SetLayoutVertical()
-    {
-
+        if(lastRectSize!=gameObject.GetComponent<RectTransform>().rect.size || childrenLastCount!=transform.childCount)
+        {
+            SetChildren();
+            childrenLastCount = transform.childCount;
+            lastRectSize = gameObject.GetComponent<RectTransform>().rect.size;
+        }
     }
 }

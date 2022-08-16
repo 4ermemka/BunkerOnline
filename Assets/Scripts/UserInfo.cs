@@ -15,6 +15,11 @@ public class UserInfo:MonoBehaviour
     [SerializeField] private TextMeshProUGUI hostStatus;
     [SerializeField] private TextMeshProUGUI number;
 
+    public void Start() 
+    {
+        
+    }
+
     public void setId(int id)
     {
         this.id = id;
@@ -41,7 +46,7 @@ public class UserInfo:MonoBehaviour
 
     public void setPanelToList(GameObject list)
     {
-        transform.parent = list.transform;
+        transform.SetParent(list.transform);
         transform.localScale = new Vector3(1,1,1);
     }
 }

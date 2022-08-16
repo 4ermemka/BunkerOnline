@@ -5,7 +5,10 @@ using UnityEngine.EventSystems;
 
 public class RotatingHitbox : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private float scaleFactor = 5;
+    public AnimationCurve curve;
+    [SerializeField] private float rotateFactor = 5;
+    [SerializeField] private float scaleFactor = 1.1f;
+    [SerializeField] private bool changeScale = false;
     private GameObject hitbox;
     
     private bool rotating = false;
@@ -29,18 +32,20 @@ public class RotatingHitbox : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         //Debug.Log("C:" + pos.x + "," + pos.y + " P:" + rectPos.x + "," + rectPos.y);
         Vector3 newRot = new Vector3(rX,rY,0);
         float radius = Mathf.Max(hitbox.GetComponent<RectTransform>().rect.height, hitbox.GetComponent<RectTransform>().rect.width)/2;
-        scaleFactor = radius/140;
-        hitbox.transform.rotation = Quaternion.Euler(newRot/scaleFactor);
+        rotateFactor = radius/140;
+        hitbox.transform.rotation = Quaternion.Euler(newRot/rotateFactor);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
         rotating = true;
+        if(changeScale)LeanTween.scale(hitbox, new Vector3(scaleFactor,scaleFactor,scaleFactor),0.5f).setEase(curve);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         rotating = false;
         hitbox.transform.rotation = Quaternion.Euler(Vector3.zero);
+        if(changeScale)LeanTween.scale(hitbox, new Vector3(1,1,1),0.5f).setEase(curve);
     }
 }
