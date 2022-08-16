@@ -17,8 +17,6 @@ public class PlayerInfo : MonoBehaviour
     private List<Attribute> attributesList;
 
     private string Nickname = "Nickname";
-    
-    //public static implicit operator Player(User user) => new Player (user.id, user.name);
 
     public User GetUser()
     {
@@ -50,9 +48,11 @@ public class PlayerInfo : MonoBehaviour
 
     public void AddAttribute(Attribute attribute)
     {
+        attribute.gameObject.GetComponent<CanvasGroup>().alpha=0;
         attribute.transform.SetParent(attributePanel.transform);
         attribute.transform.localScale = new Vector3(1,1,1);
-        attribute.transform.localPosition = new Vector3(0,0,0);
+        attribute.transform.localPosition = new Vector3(0,0,20);
+        LeanTween.alphaCanvas(attribute.gameObject.GetComponent<CanvasGroup>(),1, 0.5f);
     }
 
     public Attribute FindAttribute(int id)

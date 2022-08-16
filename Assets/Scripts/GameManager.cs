@@ -222,16 +222,6 @@ public class GameManager : MonoBehaviour
         return user.Nickname;
     }
 
-    public void SetvotingList()
-    {
-        
-    }
-
-    public void ButtonTimerClick()
-    {
-        playerTimer.timerRunning = !playerTimer.timerRunning;
-    }
-
     public void Game(object sender, EventArgs e)
     {
         while (users.Count > countForEndGame)
@@ -306,5 +296,10 @@ public class GameManager : MonoBehaviour
         int playerToKick = FindPlayerToKick();
         NullList(votingList);
         users.RemoveAt(playerToKick);
+    }
+
+    public void OnUserLeave(string nickname)
+    {
+        Destroy(playerInfoList.Find(x=>x.GetUser().Nickname == nickname).gameObject);
     }
 }

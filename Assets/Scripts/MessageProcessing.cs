@@ -62,6 +62,7 @@ public static class MessageProcessing
 
     #region ServerReadMsg
     
+    
     /////////////////////////////////////////////////////////////////////////////
     /*                                SERVER                                   */
     /////////////////////////////////////////////////////////////////////////////
@@ -212,6 +213,7 @@ public static class MessageProcessing
     private static void OnLeaveUser(NetUser_Leave msg)
     {
         Debug.Log(string.Format("Player {0} disconnected.", msg.Username));
+        if(gameManager!=null) gameManager.OnUserLeave(msg.Username);
     }
 
     private static void OnSetGlobalId(NetUser_SetGlobalId msg)

@@ -423,7 +423,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a732815fa3383994e96f1c180ca6f49d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scaleFactor: 5
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 7.92855
+      outSlope: 7.92855
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.02614838
+    - serializedVersion: 3
+      time: 0.6248881
+      value: 0.93998015
+      inSlope: -1.9824512
+      outSlope: -1.9824512
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.18415982
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 0
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  rotateFactor: 5
+  scaleFactor: 1.1
+  changeScale: 1
 --- !u!114 &6965581183683121977
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -604,14 +639,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5052086b8e00db241a37cf2f748d2f7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 4
   offset: -1.5707964
   scaleFactor: 5
+  enableAnimation: 1
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 5.210239
+      outSlope: 5.210239
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.024963323
+    - serializedVersion: 3
+      time: 0.4178954
+      value: 1.0905089
+      inSlope: -1.1354449
+      outSlope: -1.1354449
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.38610366
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  maxContainerSize: 100
+  childrenLastCount: 0
   cellSize: {x: 20, y: 20}
 --- !u!1 &3531064924095014986
 GameObject:
@@ -822,7 +887,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.6320754, g: 0, b: 0, a: 1}
+  m_Color: {r: 0, g: 0.4716981, b: 0.24268976, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
