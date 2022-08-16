@@ -179,7 +179,7 @@ public static class MessageProcessing
                 OnUpdateChat((Net_UpdateChat)msg);
                 break;
             case NetOP.UpdateVotingList:
-                OnUpdateVotingArray((Net_UpdateVotingArray)msg);
+                OnUpdateVotingArray((Net_UpdateVotingList)msg);
                 break;
             case NetOP.PlayerVote:
                 OnPlayerVote((Net_PlayerVote) msg);
@@ -234,7 +234,7 @@ public static class MessageProcessing
         netManager.UpdateUsersList(newList);
     }
 
-    private static void OnUpdateVotingArray(Net_UpdateVotingArray msg)
+    private static void OnUpdateVotingArray(Net_UpdateVotingList msg)
     {
         gameManager.SetVotingList(msg.votingArray.ToList());
     }
@@ -310,7 +310,7 @@ public static class MessageProcessing
 
     public static byte[] ServerUpdateVotingArray(int[] votingArray)
     {
-        Net_UpdateVotingArray msg = new Net_UpdateVotingArray();
+        Net_UpdateVotingList msg = new Net_UpdateVotingList();
         msg.votingArray = votingArray;
 
         return MakeBuffer(msg);
