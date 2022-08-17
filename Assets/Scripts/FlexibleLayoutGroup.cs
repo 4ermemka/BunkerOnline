@@ -18,6 +18,16 @@ public struct Padding
     [SerializeField] public float right;
     [SerializeField] public float top;
     [SerializeField] public float bottom;
+
+    public static bool operator == (Padding c1, Padding c2) 
+    {
+        return c1.Equals(c2);
+    }
+
+    public static bool operator !=(Padding c1, Padding c2) 
+    {
+       return !c1.Equals(c2);
+    }   
 }
 
 [ExecuteAlways]
@@ -33,16 +43,21 @@ public class FlexibleLayoutGroup : MonoBehaviour
     [SerializeField] private bool squareElems;
     [SerializeField] private bool centreLastRow;
     [SerializeField] private bool enableAnimation;
+    [SerializeField] private float animationTime;
     [SerializeField] private AnimationCurve curve;
+    [SerializeField] private Padding padding;
 
     [SerializeField] private int childrenLastCount;
     private Vector2 lastRectSize;
+    private Padding lastPadding;
+    private Vector2 lastSpacing;
 
-    [SerializeField] private Padding padding;
 
     public void Start()
     {
         childrenLastCount = 0;
+        lastPadding = padding;
+        lastSpacing = spacing;
         lastRectSize = gameObject.GetComponent<RectTransform>().rect.size;
     }
 
@@ -88,7 +103,7 @@ public class FlexibleLayoutGroup : MonoBehaviour
             if(squareElems)
             {   
                 if(enableAnimation && Application.isPlaying)
-                    LeanTween.moveLocal(item.gameObject, new Vector3(xPos - offsetX/2, -(yPos - offsetY/2), 0f), 0.5f).setEase(curve);
+                    LeanTween.moveLocal(item.gameObject, new Vector3(xPos - offsetX/2, -(yPos - offsetY/2), animationTime), 0.5f).setEase(curve);
                 else
                     item.transform.localPosition = new Vector3(xPos - offsetX/2,-(yPos - offsetY/2),0f);
                 
@@ -96,20 +111,19 @@ public class FlexibleLayoutGroup : MonoBehaviour
             }
             else
             {
+                if(enableAnimation && Application.isPlaying)
+                    LeanTween.moveLocal(item.gameObject, new Vector3(xPos - offsetX/2, -(yPos - offsetY/2),0f), animationTime).setEase(curve);
+                else
+                    item.transform.localPosition = new Vector3(xPos - offsetX/2, -(yPos - offsetY/2),0f);
+                
                 item.GetComponent<RectTransform>().sizeDelta = new Vector2(cellSize.x, cellSize.y);
-        //#if UNITY_EDITOR
-                if(!enableAnimation)
-                item.transform.localPosition = new Vector3(xPos - offsetX/2, -(yPos - offsetY/2),0f);
-        //#else
-                if(enableAnimation) 
-                LeanTween.moveLocal(item.gameObject, new Vector3(xPos - offsetX/2, -(yPos - offsetY/2),0f), 0.5f).setEase(curve);
-        //#endif
             }
         }
     }
 
     public void Update()
     {
+        if(animationTime <= 0) animationTime*=-1 + 1;
         switch (layoutType) 
         {
         case LayoutType.FlexibleSquare:
@@ -146,10 +160,15 @@ public class FlexibleLayoutGroup : MonoBehaviour
             break;
         }
 
-        if(lastRectSize!=gameObject.GetComponent<RectTransform>().rect.size || childrenLastCount!=transform.childCount)
+        if(lastRectSize!=gameObject.GetComponent<RectTransform>().rect.size 
+        || childrenLastCount!=transform.childCount
+        || lastSpacing != spacing
+        || lastPadding != padding)
         {
             SetChildren();
             childrenLastCount = transform.childCount;
+            lastPadding = padding;
+            lastSpacing = spacing;
             lastRectSize = gameObject.GetComponent<RectTransform>().rect.size;
         }
     }

@@ -10,6 +10,7 @@ public class CircleLayoutGroup : MonoBehaviour
     [SerializeField] private float offset;
     [SerializeField] private float scaleFactor = 2f;
     [SerializeField] private bool enableAnimation;
+    [SerializeField] private float animationTime;
     [SerializeField] private AnimationCurve curve;
 
     [SerializeField] private float maxContainerSize = 5f;
@@ -42,7 +43,7 @@ public class CircleLayoutGroup : MonoBehaviour
                 var xPos = coords[i].x;
                 var yPos = coords[i].y;
 
-                if(enableAnimation && Application.isPlaying) LeanTween.moveLocal(item.gameObject, new Vector3(xPos, yPos, 0f), 0.5f).setEase(curve);
+                if(enableAnimation && Application.isPlaying) LeanTween.moveLocal(item.gameObject, new Vector3(xPos, yPos, animationTime), 0.5f).setEase(curve);
                 else item.transform.localPosition = new Vector3(xPos,yPos,0f);
 
                 item.GetComponent<RectTransform>().sizeDelta = new Vector2(cellSize.x, cellSize.y);
@@ -52,6 +53,8 @@ public class CircleLayoutGroup : MonoBehaviour
 
     public void Update()
     {
+        if(animationTime <= 0) animationTime*=-1 + 1;
+        
         if(scaleFactor==0) scaleFactor = 1;
         maxContainerSize = Mathf.Min(GetComponent<RectTransform>().rect.width, 
         GetComponent<RectTransform>().rect.height);

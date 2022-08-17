@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 public class RotatingHitbox : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public AnimationCurve curve;
+    [SerializeField] float animationTime;
     [SerializeField] private float rotateFactor = 5;
     [SerializeField] private float scaleFactor = 1.1f;
     [SerializeField] private bool changeScale = false;
@@ -19,6 +20,7 @@ public class RotatingHitbox : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     void Update()
     {
+        if(animationTime <= 0) animationTime*=-1 + 1;
         if(rotating) UpdateRotation(Camera.allCameras[0].ScreenToWorldPoint(Input.mousePosition));
     }
 
@@ -39,13 +41,15 @@ public class RotatingHitbox : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     public void OnPointerEnter(PointerEventData eventData)
     {
         rotating = true;
-        if(changeScale)LeanTween.scale(hitbox, new Vector3(scaleFactor,scaleFactor,scaleFactor),0.5f).setEase(curve);
+        if(changeScale)
+            LeanTween.scale(hitbox, new Vector3(scaleFactor,scaleFactor,scaleFactor), animationTime).setEase(curve);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         rotating = false;
         hitbox.transform.rotation = Quaternion.Euler(Vector3.zero);
-        if(changeScale)LeanTween.scale(hitbox, new Vector3(1,1,1),0.5f).setEase(curve);
+        if(changeScale)
+            LeanTween.scale(hitbox, new Vector3(1,1,1), animationTime).setEase(curve);
     }
 }

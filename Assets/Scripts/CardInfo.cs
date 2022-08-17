@@ -20,7 +20,7 @@ public class CardInfo : MonoBehaviour
         this.descriptionDisplay.text = description; 
         this.iconDisplay.sprite = icon; 
         this.iconDisplay.color = color;
-        color.a = 0.2f;
+        color.a = 0.05f;
         this.PanelColor.color = color;
     }
 
