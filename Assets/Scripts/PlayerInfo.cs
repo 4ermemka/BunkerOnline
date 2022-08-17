@@ -52,7 +52,7 @@ public class PlayerInfo : MonoBehaviour
         attribute.transform.SetParent(attributePanel.transform);
         attribute.transform.localScale = new Vector3(1,1,1);
         attribute.transform.localPosition = new Vector3(0,0,20);
-        LeanTween.alphaCanvas(attribute.gameObject.GetComponent<CanvasGroup>(),1, 0.5f);
+        LeanTween.alphaCanvas(attribute.gameObject.GetComponent<CanvasGroup>(),1, 0.8f);
     }
 
     public Attribute FindAttribute(int id)
