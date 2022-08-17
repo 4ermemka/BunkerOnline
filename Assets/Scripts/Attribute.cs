@@ -164,6 +164,7 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         }
 
         Vector3 newPos = cam.ScreenToWorldPoint(eventData.position);
+        currCardInfo.transform.position = newPos;
         UpdateInfoPanelPosition(newPos);
     }
 
@@ -181,8 +182,8 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             if(pos.x>screen.x) offset.x *=-1;
             if(pos.y>screen.y) offset.y *=-1;
 
-            currCardInfo.gameObject.transform.position = pos;
-            currCardInfo.gameObject.transform.localPosition += offset;
+            currCardInfo.UpdatePosition(pos);
+            currCardInfo.UpdateOffset(offset);
         }
     }
 
