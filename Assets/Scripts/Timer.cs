@@ -24,25 +24,10 @@ public class Timer : MonoBehaviour
 {
     public event EventHandler OnEndTimer;
 
-    private float time;
-    public bool timerRunning = true;
+    private float time = 60f;
+    public bool timerRunning = false;
     public float remainingTimeFloat;
     public int remainingTimeInt;
-
-
-    public Timer()
-    {
-        time = 15;
-        remainingTimeFloat = time;
-        remainingTimeInt = (int)time;
-    }
-
-    public Timer(float timeStart)
-    {
-        this.time = timeStart;
-        remainingTimeFloat = time;
-        remainingTimeInt = (int)time;
-    }
 
     public void SetTime (float timeStart)
     {
@@ -62,7 +47,11 @@ public class Timer : MonoBehaviour
         else return false;
     }
 
-    void Start() { }
+    void Start() 
+    { 
+        remainingTimeFloat = time;
+        remainingTimeInt = (int)time;
+    }
     
     void Update()
     {
@@ -75,6 +64,8 @@ public class Timer : MonoBehaviour
         if (time < 0 || !timerRunning)
         {
             time = 0;
+            remainingTimeFloat = (float)Math.Round(time, 2);
+            remainingTimeInt = (int)time;
             OnEndTimer?.Invoke(this, EventArgs.Empty);
         }
     }

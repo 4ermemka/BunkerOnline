@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System;
 
 public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -10,7 +11,7 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     [SerializeField] protected string category;
     [SerializeField] protected string attributeName;
     [SerializeField] protected string description;
-    [SerializeField] protected Sprite Sprite;
+    [SerializeField] protected Sprite sprite;
     [SerializeField] protected Color Color;
 
     [SerializeField] protected Image icon;
@@ -18,6 +19,7 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     [SerializeField] private CardInfo cardInfoPref;
 
     protected Canvas mainCanvas;
+
     private CardInfo currCardInfo;
 
     protected Camera cam;
@@ -26,6 +28,7 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     {
         cam = Camera.allCameras[0];
         mainCanvas = FindObjectOfType<Canvas>();
+        if(sprite == null) sprite = IconsList.GetIcon("8Ball");
     }
 
     void Update()
@@ -48,7 +51,7 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     public Sprite GetIcon() 
     {
-        return Sprite;
+        return sprite;
     }
 
     public Color GetColor() 
@@ -96,17 +99,25 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     public void SetIcon(Sprite newIcon)
     {
-        Sprite = newIcon;
+        sprite = newIcon;
+        UpdateIcon();
+    }
+
+    public void SetIcon(string iconName)
+    {
+        sprite = IconsList.GetIcon(iconName);
+        UpdateIcon();
     }
 
     public void SetColor(Color newCol) 
     {
         Color = newCol;
+        UpdateColor();
     }
 
     public void UpdateIcon() 
     {
-        icon.sprite = Sprite;
+        icon.sprite = sprite;
     }
 
     public void UpdateColor() 
@@ -114,6 +125,31 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         icon.color = Color;
     }
 
+    #endregion
+
+    #region Convertation
+
+    public DeckCardSerializable AttributeToDeckCardSerializable()
+    {
+        DeckCardSerializable dc;
+        dc.name = attributeName;
+        dc.category = category;
+        dc.description = description;
+        dc.iconName = sprite.name.Replace("White","");
+        dc.r = Color.r;
+        dc.g = Color.g;
+        dc.b = Color.b;
+        return dc;
+    }
+
+    public void DeckCardSerializableToAttribute(DeckCardSerializable card)
+    {
+        attributeName = card.name;
+        category = card.category;
+        description = card.description;
+        sprite = IconsList.GetIcon(card.iconName);
+        Color = new Color(card.r, card.g, card.b, 1.0f);
+    }
     #endregion
 
     #region PointerBehaviour
@@ -124,10 +160,11 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             currCardInfo = Instantiate(cardInfoPref) as CardInfo;
             currCardInfo.transform.SetParent(mainCanvas.transform);
             currCardInfo.transform.localScale = new Vector3(1,1,1);
-            currCardInfo.SetInfo(attributeName, category, description, Sprite, Color);
+            currCardInfo.SetInfo(attributeName, category, description, sprite, Color);
         }
 
         Vector3 newPos = cam.ScreenToWorldPoint(eventData.position);
+        currCardInfo.transform.position = newPos;
         UpdateInfoPanelPosition(newPos);
     }
 
@@ -145,8 +182,8 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             if(pos.x>screen.x) offset.x *=-1;
             if(pos.y>screen.y) offset.y *=-1;
 
-            currCardInfo.gameObject.transform.position = pos;
-            currCardInfo.gameObject.transform.localPosition += offset;
+            currCardInfo.UpdatePosition(pos);
+            currCardInfo.UpdateOffset(offset);
         }
     }
 

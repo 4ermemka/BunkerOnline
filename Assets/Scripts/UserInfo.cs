@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
+using TMPro;
 
 public class UserInfo:MonoBehaviour
 {
@@ -9,15 +10,21 @@ public class UserInfo:MonoBehaviour
     public int num = 0;
     public bool isHost = false;
     public string nickname = "/*default nick*/";
-    private Text nick;
-    private Text hostStatus;
-    private Text number;
-    
-    public void Awake() 
+
+    [SerializeField] float animationTime;
+    [SerializeField] private TextMeshProUGUI nick;
+    [SerializeField] private TextMeshProUGUI hostStatus;
+    [SerializeField] private TextMeshProUGUI number;
+
+    public void Start() 
     {
-        nick = GetComponentsInChildren<Text>()[0];
-        number = GetComponentsInChildren<Text>()[1];
-        hostStatus = GetComponentsInChildren<Text>()[2];
+        if(animationTime <= 0) animationTime*=-1 + 1;
+        gameObject.GetComponent<CanvasGroup>().alpha = 0;
+        if(Application.isPlaying) LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 1, animationTime);
+    }
+    public void Update() 
+    {
+        if(animationTime <= 0) animationTime*=-1;
     }
 
     public void setId(int id)
@@ -46,7 +53,7 @@ public class UserInfo:MonoBehaviour
 
     public void setPanelToList(GameObject list)
     {
-        transform.parent = list.transform;
+        transform.SetParent(list.transform);
         transform.localScale = new Vector3(1,1,1);
     }
 }

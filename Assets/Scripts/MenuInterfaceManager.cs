@@ -1,9 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
+using TMPro;
 
 public enum CanvasType
 {
@@ -29,14 +30,16 @@ public class MenuInterfaceManager : MonoBehaviour
 
     #region InterfaceFields
     [SerializeField] private NetManager nm;
-    [SerializeField] private Text userNickDisplay;
+    [SerializeField] private TextMeshProUGUI userNickDisplay;
     [SerializeField] private GameObject userInfo;
     [SerializeField] private GameObject lobbyList;
-    [SerializeField] private InputField NicknameField;
-    [SerializeField] private InputField ipAdressField;
-    [SerializeField] private Text errMsg;
-    [SerializeField] private Text lobbyErrMsg;
-    [SerializeField] private Text connectionStatusText;
+    [SerializeField] private TMP_InputField NicknameField;
+    [SerializeField] private TMP_InputField ipAdressField;
+    [SerializeField] private TextMeshProUGUI errMsg;
+    [SerializeField] private TextMeshProUGUI lobbyErrMsg;
+    [SerializeField] private TextMeshProUGUI connectionStatusText;
+
+    [SerializeField] private Button StartBtn;
 
     private int minPlayersCountToStart = 2;
     private int maxPlayersCountToStart;
@@ -57,10 +60,6 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void Update()
     {
-        float coefficient = (float)(15/138.89);
-        float newWidth = (float)((lobbyList.GetComponent<RectTransform>().rect.width - 15)/2);
-        Vector3 newSize = new Vector3(newWidth, coefficient*newWidth, 1);
-        lobbyList.GetComponent<GridLayoutGroup>().cellSize = newSize;
     }
 
     #region MultipleMenuNavigation
@@ -133,12 +132,14 @@ public class MenuInterfaceManager : MonoBehaviour
     {
         OnChooseClient?.Invoke(this, EventArgs.Empty);
         SwitchToConnectionMenu();
+        StartBtn.gameObject.SetActive(false);
     }
 
     public void HostClick() 
     {
         OnChooseServer?.Invoke(this, EventArgs.Empty);
         SwitchToLobby();
+        StartBtn.gameObject.SetActive(true);
     }
 
     public void ConnectClick()
@@ -212,7 +213,8 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void ClearLobby()
     {
-        foreach (Transform p in lobbyList.transform) Destroy(p.gameObject);
+        if(lobbyList != null)
+            foreach (Transform p in lobbyList.transform) Destroy(p.gameObject);
     }
 
     public void NewConnectionStatus(string status)
