@@ -44,6 +44,7 @@ public class NetManager : MonoBehaviour
         DontDestroyOnLoad(this);
         user = new User();
         lobbyList = new List<User>();
+        MessageProcessing.SetNetManager(this);
 
         MenuInterfaceManager.OnClickConnect += NetManager_ConnectPressed;
         MenuInterfaceManager.OnChooseClient += NetManager_StartClient;
