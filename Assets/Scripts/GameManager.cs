@@ -65,13 +65,6 @@ public class GameManager : MonoBehaviour
         this.user = user;
         this.users = users;
     }
-    //GameManager(List<User> users, float timeToTurn, float timeToVote, int CountForEndGame)
-    //{
-    //    ConvertFromUsersToPlayers(users);
-    //    this.timeToTurn = timeToTurn;
-    //    this.timeToVote = timeToVote;
-    //    this.CountForEndGame = CountForEndGame;
-    //}
 
     void Start()
     {
@@ -87,7 +80,6 @@ public class GameManager : MonoBehaviour
         playerInfoList = new List<PlayerInfo>();
 
         MessageProcessing.SetGameManager(this);
-        MessageProcessing.SetNetManager(nm);
 
         for (int i = 0; i < users.Count; i++)
         {

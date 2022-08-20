@@ -12,6 +12,7 @@ public static class MessageProcessing
 
     private static NetManager netManager;
     private static GameManager gameManager;
+    private static ChatManager chatManager;
     private static byte error;
     private const int BYTE_SIZE = 1024;
     #endregion
@@ -30,7 +31,13 @@ public static class MessageProcessing
     public static void SetGameManager(GameManager gm)
     {
         gameManager = gm;
-    }    
+    }
+
+    public static void SetChatManager(ChatManager cm)
+    {
+        chatManager = cm;
+    }  
+
     #endregion
 
     #region MessageTransformation
@@ -84,7 +91,7 @@ public static class MessageProcessing
                 OnUpdateUser(e.conId, e.host, (NetUser_UpdateInfo)msg);
                 break;
             case NetOP.UpdateChat:
-                OnUpdateChat((Net_UpdateChat)msg);
+                OnUpdateChat(e.conId, e.host, (Net_UpdateChat)msg);
                 break;
             case NetOP.PlayerVote:
                 OnPlayerVote(e.conId, e.host, (Net_PlayerVote)msg);
@@ -118,9 +125,11 @@ public static class MessageProcessing
         netManager.server.SendOther(conId,host, MakeBuffer(msg));
     }
 
-    private static void OnUpdateChat(Net_UpdateChat msg)
+    private static void OnUpdateChat(int conId, int host, Net_UpdateChat msg)
     {
         Debug.Log("New message in chat!");
+        chatManager.AddMessage(msg.Nickname, msg.message);
+        netManager.server.SendOther(conId,host, MakeBuffer(msg));
     }
     private static void OnPlayerVote(int conId, int host, Net_PlayerVote msg)
     {
@@ -225,6 +234,12 @@ public static class MessageProcessing
     private static void OnUpdatePlayer(Net_UpdateCardPlayer msg)
     {
         Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
+    }
+    
+    private static void OnUpdateChat(Net_UpdateChat msg)
+    {
+        Debug.Log("New message in chat!");
+        chatManager.AddMessage(msg.Nickname, msg.message);
     }
 
     private static void SetListOfUsers(NetUser_AllUserList msg)
@@ -395,6 +410,15 @@ public static class MessageProcessing
         Net_CastCard msg = new Net_CastCard();
         msg.user = user;
         msg.card = card.AttributeToDeckCardSerializable();
+
+        return MakeBuffer(msg);
+    }
+
+    public static byte[] WriteChatMsg(string user, string message)
+    {
+        Net_UpdateChat msg = new Net_UpdateChat();
+        msg.Nickname = user;
+        msg.message = message;
 
         return MakeBuffer(msg);
     }

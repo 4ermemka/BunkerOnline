@@ -13,10 +13,15 @@ public class ChatManager : MonoBehaviour
     [SerializeField] private ChatMessage msgPref;
 
     [SerializeField] private TMP_InputField msgField;
+    private Server server;
+    private Client client;
+
 
     public void Start() 
     {
-        
+        server = FindObjectOfType<Server>();
+        client = FindObjectOfType<Client>();
+        MessageProcessing.SetChatManager(this); 
     }
 
     public void SetNickname(string nick) 
@@ -37,7 +42,18 @@ public class ChatManager : MonoBehaviour
 
     public void WriteMessage()
     {
-        if(msgField.text!=string.Empty) AddMessage(this.myNickname, msgField.text);
+        if(msgField.text!=string.Empty) 
+            {
+                AddMessage(this.myNickname, msgField.text);
+                if(server != null)
+                {
+                    server.SendOther(MessageProcessing.WriteChatMsg(myNickname, msgField.text));
+                }
+                if(client != null)
+                {
+                    client.SendServer(MessageProcessing.WriteChatMsg(myNickname, msgField.text));
+                }
+            }
         msgField.text = string.Empty;
     }
 }
