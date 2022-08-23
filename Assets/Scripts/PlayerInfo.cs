@@ -61,11 +61,6 @@ public class PlayerInfo : MonoBehaviour
         return attribute;
     }
 
-    public void UpdateAttribute(int id) 
-    {
-        
-    }
-
     public void DeleteAttribute(int id) 
     {
         Attribute deletedAttribute = FindAttribute(id);

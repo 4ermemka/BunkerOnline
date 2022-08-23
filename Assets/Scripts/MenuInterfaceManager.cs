@@ -126,6 +126,7 @@ public class MenuInterfaceManager : MonoBehaviour
     public void SwitchWindowMode()
     {
         Screen.fullScreen = !Screen.fullScreen;
+        Screen.SetResolution(1920,1080,Screen.fullScreen);
     }
 
     public void ClientClick() 
@@ -167,11 +168,7 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void StartGameClick()
     {
-        int connectedCount = 0;
-        foreach (Transform child in lobbyList.transform)
-        {
-            connectedCount++;
-        }
+        int connectedCount = lobbyList.transform.childCount;
         if(connectedCount >= minPlayersCountToStart)
         {
             OnStartGame?.Invoke(this, EventArgs.Empty);

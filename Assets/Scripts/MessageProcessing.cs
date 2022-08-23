@@ -99,6 +99,12 @@ public static class MessageProcessing
             case NetOP.CastCard:
                 OnPlayerCastCard(e.conId, e.host, (Net_CastCard)msg);
                 break;
+            case NetOP.ReadyForGame:
+                OnPlayerReadyForGame(e.conId, e.host, (Net_ReadyForGame)msg);
+                break;
+            case NetOP.SwitchTurn:
+                OnSwitchTurn(e.conId, e.host, (Net_SwitchTurn)msg);
+                break;
 
             default:
                 Debug.Log("Unexpected msg type!");
@@ -131,10 +137,23 @@ public static class MessageProcessing
         chatManager.AddMessage(msg.Nickname, msg.message);
         netManager.server.SendOther(conId,host, MakeBuffer(msg));
     }
+
     private static void OnPlayerVote(int conId, int host, Net_PlayerVote msg)
     {
         Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
         gameManager.Voting(msg.id);
+    }
+
+    private static void OnPlayerReadyForGame(int conId, int host, Net_ReadyForGame msg)
+    {
+        Debug.Log(msg.userId +" connected well!");
+        gameManager.SetUserActivity(conId, true);
+    }
+
+    private static void OnSwitchTurn(int conId, int host, Net_SwitchTurn msg)
+    {
+        gameManager.SwitchTurn();
+        netManager.server.SendOther(conId, host, MakeBuffer(msg));
     }
 
     #endregion
@@ -194,12 +213,21 @@ public static class MessageProcessing
                 OnPlayerVote((Net_PlayerVote) msg);
                 break;
 
+            case NetOP.LobbyStarted:
+                OnLobbyStarted();
+                break;
             case NetOP.GameStarted:
                 OnGameStarted();
                 break;
             
             case NetOP.PlayerKit:
                 OnPlayerKit((Net_PlayerKit) msg);
+                break;
+            case NetOP.SwitchTurn:
+                OnSwitchTurn((Net_SwitchTurn) msg);
+                break;
+            case NetOP.ServerReady:
+                OnServerReady();
                 break;
 
             default:
@@ -274,20 +302,35 @@ public static class MessageProcessing
         gameManager.SetCardToList(dc);
     }
     
-    private static void OnGameStarted() 
+    private static void OnLobbyStarted()
     {
-        netManager.ChangeScene();    
+        netManager.ChangeScene(null, EventArgs.Empty);    
     }
+
+    private static void OnGameStarted()
+    {
+        gameManager.StartGame();
+    }
+
+    private static void OnServerReady()
+    {
+        //gameManager.client.SendServer(ClientReadyForGame(gameManager.user.id));
+    }
+
     private static void OnPlayerCastCard(Net_CastCard msg)
     {
         Debug.Log("User" + msg.user.Nickname + " casted "+ msg.card.name);
         gameManager.AddCardToPlayerPanel(msg.user, msg.card);
     }
 
+    private static void OnSwitchTurn(Net_SwitchTurn msg)
+    {
+        gameManager.SwitchTurn();
+    }
+
     #endregion
 
     #region ServerWriteMsg
-
     public static byte[] ServerUsersListMsg(List<User> lobbyList)
     {
         NetUser_AllUserList msg = new NetUser_AllUserList();
@@ -358,12 +401,27 @@ public static class MessageProcessing
         return MakeBuffer(msg);
     }
 
+    public static byte[] ServerLobbyStartedMsg ()
+    {
+        Net_LobbyStarted msg = new Net_LobbyStarted();
+
+        return MakeBuffer(msg);
+    }
+
     public static byte[] ServerGameStartedMsg ()
     {
         Net_GameStarted msg = new Net_GameStarted();
 
         return MakeBuffer(msg);
     }
+    
+    public static byte[] ServerReadyForGame()
+    {
+        Net_ServerReady msg = new Net_ServerReady();
+
+        return MakeBuffer(msg);
+    }
+    
     #endregion
 
     #region ClientWriteMsg
@@ -403,6 +461,14 @@ public static class MessageProcessing
         return MakeBuffer(msg);
     }
 
+    public static byte[] ClientReadyForGame(int id)
+    {
+        Net_ReadyForGame msg = new Net_ReadyForGame();
+        msg.userId = id;
+
+        return MakeBuffer(msg);
+    }
+
     #endregion
     
     public static byte[] CastCardMsg (User user, Card card)
@@ -419,6 +485,13 @@ public static class MessageProcessing
         Net_UpdateChat msg = new Net_UpdateChat();
         msg.Nickname = user;
         msg.message = message;
+
+        return MakeBuffer(msg);
+    }
+
+    public static byte[] SwitchTurn()
+    {
+        Net_SwitchTurn msg = new Net_SwitchTurn();
 
         return MakeBuffer(msg);
     }

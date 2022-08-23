@@ -9,8 +9,8 @@ using System.Linq;
  * OnEndTimer - Событие. Срабатывает при истечении времени таймера.
  * float time - Счетчик таймера.
  * private bool timerRunning - Индикатор запущенности таймера.
- * float remainingTimeFloat - Публичная переменная, оставшееся время с миллисекундами.
- * int remainingTimeInt - Публичная переменная, оставшееся время в целых секундах.
+ * float remainingTimeSec - Публичная переменная, оставшееся время с миллисекундами.
+ * int remainingTimeMin - Публичная переменная, оставшееся время в целых секундах.
  * 
  * МЕТОДЫ:
  * Timer(), public Timer(float timeStart) - Конструкторы.
@@ -22,18 +22,25 @@ using System.Linq;
 
 public class Timer : MonoBehaviour
 {
-    public event EventHandler OnEndTimer;
 
-    private float time = 60f;
+    private Action timerCallback;
+
+    public float time;
     public bool timerRunning = false;
-    public float remainingTimeFloat;
-    public int remainingTimeInt;
+    public string remainingTimeSec;
+    public string remainingTimeMin;
 
     public void SetTime (float timeStart)
     {
         this.time = timeStart;
-        remainingTimeFloat = time;
-        remainingTimeInt = (int)time;
+        TimeSpan t = TimeSpan.FromSeconds(time);
+        remainingTimeMin = t.Minutes + ":" + t.Seconds;
+        remainingTimeSec = t.ToString(@"ss\,fff");
+    }
+
+    public void SetAction(Action timerCallback)
+    {
+        this.timerCallback = timerCallback;
     }
 
     public bool GetTimerRunning()
@@ -48,9 +55,11 @@ public class Timer : MonoBehaviour
     }
 
     void Start() 
-    { 
-        remainingTimeFloat = time;
-        remainingTimeInt = (int)time;
+    {
+        time = 120f;
+        TimeSpan t = TimeSpan.FromSeconds(time);
+        remainingTimeMin = t.Minutes + ":" + t.Seconds;
+        remainingTimeSec = t.ToString(@"ss\,fff");
     }
     
     void Update()
@@ -58,15 +67,22 @@ public class Timer : MonoBehaviour
         if (time > 0)
         {
             time -= Time.deltaTime;
-            remainingTimeFloat = (float)Math.Round(time, 2);
-            remainingTimeInt = (int)time;
+            TimeSpan t = TimeSpan.FromSeconds(time);
+            remainingTimeMin = t.Minutes + ":" + t.Seconds;
+            remainingTimeSec = t.ToString(@"ss\,fff");
         }
         if (time < 0 || !timerRunning)
         {
             time = 0;
-            remainingTimeFloat = (float)Math.Round(time, 2);
-            remainingTimeInt = (int)time;
-            OnEndTimer?.Invoke(this, EventArgs.Empty);
+            TimeSpan t = TimeSpan.FromSeconds(time);
+            remainingTimeMin = t.Minutes + ":" + t.Seconds;
+            remainingTimeSec = t.ToString(@"ss\,fff");
+            if(timerCallback != null) timerCallback();
         }
+    }
+
+    public float GetTime()
+    {
+        return time;
     }
 }

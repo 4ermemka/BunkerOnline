@@ -13,26 +13,45 @@ public class OpenedCardsPanel : MonoBehaviour, IDropHandler
         public Card card;
     }
     [SerializeField] private Attribute atrPref;
+    [SerializeField] private GameManager gm;
     public void OnDrop(PointerEventData eventData)
     {
-        Card card = eventData.pointerDrag.GetComponent<Card>();
-
-        if(card)
+        if(gm.IsMyTurn())
         {
-              Attribute newAtr = Instantiate(atrPref) as Attribute;
-              newAtr.SetIcon(card.GetIcon());
-              newAtr.SetColor(card.GetColor());
-              newAtr.SetDescription(card.GetDescription());
-              newAtr.SetAttributeName(card.GetAttributeName());
-              newAtr.SetCategory(card.GetCategory());
+            Card card = eventData.pointerDrag.GetComponent<Card>();
 
-              newAtr.transform.SetParent(transform);
-              newAtr.transform.localScale = new Vector3(1,1,1);
-              newAtr.transform.localPosition = new Vector3(0,0,0);
+            if(card) 
+            {
+                AddCardToList(card);
 
-              OnCastCard?.Invoke(this, new OnCastCardEventArgs{card = card});
-              Destroy(eventData.pointerDrag.gameObject);
-              Destroy(card);
+                Destroy(eventData.pointerDrag.gameObject);
+                Destroy(card);
+            }
+
+            if(gm.server != null)
+            {
+                gm.server.SendOther(MessageProcessing.SwitchTurn());
+            }
+            if(gm.client != null)
+            {
+                gm.client.SendServer(MessageProcessing.SwitchTurn());
+            }
+            gm.SwitchTurn();
         }
+    }
+
+    public void AddCardToList(Card card)
+    {
+        Attribute newAtr = Instantiate(atrPref) as Attribute;
+        newAtr.SetIcon(card.GetIcon());
+        newAtr.SetColor(card.GetColor());
+        newAtr.SetDescription(card.GetDescription());
+        newAtr.SetAttributeName(card.GetAttributeName());
+        newAtr.SetCategory(card.GetCategory());
+        newAtr.transform.SetParent(transform);
+        newAtr.transform.localScale = new Vector3(1,1,1);
+        newAtr.transform.localPosition = new Vector3(0,0,0);
+        
+        OnCastCard?.Invoke(this, new OnCastCardEventArgs{card = card});
     }
 }

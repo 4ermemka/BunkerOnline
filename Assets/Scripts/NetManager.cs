@@ -50,6 +50,7 @@ public class NetManager : MonoBehaviour
         MenuInterfaceManager.OnChooseClient += NetManager_StartClient;
         MenuInterfaceManager.OnChooseServer += NetManager_StartServer;
         MenuInterfaceManager.OnReturnToMenu += NetManager_DeleteNetworkObjects;
+        MenuInterfaceManager.OnStartGame += ChangeScene;
     }
 
     #region OnConnection  
@@ -184,63 +185,6 @@ public class NetManager : MonoBehaviour
 
     #endregion
 
-    #region GameManager
-    private bool CardsAreEmpty(string[] cards)
-    {
-        bool flag = false; int i;
-        for (i = 0; i < cards.Length; i++)
-            if (cards[i] == string.Empty) flag = true;
-        if (!flag && user.Nickname == string.Empty)
-            return true;
-        else return false;
-    }
-
-    /*public bool UpdatePlayerInformation(string Nickname, int conId, string cardsNew)
-    {
-        string[] cards;
-        cards = Decryption(cardsNew);
-        if (conId < lobbyList.Count && !IsEmpty(lobbyList[conId].cards))
-        {
-            lobbyList[conId].SetNickname(Nickname);
-            lobbyList[conId].SetCards(cards);
-            return true;
-        }
-        else return false;
-    }*/
-
-    #endregion
-    
-    #region CardEncrypting
-
-    public string CardsToString(string[] cards)
-    {
-        string en_cards = ""; 
-        int i;
-        for (i = 0; i < cards.Length; i++)
-            en_cards = en_cards + cards[i] + ";";
-        return en_cards;
-    }
-
-    public string[] StringToCards(string en_cards)
-    {
-        int i, count_separator = 0, k = 0;
-        for (i = 0; i < en_cards.Length; i++)
-            if (en_cards[i] == ';') count_separator++;
-        string[] dc_cards = new string[count_separator];
-        for (i = 0; i < count_separator; i++)
-        {
-            while (en_cards[k] != ';')
-            {
-                dc_cards[i] += en_cards[k];
-                k++;
-            }
-            k++;
-        }
-        return dc_cards;
-    }
-
-    #endregion
-
     #region TriggerredFunctions
 
     //////////////////////////////////////////////////////////////////
@@ -316,8 +260,9 @@ public class NetManager : MonoBehaviour
 
     #endregion
 
-    public void ChangeScene()
+    public void ChangeScene(object sender, EventArgs e)
     {
+        if(server!=null) server.SendOther(MessageProcessing.ServerLobbyStartedMsg());
         SceneManager.LoadScene("GameInterface");
     }
 }
