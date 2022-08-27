@@ -15,7 +15,7 @@ public static class NetOP
     public const int KickPlayer = 12;
     public const int PlayerVote = 13;
     public const int UpdateChat = 14;
-    public const int UpdateVotingList = 15;
+    public const int VotingForPlayer = 15;
     public const int SwitchTurn = 16;
     public const int ServerReady = 17;
 }

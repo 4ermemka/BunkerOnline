@@ -31,7 +31,7 @@ public class MenuInterfaceManager : MonoBehaviour
     #region InterfaceFields
     [SerializeField] private NetManager nm;
     [SerializeField] private TextMeshProUGUI userNickDisplay;
-    [SerializeField] private GameObject userInfo;
+    [SerializeField] public UserInfo userInfo;
     [SerializeField] private GameObject lobbyList;
     [SerializeField] private TMP_InputField NicknameField;
     [SerializeField] private TMP_InputField ipAdressField;
@@ -196,8 +196,7 @@ public class MenuInterfaceManager : MonoBehaviour
         int i = 0;
         foreach (User u in users)
         {
-            GameObject panel = Instantiate(userInfo) as GameObject;
-            UserInfo panelInfo = panel.GetComponent<UserInfo>();
+            UserInfo panelInfo = Instantiate(userInfo) as UserInfo;
 
             panelInfo.setId(u.id);
             panelInfo.setNickname(u.Nickname);

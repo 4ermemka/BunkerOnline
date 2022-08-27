@@ -36,6 +36,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] Attribute atrPref; 
     [SerializeField] Card cardInHandPref;
     [SerializeField] GameObject playersGrid;
+    [SerializeField] GameObject observersGrid;
     [SerializeField] GameObject handPanel;
     [SerializeField] OpenedCardsPanel openedCardsPanel;
 
@@ -55,9 +56,11 @@ public class GameManager : MonoBehaviour
     public Client client;
     private NetManager nm;
 
-    public int countForEndGame = 1;
-    public float timeToTurn = 15;
-    public float timeToVote = 15;
+    public int countForEndGame;
+    public float timeToTurn;
+    public float timeToDebate;
+    public float timeToVote;
+    public float timeToDelay;
     private Timer playerTimer;
 
     public User currentPlayer;
@@ -99,10 +102,15 @@ public class GameManager : MonoBehaviour
             playerInfoList.Add(temp);
         }
 
+        timeToTurn = 30;
+        timeToDebate = 30;
+        timeToVote = 30;
+        timeToDelay = 5;
+        
         players = users;
 
         votingList = new List<int>();
-        NullList(votingList);
+        NullVotes();
 
         chat.SetNickname(user.Nickname);
         displayNickname.text = user.Nickname + " id: " + user.id;
@@ -129,7 +137,7 @@ public class GameManager : MonoBehaviour
     {
         foreach(User u in players)
             if(!u.isReady) return false;
-        Debug.Log("ALL PLAYERS READY!");
+        //Debug.Log("ALL PLAYERS READY!");
         chat.AddMessage("SYSTEM","Все подключены, начинаем игру...");
         return true;
     }
@@ -144,7 +152,7 @@ public class GameManager : MonoBehaviour
             
             gameObject.GetComponent<Deck>().UpdateDeck("DefaultDeck.json");
             allCards = gameObject.GetComponent<Deck>().GetCategories();
-            Debug.Log(allCards == null);
+            //Debug.Log(allCards == null);
             List<PlayerKit> kits = new List<PlayerKit>();
             kits = SortDeckForKits(allCards,users);
             
@@ -154,7 +162,7 @@ public class GameManager : MonoBehaviour
                 server.SendClient(nm.hostId, users[i].id,
                 MessageProcessing.ServerPlayerKitMsg(card));
             }
-            Debug.Log(kits[0].cardsKit.Count);
+            //Debug.Log(kits[0].cardsKit.Count);
             foreach(DeckCard card in kits[0].cardsKit)
                 SetCardToList(card);
             server.SendOther(MessageProcessing.ServerGameStartedMsg());
@@ -298,19 +306,20 @@ public class GameManager : MonoBehaviour
 
     public void SwitchTurn()
     {
-       switch (currentStage) 
-       {
+        Debug.Log("Turn Switched");
+        switch (currentStage) 
+        {
         case CurrentStage.PreGameDelay:
             currentPlayer = players[0];
             currentStage = CurrentStage.Turn;
 
-            playerTimer.SetTime(60);
+            playerTimer.SetTime(timeToTurn);
             playerTimer.SetAction(MakeRandomCast);
             break;
 
         case CurrentStage.Turn:
                 currentStage = CurrentStage.TurnDelay;
-                playerTimer.SetTime(10);
+                playerTimer.SetTime(timeToDelay);
                 playerTimer.SetAction(SwitchTurn);
             break;
 
@@ -319,43 +328,55 @@ public class GameManager : MonoBehaviour
             {
                 currentPlayer = players[players.FindIndex(x => x == currentPlayer)+1];//switch to next player
                 currentStage = CurrentStage.Turn;
-                playerTimer.SetTime(60);
+                playerTimer.SetTime(timeToTurn);
                 playerTimer.SetAction(MakeRandomCast);
             }
             else // if last player (then go to next stage)
             {   
                 currentPlayer = players[0];
                 currentStage = CurrentStage.Debate;
-                playerTimer.SetTime(120);
+                playerTimer.SetTime(timeToDebate);
                 playerTimer.SetAction(SwitchTurn);
             }
             break;
 
         case CurrentStage.Debate:
+            playerTimer.SetTime(timeToVote);
             currentStage = CurrentStage.Voting;
-            playerTimer.SetTime(60);
             
+            currentPlayer = players[0];
             playerTimer.SetAction(MakeRandomChoise);
             break;
 
         case CurrentStage.Voting:
-            if(players.FindIndex(x=> x == currentPlayer) != players.Count-1)//if not last plaing user
+            if(players.FindIndex(x => x == currentPlayer) != players.Count-1)//if not last plaing user
             {
                 currentPlayer = players[players.FindIndex(x => x == currentPlayer)+1];//switch to next player
-                currentStage = CurrentStage.Turn;
-                playerTimer.SetTime(60);
+                currentStage = CurrentStage.Voting;
+                playerTimer.SetTime(timeToVote);
             }
             else // if last player (then go to next stage)
             {   
                 currentPlayer = players[0];
                 currentStage = CurrentStage.AfterVotingDelay;
-                playerTimer.SetAction(MakeRandomChoise);
-                playerTimer.SetTime(120);
+                playerTimer.SetAction(SwitchTurn);
+                playerTimer.SetTime(timeToDelay);
+                Kick();
+
+                NullVotes();
             }
             break;
 
         case CurrentStage.AfterVotingDelay:
-            
+            if(players.Count <= countForEndGame) Debug.Log("WINING!");
+            else
+            {
+                currentPlayer = players[0];
+                currentStage = CurrentStage.Turn;
+
+                playerTimer.SetTime(timeToTurn);
+                playerTimer.SetAction(MakeRandomCast);
+            }
             break;
        }
     }
@@ -373,12 +394,17 @@ public class GameManager : MonoBehaviour
         }
         SwitchTurn();
     }
+    
     public void MakeRandomChoise()
     {
         if(currentPlayer == user)
         {
-            //make random choise
+            KickConfirm panel = FindObjectOfType<KickConfirm>();
+            if(panel != null) Destroy(panel.gameObject);
 
+            Random random = new Random();
+            int randomIndex = random.Next(players.Count);
+            MyVoteFor(players[randomIndex]);
         }
         SwitchTurn();
     }
@@ -389,47 +415,70 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    public List<int> GetVotingList()
+    public bool IsMyVoteTurn()
     {
-        return votingList;
+        if(currentStage == CurrentStage.Voting && currentPlayer.id == user.id) return true;
+        return false;
     }
 
-    public void SetVotingList(List<int> newList)
+    private void NullVotes()
     {
-        this.votingList = newList;
+        foreach(User p in players) p.votesFor = 0;
     }
 
-    private void NullList(List<int> votingList)
+    public void VotingForPlayer(int id)
     {
-        for(int i = 0; i < votingList.Count; i++) 
-        {
-            votingList[i] = 0;
-        }
+        players.Find(x=>x.id == id).votesFor++;
+        SwitchTurn();
     }
 
-    public void Voting(int id)
+    public void MyVoteFor(User user)
     {
-        Debug.Log("This voted for" + id);
-        votingList[id]++;
+        VotingForPlayer(user.id);
+        if(client != null) client.SendServer(MessageProcessing.PlayerVote(this.user, user.id));
+        if(server != null) server.SendOther(MessageProcessing.PlayerVote(this.user, user.id));
     }
 
-    private int FindPlayerToKick()
+    private User FindPlayerToKick()
     {
         int max = 0;
-        foreach (int p in votingList)
-            if (p > max) max = p;
-        return max;
+        foreach (User p in players)
+            if (p.votesFor > max) max = p.votesFor;
+
+        return players.Find(x=>x.votesFor == max);
     }
 
     public void Kick()
     {
-        int playerToKick = FindPlayerToKick();
-        NullList(votingList);
-        users.RemoveAt(playerToKick);
+        User playerToKick = FindPlayerToKick();
+        NullVotes();
+        
+        if(playerToKick!=null)
+        {
+            chat.AddMessage("KICK_MANAGER","Кикаем игрока "+ playerToKick.Nickname);
+            players.Remove(playerToKick);
+            Destroy(playerInfoList.Find(x=>x.GetUser().id == playerToKick.id).gameObject);
+            playerInfoList.Remove(playerInfoList.Find(x=>x.GetUser().id == playerToKick.id));
+            
+            UserInfo newObserver = Instantiate(nm.MenuInterfaceManager.userInfo) as UserInfo;
+            
+            newObserver.nickname = playerToKick.Nickname;
+            newObserver.id = playerToKick.id;
+            newObserver.isHost = playerToKick.isHost;
+
+            newObserver.transform.SetParent(observersGrid.transform);
+            newObserver.transform.localScale = Vector3.one;
+        }
     }
 
-    public void OnUserLeave(string nickname)
+    public void OnUserLeave(int id)
     {
-        Destroy(playerInfoList.Find(x=>x.GetUser().Nickname == nickname).gameObject);
+        User kickedPlayer = players.Find(x=>x.id == id);
+        if(kickedPlayer!=null)
+        {
+            players.Remove(players.Find(x=>x.id == id));
+            Destroy(playerInfoList.Find(x=>x.GetUser().id == id).gameObject);
+            playerInfoList.Remove(playerInfoList.Find(x=>x.GetUser().id == id));
+        }
     }
 }
