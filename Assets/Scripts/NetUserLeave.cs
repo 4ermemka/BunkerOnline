@@ -5,5 +5,5 @@ public  class NetUser_Leave : NetMsg
     {
         OP = NetOP.LeaveUser;
     }
-    public string Username { set; get; } 
+    public int id { set; get; } 
 }

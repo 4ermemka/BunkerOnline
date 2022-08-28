@@ -35,15 +35,15 @@ public class TabGroup : MonoBehaviour
 
     public void OnTabSelected(TabButton button) 
     {
+        ResetTabs();
         if(selectedTab != null)
         {
-            ResetTabs();
             selectedTab.Deselect();
+            selectedTab.SetBackground(tabIdle);
         }
         
         if(selectedTab == button)
         {
-            selectedTab.SetBackground(tabIdle);
             selectedTab = null;
         }
         else
