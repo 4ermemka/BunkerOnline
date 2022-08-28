@@ -96,6 +96,11 @@ public class Client : MonoBehaviour
         isStarted = true;
     }
 
+    public void Disconnect() 
+    {
+        NetworkTransport.Disconnect(hostId, connectionId, out error);
+    }
+
     private void Update() // каждый кадр
     {
         UpdateMessagePump();

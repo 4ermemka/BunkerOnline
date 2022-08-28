@@ -7,12 +7,15 @@ using TMPro;
 using UnityEngine.EventSystems;
 
 [Serializable]
-public class PlayerInfo : MonoBehaviour
+public class PlayerInfo : MonoBehaviour, IPointerClickHandler
 {
     private User user;
+    private GameManager gm;
+    [SerializeField] private KickConfirm kickPanelPref;
     [SerializeField] private Image avatar;
     [SerializeField] private CircleLayoutGroup attributePanel;
     [SerializeField] private TextMeshProUGUI nicknameText;
+    [SerializeField] private TextMeshProUGUI votes;
 
     private List<Attribute> attributesList;
 
@@ -38,12 +41,17 @@ public class PlayerInfo : MonoBehaviour
 
     public void Start() 
     {
+        gm = FindObjectOfType<GameManager>();
         attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
     }
 
     public void Update()
     {
         nicknameText.text = Nickname;
+        if(gm.currentStage == CurrentStage.Voting) votes.GetComponent<CanvasGroup>().alpha = 1;
+        else votes.GetComponent<CanvasGroup>().alpha = 0;
+        votes.text = user.votesFor.ToString();
+        votes.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = user.votesFor.ToString();
     }
 
     public void AddAttribute(Attribute attribute)
@@ -61,14 +69,20 @@ public class PlayerInfo : MonoBehaviour
         return attribute;
     }
 
-    public void UpdateAttribute(int id) 
-    {
-        
-    }
-
     public void DeleteAttribute(int id) 
     {
         Attribute deletedAttribute = FindAttribute(id);
         if (deletedAttribute!=null) Destroy(deletedAttribute.gameObject);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        KickConfirm panel = FindObjectOfType<KickConfirm>();
+        if(panel == null && gm.IsMyVoteTurn())
+        {
+            panel = Instantiate(kickPanelPref) as KickConfirm;
+            panel.transform.SetParent(FindObjectOfType<Canvas>().transform);
+            panel.SetUser(user);
+        }
     }
 }
