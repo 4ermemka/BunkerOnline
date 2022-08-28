@@ -31,7 +31,7 @@ public class MenuInterfaceManager : MonoBehaviour
     #region InterfaceFields
     [SerializeField] private NetManager nm;
     [SerializeField] private TextMeshProUGUI userNickDisplay;
-    [SerializeField] private GameObject userInfo;
+    [SerializeField] public UserInfo userInfo;
     [SerializeField] private GameObject lobbyList;
     [SerializeField] private TMP_InputField NicknameField;
     [SerializeField] private TMP_InputField ipAdressField;
@@ -126,6 +126,7 @@ public class MenuInterfaceManager : MonoBehaviour
     public void SwitchWindowMode()
     {
         Screen.fullScreen = !Screen.fullScreen;
+        Screen.SetResolution(1920,1080,Screen.fullScreen);
     }
 
     public void ClientClick() 
@@ -167,11 +168,7 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void StartGameClick()
     {
-        int connectedCount = 0;
-        foreach (Transform child in lobbyList.transform)
-        {
-            connectedCount++;
-        }
+        int connectedCount = lobbyList.transform.childCount;
         if(connectedCount >= minPlayersCountToStart)
         {
             OnStartGame?.Invoke(this, EventArgs.Empty);
@@ -199,8 +196,7 @@ public class MenuInterfaceManager : MonoBehaviour
         int i = 0;
         foreach (User u in users)
         {
-            GameObject panel = Instantiate(userInfo) as GameObject;
-            UserInfo panelInfo = panel.GetComponent<UserInfo>();
+            UserInfo panelInfo = Instantiate(userInfo) as UserInfo;
 
             panelInfo.setId(u.id);
             panelInfo.setNickname(u.Nickname);
@@ -213,7 +209,8 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void ClearLobby()
     {
-        foreach (Transform p in lobbyList.transform) Destroy(p.gameObject);
+        if(lobbyList != null)
+            foreach (Transform p in lobbyList.transform) Destroy(p.gameObject);
     }
 
     public void NewConnectionStatus(string status)

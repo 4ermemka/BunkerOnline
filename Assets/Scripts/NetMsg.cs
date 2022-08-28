@@ -8,12 +8,16 @@ public static class NetOP
     public const int UpdateCardPlayer = 5;
     public const int AllUsersInfo = 6;
     public const int CastCard = 7;
-    public const int GameStarted = 8;
-    public const int PlayerKit = 9;
-    public const int KickPlayer = 10;
-    public const int PlayerVote = 11;
-    public const int UpdateChat = 12;
-    public const int UpdateVotingList = 13;
+    public const int LobbyStarted = 8;
+    public const int GameStarted = 9;
+    public const int ReadyForGame = 10;
+    public const int PlayerKit = 11;
+    public const int KickPlayer = 12;
+    public const int PlayerVote = 13;
+    public const int UpdateChat = 14;
+    public const int VotingForPlayer = 15;
+    public const int SwitchTurn = 16;
+    public const int ServerReady = 17;
 }
 
 [System.Serializable]

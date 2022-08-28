@@ -5,13 +5,13 @@ using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections.Generic;
-
 public static class MessageProcessing
 {
     #region MessageProcessingFields
 
     private static NetManager netManager;
     private static GameManager gameManager;
+    private static ChatManager chatManager;
     private static byte error;
     private const int BYTE_SIZE = 1024;
     #endregion
@@ -30,7 +30,13 @@ public static class MessageProcessing
     public static void SetGameManager(GameManager gm)
     {
         gameManager = gm;
-    }    
+    }
+
+    public static void SetChatManager(ChatManager cm)
+    {
+        chatManager = cm;
+    }  
+
     #endregion
 
     #region MessageTransformation
@@ -62,6 +68,7 @@ public static class MessageProcessing
 
     #region ServerReadMsg
     
+    
     /////////////////////////////////////////////////////////////////////////////
     /*                                SERVER                                   */
     /////////////////////////////////////////////////////////////////////////////
@@ -69,7 +76,7 @@ public static class MessageProcessing
     public static void OnData (object sender, Server.OnDataEventArgs e)
     {
         NetMsg msg = MakeMessage(e.buffer);
-        Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", e.conId, e.channel, e.host, msg.OP));
+        //Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", e.conId, e.channel, e.host, msg.OP));
         switch (msg.OP)
         {
             case NetOP.None:
@@ -83,7 +90,7 @@ public static class MessageProcessing
                 OnUpdateUser(e.conId, e.host, (NetUser_UpdateInfo)msg);
                 break;
             case NetOP.UpdateChat:
-                OnUpdateChat((Net_UpdateChat)msg);
+                OnUpdateChat(e.conId, e.host, (Net_UpdateChat)msg);
                 break;
             case NetOP.PlayerVote:
                 OnPlayerVote(e.conId, e.host, (Net_PlayerVote)msg);
@@ -91,40 +98,62 @@ public static class MessageProcessing
             case NetOP.CastCard:
                 OnPlayerCastCard(e.conId, e.host, (Net_CastCard)msg);
                 break;
+            case NetOP.ReadyForGame:
+                OnPlayerReadyForGame(e.conId, e.host, (Net_ReadyForGame)msg);
+                break;
+            case NetOP.SwitchTurn:
+                OnSwitchTurn(e.conId, e.host, (Net_SwitchTurn)msg);
+                break;
 
             default:
-                Debug.Log("Unexpected msg type!");
+                //Debug.Log("Unexpected msg type!");
                 break;
         }
     }
       
     private static void OnNewUser(int conId, int host, NetUser_Add msg)
     {
-        Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
+        //Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
         netManager.AddNewUser(msg.Username, conId, false, host);
     }
 
     private static void OnUpdateUser(int conId, int host, NetUser_UpdateInfo msg)
     {
-        Debug.Log(string.Format("Player {1} changed nick to {0} ", msg.Username, conId));
+        //Debug.Log(string.Format("Player {1} changed nick to {0} ", msg.Username, conId));
         netManager.UpdateUser(conId, host, msg.Username);
     }
 
     private static void OnPlayerCastCard(int conId, int host, Net_CastCard msg)
     {
-        Debug.Log("User" + msg.user.Nickname + " casted "+ msg.card.name);
+        //Debug.Log("User" + msg.user.Nickname + " casted "+ msg.card.name);
         gameManager.AddCardToPlayerPanel(msg.user, msg.card);
         netManager.server.SendOther(conId,host, MakeBuffer(msg));
     }
 
-    private static void OnUpdateChat(Net_UpdateChat msg)
+    private static void OnUpdateChat(int conId, int host, Net_UpdateChat msg)
     {
-        Debug.Log("New message in chat!");
+        //Debug.Log("New message in chat!");
+        chatManager.AddMessage(msg.Nickname, msg.message);
+        netManager.server.SendOther(conId,host, MakeBuffer(msg));
     }
+
     private static void OnPlayerVote(int conId, int host, Net_PlayerVote msg)
     {
         Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
-        gameManager.Voting(msg.id);
+        gameManager.server.SendOther(conId, host, MakeBuffer(msg));
+        gameManager.VotingForPlayer(msg.id);
+    }
+
+    private static void OnPlayerReadyForGame(int conId, int host, Net_ReadyForGame msg)
+    {
+        //Debug.Log(msg.userId +" connected well!");
+        gameManager.SetUserActivity(conId, true);
+    }
+
+    private static void OnSwitchTurn(int conId, int host, Net_SwitchTurn msg)
+    {
+        gameManager.SwitchTurn();
+        netManager.server.SendOther(conId, host, MakeBuffer(msg));
     }
 
     #endregion
@@ -138,7 +167,7 @@ public static class MessageProcessing
     public static void OnData (object sender, Client.OnDataEventArgs e)
     {   
         NetMsg msg = MakeMessage(e.buffer);
-        Debug.Log(string.Format("Received msg. Msg type: {0}", msg.OP));
+        ////Debug.Log(string.Format("Received msg. Msg type: {0}", msg.OP));
         //Here write what to do
         switch (msg.OP)
         {
@@ -177,11 +206,17 @@ public static class MessageProcessing
             case NetOP.UpdateChat:
                 OnUpdateChat((Net_UpdateChat)msg);
                 break;
-            case NetOP.UpdateVotingList:
-                OnUpdateVotingArray((Net_UpdateVotingArray)msg);
+
+            case NetOP.VotingForPlayer:
+                OnUpdateVotingArray((Net_VotingForPlayer)msg);
                 break;
+
             case NetOP.PlayerVote:
                 OnPlayerVote((Net_PlayerVote) msg);
+                break;
+
+            case NetOP.LobbyStarted:
+                OnLobbyStarted();
                 break;
 
             case NetOP.GameStarted:
@@ -191,38 +226,51 @@ public static class MessageProcessing
             case NetOP.PlayerKit:
                 OnPlayerKit((Net_PlayerKit) msg);
                 break;
+            case NetOP.SwitchTurn:
+                OnSwitchTurn((Net_SwitchTurn) msg);
+                break;
+            case NetOP.ServerReady:
+                OnServerReady();
+                break;
 
             default:
-                Debug.Log("Unexpected msg type!");
+                ////Debug.Log("Unexpected msg type!");
                 break;
         }
     }
     
     private static void OnNewUser(NetUser_Add msg)
     {
-        Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
+        ////Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
     }
 
     private static void OnUpdateUser(NetUser_UpdateInfo msg)
     {
-        Debug.Log(string.Format("Other player changed nick to {0}", msg.Username));
+        ////Debug.Log(string.Format("Other player changed nick to {0}", msg.Username));
         netManager.UpdateUser(msg.conId, msg.hostId, msg.Username);
     }
 
     private static void OnLeaveUser(NetUser_Leave msg)
     {
-        Debug.Log(string.Format("Player {0} disconnected.", msg.Username));
+        ////Debug.Log(string.Format("Player {0} disconnected.", msg.Username));
+        if(gameManager!=null) gameManager.OnUserLeave(msg.id);
     }
 
     private static void OnSetGlobalId(NetUser_SetGlobalId msg)
     {
-        Debug.Log("Global id set to " + msg.globalConId);
+        ////Debug.Log("Global id set to " + msg.globalConId);
         netManager.SetGlobalId(msg.globalConId);
     }
 
     private static void OnUpdatePlayer(Net_UpdateCardPlayer msg)
     {
-        Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
+        ////Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
+    }
+    
+    private static void OnUpdateChat(Net_UpdateChat msg)
+    {
+        //Debug.Log("New message in chat!");
+        chatManager.AddMessage(msg.Nickname, msg.message);
     }
 
     private static void SetListOfUsers(NetUser_AllUserList msg)
@@ -232,20 +280,21 @@ public static class MessageProcessing
         netManager.UpdateUsersList(newList);
     }
 
-    private static void OnUpdateVotingArray(Net_UpdateVotingArray msg)
+    private static void OnUpdateVotingArray(Net_VotingForPlayer msg)
     {
-        gameManager.SetVotingList(msg.votingArray.ToList());
+        gameManager.VotingForPlayer(msg.id);
     }
 
     private static void OnPlayerVote (Net_PlayerVote msg) 
     {
-        Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
+        //Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
+        gameManager.VotingForPlayer(msg.id);
     }
 
     private static void OnPlayerKit (Net_PlayerKit msg) 
     {
-        Debug.Log("Got card!");
-        Debug.Log("GM EMPTY = "+gameManager==null);
+        //Debug.Log("Got card!");
+        //Debug.Log("GM EMPTY = "+gameManager==null);
         DeckCard dc = new DeckCard();
         dc.name = msg.card.name;
         dc.category = msg.card.category;
@@ -257,20 +306,35 @@ public static class MessageProcessing
         gameManager.SetCardToList(dc);
     }
     
-    private static void OnGameStarted() 
+    private static void OnLobbyStarted()
     {
-        netManager.ChangeScene();    
+        netManager.ChangeScene(null, EventArgs.Empty);    
     }
+
+    private static void OnGameStarted()
+    {
+        gameManager.StartGame();
+    }
+
+    private static void OnServerReady()
+    {
+        //gameManager.client.SendServer(ClientReadyForGame(gameManager.user.id));
+    }
+
     private static void OnPlayerCastCard(Net_CastCard msg)
     {
-        Debug.Log("User" + msg.user.Nickname + " casted "+ msg.card.name);
+        //Debug.Log("User" + msg.user.Nickname + " casted "+ msg.card.name);
         gameManager.AddCardToPlayerPanel(msg.user, msg.card);
+    }
+
+    private static void OnSwitchTurn(Net_SwitchTurn msg)
+    {
+        gameManager.SwitchTurn();
     }
 
     #endregion
 
     #region ServerWriteMsg
-
     public static byte[] ServerUsersListMsg(List<User> lobbyList)
     {
         NetUser_AllUserList msg = new NetUser_AllUserList();
@@ -306,14 +370,6 @@ public static class MessageProcessing
         return MakeBuffer(msg);
     }
 
-    public static byte[] ServerUpdateVotingArray(int[] votingArray)
-    {
-        Net_UpdateVotingArray msg = new Net_UpdateVotingArray();
-        msg.votingArray = votingArray;
-
-        return MakeBuffer(msg);
-    }
-
     public static byte[] ServerPlayerVoteMsg (User user, int id)
     {
         Net_PlayerVote msg = new Net_PlayerVote();
@@ -341,12 +397,27 @@ public static class MessageProcessing
         return MakeBuffer(msg);
     }
 
+    public static byte[] ServerLobbyStartedMsg ()
+    {
+        Net_LobbyStarted msg = new Net_LobbyStarted();
+
+        return MakeBuffer(msg);
+    }
+
     public static byte[] ServerGameStartedMsg ()
     {
         Net_GameStarted msg = new Net_GameStarted();
 
         return MakeBuffer(msg);
     }
+    
+    public static byte[] ServerReadyForGame()
+    {
+        Net_ServerReady msg = new Net_ServerReady();
+
+        return MakeBuffer(msg);
+    }
+    
     #endregion
 
     #region ClientWriteMsg
@@ -377,11 +448,11 @@ public static class MessageProcessing
 
         return MakeBuffer(msg);
     }
-
-    public static byte[] ClientPlayerVote(User user, int num_user)
+    
+    public static byte[] ClientReadyForGame(int id)
     {
-        Net_PlayerVote msg = new Net_PlayerVote();
-        msg.id = num_user;
+        Net_ReadyForGame msg = new Net_ReadyForGame();
+        msg.userId = id;
 
         return MakeBuffer(msg);
     }
@@ -393,6 +464,31 @@ public static class MessageProcessing
         Net_CastCard msg = new Net_CastCard();
         msg.user = user;
         msg.card = card.AttributeToDeckCardSerializable();
+
+        return MakeBuffer(msg);
+    }
+
+    public static byte[] WriteChatMsg(string user, string message)
+    {
+        Net_UpdateChat msg = new Net_UpdateChat();
+        msg.Nickname = user;
+        msg.message = message;
+
+        return MakeBuffer(msg);
+    }
+
+    public static byte[] PlayerVote(User author, int num_user)
+    {
+        Net_PlayerVote msg = new Net_PlayerVote();
+        msg.user = author;
+        msg.id = num_user;
+
+        return MakeBuffer(msg);
+    }
+
+    public static byte[] SwitchTurn()
+    {
+        Net_SwitchTurn msg = new Net_SwitchTurn();
 
         return MakeBuffer(msg);
     }

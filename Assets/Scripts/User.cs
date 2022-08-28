@@ -13,6 +13,7 @@ public class User
     public int id;
     public string Nickname;
     public bool isReady;
+    public int votesFor;
 
     public User()
     {
@@ -20,6 +21,8 @@ public class User
         id = 0;
         Nickname = "PLAYER";
         isReady = false;
+
+        votesFor = 0;
     }
 
     public User(int id, string Nickname)
