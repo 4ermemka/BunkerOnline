@@ -121,15 +121,10 @@ public class GameManager : MonoBehaviour
         timerText.text = playerTimer.remainingTimeMin;
         currentStage = CurrentStage.PreGameDelay;
 
-        if(client != null)
-        {
-            client.SendServer(MessageProcessing.ClientReadyForGame(user.id));
-        }
-
+        MessageProcessing.ReadyForGame(user);
         if(server != null)
         {
             SetUserActivity(user.id, true);
-            server.SendOther(MessageProcessing.ServerReadyForGame());
         }
     }
 
@@ -220,8 +215,7 @@ public class GameManager : MonoBehaviour
     public void AddCardToMyPanel(object sender, OpenedCardsPanel.OnCastCardEventArgs e)
     {
         AddCardToPlayerPanel(user, e.card.AttributeToDeckCardSerializable());
-        if(client!=null) client.SendServer(MessageProcessing.CastCardMsg(user, e.card));
-        if(server!=null) server.SendOther(MessageProcessing.CastCardMsg(user, e.card));
+        MessageProcessing.AddCardToPanel(user, e);
     }
 
     public void UpdateHand()
@@ -435,8 +429,7 @@ public class GameManager : MonoBehaviour
     public void MyVoteFor(User user)
     {
         VotingForPlayer(user.id);
-        if(client != null) client.SendServer(MessageProcessing.PlayerVote(this.user, user.id));
-        if(server != null) server.SendOther(MessageProcessing.PlayerVote(this.user, user.id));
+        MessageProcessing.VoteFor(user);
     }
 
     private User FindPlayerToKick()
