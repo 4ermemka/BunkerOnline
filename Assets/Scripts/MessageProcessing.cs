@@ -492,4 +492,35 @@ public static class MessageProcessing
 
         return MakeBuffer(msg);
     }
+
+    public static void ReadyForGame(User user)
+    {
+        if (gameManager.client != null)
+        {
+            gameManager.client.SendServer(ClientReadyForGame(user.id));
+        }
+
+        if (gameManager.server != null)
+        {
+            gameManager.server.SendOther(ServerReadyForGame());
+        }
+    }
+
+    public static void AddCardToPanel(User user, OpenedCardsPanel.OnCastCardEventArgs e)
+    {
+        if (gameManager.client != null) gameManager.client.SendServer(CastCardMsg(user, e.card));
+        if (gameManager.server != null) gameManager.server.SendOther(CastCardMsg(user, e.card));
+    }
+
+    public static void VoteFor(User user)
+    {
+        if (gameManager.client != null) gameManager.client.SendServer(PlayerVote(user, user.id));
+        if (gameManager.server != null) gameManager.server.SendOther(PlayerVote(user, user.id));
+    }
+
+    public static void ChangeScene()
+    {
+        if (netManager.server != null) netManager.server.SendOther(ServerLobbyStartedMsg());
+    }
+
 }
