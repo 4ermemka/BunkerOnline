@@ -13,15 +13,6 @@ public enum CurrentNetState
 
 public class NetManager : MonoBehaviour
 {
-    #region Events
-    public event EventHandler<OnUserUpdatedEventArgs> OnUserUpdated;
-
-    public class OnUserUpdatedEventArgs:EventArgs
-    {
-        public string newName;
-    }
-    #endregion
-
     #region NetmanagerFields
 
     private CurrentNetState netState = CurrentNetState.None;
@@ -30,7 +21,7 @@ public class NetManager : MonoBehaviour
     [SerializeField] public MenuInterfaceManager MenuInterfaceManager;
     private GameManager gm;
     public Server server;
-    private Client client;
+    public Client client;
     public int hostId;
 
     public User user; 
@@ -58,6 +49,8 @@ public class NetManager : MonoBehaviour
     {
         MenuInterfaceManager.NewConnectionStatus("Connected!");
         hostId = e.hostId;
+        client.SendServer(MessageProcessing.AddUser(user));
+        MenuInterfaceManager.SwitchToLobby();
     }
 
     public void ServerOnClientConnected(object sender, Server.OnConnectEventArgs e)
@@ -74,7 +67,7 @@ public class NetManager : MonoBehaviour
     {
         //Debug.Log("We have been disconnected from server!");
         if(gm != null) SceneManager.LoadScene("MenuInterface");
-        if(lobbyList != null)ClearLobbyList();
+        if(MenuInterfaceManager.lobbyList != null) ClearLobbyList();
         MenuInterfaceManager.SwitchToMainMenu();
     }
 
@@ -82,8 +75,8 @@ public class NetManager : MonoBehaviour
     {
         //Debug.Log(string.Format("Player {0} was disconnected! ", e.conId));
         LeaveUser(e.conId);
-
-        server.SendOther(MessageProcessing.ServerUsersListMsg(lobbyList));
+        if(gm != null) gm.OnUserLeave(e.conId);
+        MessageProcessing.SendLeaveUser(e.conId);
     }
 
     #endregion
@@ -92,67 +85,39 @@ public class NetManager : MonoBehaviour
 
     public void AddNewUser(string Nickname, int conId)
     {
-        User newUser = new User(conId, Nickname);
+        User newUser = new User(conId, Nickname, false);
         lobbyList.Add(newUser);
 
-        MenuInterfaceManager.UpdateLobby(lobbyList);
-    }
-
-    public void AddNewUser(string Nickname, int conId, bool host, int recHost)
-    {
-        User newUser = new User(conId, Nickname, host);
-        lobbyList.Add(newUser);
-
-        server.SendClient(recHost, conId, MessageProcessing.ServerUsersListMsg(lobbyList));
-        server.SendOther(conId, recHost, MessageProcessing.ServerUsersListMsg(lobbyList));
-
-        MenuInterfaceManager.UpdateLobby(lobbyList);
+        MenuInterfaceManager.AddUser(conId, Nickname, false);
     }
 
     public void UpdateUsername(string Nickname)
     {
         user.SetNickname(Nickname);
-        OnUserUpdated?.Invoke(this, new OnUserUpdatedEventArgs{newName = Nickname});
-        User updatedUser = lobbyList.Find(x=> x.id == user.id);
+        MenuInterfaceManager.OnNicknameChanged(Nickname);
 
+        User updatedUser = lobbyList.Find(x=> x.id == user.id);
         if(updatedUser!=null) updatedUser.SetNickname(Nickname);
 
         MenuInterfaceManager.ClearLobby();
         MenuInterfaceManager.UpdateLobby(lobbyList);
 
-        if(netState == CurrentNetState.Server)
-        {
-            server.SendOther(MessageProcessing.ServerUsersListMsg(lobbyList));
-        }
-
-        if(netState == CurrentNetState.Client)
-        {
-            client.SendServer(MessageProcessing.ClientUpdateUserMsg(user));
-        }
+        MessageProcessing.UpdateUser(user);
     }
 
-    public void UpdateUser(int conId, int host, string newNickname) 
+    public void UpdateUser(int conId, string newNickname) 
     {
         User updatedUser = lobbyList.Find(x=> x.id == conId);
         if(updatedUser!=null) 
         {
             updatedUser.SetNickname(newNickname);
-            MenuInterfaceManager.ClearLobby();
-            MenuInterfaceManager.UpdateLobby(lobbyList);
-        }
-
-        if(netState == CurrentNetState.Server)
-        {
-            //Debug.Log("SENDING OTHER");
-            server.SendOther(conId, host, MessageProcessing.ServerUsersListMsg(lobbyList));
+            MenuInterfaceManager.UpdateUser(conId, newNickname);
         }
     }
 
     public void SetGlobalId(int globalConId)
     {
         user.id = globalConId;
-        //Debug.Log("Global id is now " + user.id);
-        client.SendServer(MessageProcessing.ClientNewUserMsg(user));
     }
 
     public void ClearLobbyList()
@@ -167,19 +132,21 @@ public class NetManager : MonoBehaviour
         if(deletingUser!=null) 
         {
             lobbyList.Remove(deletingUser);
-            MenuInterfaceManager.UpdateLobby(lobbyList);
+            MenuInterfaceManager.DelUser(conId);
         }
         else Debug.Log("Err during deleting!");
-
-        
     }
 
     public void UpdateUsersList(List<User> newList)
     {
         lobbyList = newList;
         MenuInterfaceManager.UpdateLobby(lobbyList);
-        MenuInterfaceManager.SwitchToLobby();
         //Debug.Log("List was updated!");
+    }
+
+    public void SetGameManager(GameManager gm)
+    {
+        this.gm = gm;
     }
 
     #endregion
@@ -262,5 +229,6 @@ public class NetManager : MonoBehaviour
     {
         if(server!=null) server.SendOther(MessageProcessing.ServerLobbyStartedMsg());
         SceneManager.LoadScene("GameInterface");
+        gm = FindObjectOfType<GameManager>();
     }
 }

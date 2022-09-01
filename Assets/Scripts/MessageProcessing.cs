@@ -9,9 +9,9 @@ public static class MessageProcessing
 {
     #region MessageProcessingFields
 
-    private static NetManager netManager;
-    private static GameManager gameManager;
-    private static ChatManager chatManager;
+    public static NetManager netManager;
+    public static GameManager gameManager;
+    public static ChatManager chatManager;
     private static byte error;
     private const int BYTE_SIZE = 1024;
     #endregion
@@ -53,7 +53,6 @@ public static class MessageProcessing
 
         return buffer;
     }
-
     public static NetMsg MakeMessage(byte[] buffer)
     {
         BinaryFormatter formatter = new BinaryFormatter();
@@ -67,7 +66,6 @@ public static class MessageProcessing
     #endregion
 
     #region ServerReadMsg
-    
     
     /////////////////////////////////////////////////////////////////////////////
     /*                                SERVER                                   */
@@ -89,18 +87,22 @@ public static class MessageProcessing
             case NetOP.UpdateUser:
                 OnUpdateUser(e.conId, e.host, (NetUser_UpdateInfo)msg);
                 break;
+
             case NetOP.UpdateChat:
                 OnUpdateChat(e.conId, e.host, (Net_UpdateChat)msg);
                 break;
             case NetOP.PlayerVote:
                 OnPlayerVote(e.conId, e.host, (Net_PlayerVote)msg);
                 break;
+
             case NetOP.CastCard:
                 OnPlayerCastCard(e.conId, e.host, (Net_CastCard)msg);
                 break;
+
             case NetOP.ReadyForGame:
                 OnPlayerReadyForGame(e.conId, e.host, (Net_ReadyForGame)msg);
                 break;
+
             case NetOP.SwitchTurn:
                 OnSwitchTurn(e.conId, e.host, (Net_SwitchTurn)msg);
                 break;
@@ -113,14 +115,17 @@ public static class MessageProcessing
       
     private static void OnNewUser(int conId, int host, NetUser_Add msg)
     {
-        //Debug.Log(string.Format("Adding new player. Username: {0}, id: {1}", msg.Username, conId));
-        netManager.AddNewUser(msg.Username, conId, false, host);
+        netManager.AddNewUser(msg.Username, conId);
+        msg.id = conId;
+        netManager.server.SendOther(conId, host, MakeBuffer(msg));
+        netManager.server.SendClient(host, conId, ServerUsersListMsg(netManager.GetUsersList()));
     }
 
     private static void OnUpdateUser(int conId, int host, NetUser_UpdateInfo msg)
     {
         //Debug.Log(string.Format("Player {1} changed nick to {0} ", msg.Username, conId));
-        netManager.UpdateUser(conId, host, msg.Username);
+        netManager.UpdateUser(conId, msg.Nickname);
+        netManager.server.SendOther(conId, host, MakeBuffer(msg));
     }
 
     private static void OnPlayerCastCard(int conId, int host, Net_CastCard msg)
@@ -139,7 +144,7 @@ public static class MessageProcessing
 
     private static void OnPlayerVote(int conId, int host, Net_PlayerVote msg)
     {
-        Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
+        //Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
         gameManager.server.SendOther(conId, host, MakeBuffer(msg));
         gameManager.VotingForPlayer(msg.id);
     }
@@ -226,9 +231,11 @@ public static class MessageProcessing
             case NetOP.PlayerKit:
                 OnPlayerKit((Net_PlayerKit) msg);
                 break;
+
             case NetOP.SwitchTurn:
                 OnSwitchTurn((Net_SwitchTurn) msg);
                 break;
+
             case NetOP.ServerReady:
                 OnServerReady();
                 break;
@@ -242,17 +249,19 @@ public static class MessageProcessing
     private static void OnNewUser(NetUser_Add msg)
     {
         ////Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
+        netManager.AddNewUser(msg.Username, msg.id);
     }
 
     private static void OnUpdateUser(NetUser_UpdateInfo msg)
     {
         ////Debug.Log(string.Format("Other player changed nick to {0}", msg.Username));
-        netManager.UpdateUser(msg.conId, msg.hostId, msg.Username);
+        netManager.UpdateUser(msg.id, msg.Nickname);
     }
 
     private static void OnLeaveUser(NetUser_Leave msg)
     {
-        ////Debug.Log(string.Format("Player {0} disconnected.", msg.Username));
+        Debug.Log(string.Format("Player {0} disconnected.", msg.id));
+        if(netManager!=null) netManager.LeaveUser(msg.id);
         if(gameManager!=null) gameManager.OnUserLeave(msg.id);
     }
 
@@ -275,6 +284,7 @@ public static class MessageProcessing
 
     private static void SetListOfUsers(NetUser_AllUserList msg)
     {
+        Debug.Log("Got users, count: " + msg.users.ToList<User>().Count);
         List<User> newList = new List<User>();
         foreach (User p in msg.users) newList.Add(p);
         netManager.UpdateUsersList(newList);
@@ -337,18 +347,9 @@ public static class MessageProcessing
     #region ServerWriteMsg
     public static byte[] ServerUsersListMsg(List<User> lobbyList)
     {
+        Debug.Log("Sending List");
         NetUser_AllUserList msg = new NetUser_AllUserList();
         msg.users = lobbyList.ToArray();
-
-        return MakeBuffer(msg);
-    }
-
-    public static byte[] ServerUpdateUser(User user, int hostId)
-    {
-        NetUser_UpdateInfo msg = new NetUser_UpdateInfo();
-        msg.conId = user.id;
-        msg.hostId = hostId;
-        msg.Username = user.Nickname;
 
         return MakeBuffer(msg);
     }
@@ -378,7 +379,6 @@ public static class MessageProcessing
 
         return MakeBuffer(msg);
     }
-    //need to add message about kick, player's vote (for Alina)
 
     public static byte[] ServerPlayerKitMsg (DeckCard card)
     {
@@ -421,7 +421,6 @@ public static class MessageProcessing
     #endregion
 
     #region ClientWriteMsg
-
     public static byte[] ClientNewUserMsg(User user)
     {
         NetUser_Add msg = new NetUser_Add();
@@ -429,13 +428,11 @@ public static class MessageProcessing
 
         return MakeBuffer(msg);
     }
-
-    public static byte[] ClientUpdateUserMsg(User user)
+    public static byte[] UpdateUserMsg(User user)
     {
         NetUser_UpdateInfo msg = new NetUser_UpdateInfo();
-        msg.Username = user.Nickname;
-        msg.hostId = netManager.hostId;
-        msg.conId = user.id;
+        msg.Nickname = user.Nickname;
+        msg.id = user.id;
 
         return MakeBuffer(msg);
     }
@@ -458,7 +455,26 @@ public static class MessageProcessing
     }
 
     #endregion
-    
+
+    #region Client/Server Operations
+
+    public static byte[] AddUser(User user)
+    {
+        NetUser_Add msg = new NetUser_Add();
+        msg.id = user.id;
+        msg.Username = user.Nickname;
+
+        return MakeBuffer(msg);
+    }
+
+    public static byte[] LeaveUser(int id)
+    {
+        NetUser_Leave msg = new NetUser_Leave();
+        msg.id = id;
+
+        return MakeBuffer(msg); 
+    }
+
     public static byte[] CastCardMsg (User user, Card card)
     {
         Net_CastCard msg = new Net_CastCard();
@@ -493,6 +509,24 @@ public static class MessageProcessing
         return MakeBuffer(msg);
     }
 
+    public static void UpdateUser(User user)
+    {
+        if(netManager.client)
+        {
+            netManager.client.SendServer(UpdateUserMsg(user));
+        }
+
+        if(netManager.server)
+        {
+            netManager.server.SendOther(UpdateUserMsg(user));
+        }
+    }
+
+    public static void SendLeaveUser(int id)
+    {
+        netManager.server.SendOther(LeaveUser(id));
+    }
+
     public static void ReadyForGame(User user)
     {
         if (gameManager.client != null)
@@ -523,4 +557,19 @@ public static class MessageProcessing
         if (netManager.server != null) netManager.server.SendOther(ServerLobbyStartedMsg());
     }
 
+    public static void Exit() 
+    {
+        if(netManager.server != null) 
+        {
+            netManager.server.KickAll();
+            netManager.server.Shutdown();
+            netManager.NetManager_DeleteNetworkObjects(null, EventArgs.Empty);
+        }
+        if(netManager.client != null)
+        {
+            netManager.client.Disconnect();
+            netManager.NetManager_DeleteNetworkObjects(null, EventArgs.Empty);
+        }
+    }
+    #endregion
 }

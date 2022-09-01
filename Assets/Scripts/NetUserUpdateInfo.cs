@@ -5,7 +5,6 @@ public  class NetUser_UpdateInfo : NetMsg
     {
         OP = NetOP.UpdateUser;
     }
-    public string Username { set; get; } 
-    public int conId { set; get; } 
-    public int hostId { set; get; } 
+    public string Nickname { set; get; } 
+    public int id { set; get; } 
 }

@@ -6,9 +6,9 @@ using TMPro;
 
 public class UserInfo:MonoBehaviour
 {
-    public int id = 0;
-    public int num = 0;
-    public bool isHost = false;
+    public int id;
+    public int num;
+    public bool isHost;
     public string nickname = "/*default nick*/";
 
     [SerializeField] float animationTime;
@@ -18,15 +18,14 @@ public class UserInfo:MonoBehaviour
 
     public void Start() 
     {
-        transform.position = Vector3.zero;
-        transform.localPosition = Vector3.zero;
         if(animationTime <= 0) animationTime*=-1 + 1;
         gameObject.GetComponent<CanvasGroup>().alpha = 0;
         if(Application.isPlaying) LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 1, animationTime);
     }
+
     public void Update() 
     {
-        if(animationTime <= 0) animationTime*=-1;
+        if(animationTime <= 0) animationTime*=-1 + 0.5f;
     }
 
     public void setId(int id)
@@ -50,7 +49,7 @@ public class UserInfo:MonoBehaviour
     public void setNickname(string n)
     {
         nickname = n;
-        nick.text = nickname;
+        nick.text = nickname + " id: " + id;
     }
 
     public void setPanelToList(GameObject list)
