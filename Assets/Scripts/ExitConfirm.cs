@@ -7,15 +7,31 @@ public class ExitConfirm : MonoBehaviour
     private GameManager gm;
     void Start()
     {
-        gm = FindObjectOfType<GameManager>();
+        gameObject.GetComponent<CanvasGroup>().alpha = 0;
+        gameObject.GetComponent<CanvasGroup>().blocksRaycasts = false;
+        gm = MessageProcessing.gameManager;
     }
 
-    private void OnClickYes()
+    public void Appear()
     {
+        LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 1, 0.5f);
+        gameObject.GetComponent<CanvasGroup>().blocksRaycasts = true;
     }
 
-    private void OnClickNo()
+    public void Disapear()
     {
-        Destroy(gameObject);
+        LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 0, 0.5f);
+        gameObject.GetComponent<CanvasGroup>().blocksRaycasts = false;
+    }
+
+    public void OnClickYes()
+    {
+        if(gm != null)gm.Disconnect();
+        else Debug.Log("GM EMPTY!");
+    }
+
+    public void OnClickNo()
+    {
+        Disapear();
     }
 }
