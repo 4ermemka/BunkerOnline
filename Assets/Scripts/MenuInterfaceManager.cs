@@ -123,7 +123,6 @@ public class MenuInterfaceManager : MonoBehaviour
     public void SwitchWindowMode()
     {
         Screen.fullScreen = !Screen.fullScreen;
-        Screen.SetResolution(1920,1080,Screen.fullScreen);
     }
 
     public void ClientClick() 
