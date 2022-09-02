@@ -1,15 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ExitConfirm : MonoBehaviour
 {
-    private GameManager gm;
     void Start()
     {
+        transform.position = Vector3.zero;
         gameObject.GetComponent<CanvasGroup>().alpha = 0;
         gameObject.GetComponent<CanvasGroup>().blocksRaycasts = false;
-        gm = MessageProcessing.gameManager;
     }
 
     public void Appear()
@@ -26,7 +26,7 @@ public class ExitConfirm : MonoBehaviour
 
     public void OnClickYes()
     {
-        if(gm != null)gm.Disconnect();
+        if(MessageProcessing.gameManager != null) MessageProcessing.gameManager.Disconnect(null, EventArgs.Empty);
         else Debug.Log("GM EMPTY!");
     }
 

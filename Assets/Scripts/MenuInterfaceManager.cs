@@ -151,6 +151,7 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void BackClick() 
     {
+        ResetErrors();
         OnReturnToMenu?.Invoke(this, EventArgs.Empty);
         SwitchToMainMenu();
     }
@@ -206,6 +207,10 @@ public class MenuInterfaceManager : MonoBehaviour
 
     public void DelUser(int conId)
     {
+        foreach(UserInfo u in panelsList)
+        {
+            Debug.Log(u.nickname + " id: " + u.id + " n:" + u.num);
+        }
         UserInfo userToDel = new UserInfo();
         userToDel = panelsList.Find(x => x.id == conId);
         if(userToDel != null) 

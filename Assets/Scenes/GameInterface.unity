@@ -2590,6 +2590,7 @@ MonoBehaviour:
     isReady: 0
     votesFor: 0
   playerInfoPref: {fileID: 2421791636316263213, guid: 5630e38813564444ea7e76237fc6ea48, type: 3}
+  userInfoPref: {fileID: 3196395794771871806, guid: d1921aab1a66af14ba30590202540ee4, type: 3}
   atrPref: {fileID: 4947973648173971102, guid: 36f5ab7d0eb54584e93127744626fc75, type: 3}
   cardInHandPref: {fileID: 4148599752045009188, guid: cf16ef01f3f78d941b3b255f23b38b5d, type: 3}
   playersGrid: {fileID: 1725371167}

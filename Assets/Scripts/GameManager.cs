@@ -23,7 +23,6 @@ public struct PlayerKit
     public string playerName;
     public List<DeckCard> cardsKit;
 }
-
 public class GameManager : MonoBehaviour
 {
     #region GameManagerFields
@@ -33,6 +32,7 @@ public class GameManager : MonoBehaviour
     private List<int> votingList;
 
     [SerializeField] PlayerInfo playerInfoPref; 
+    [SerializeField] UserInfo userInfoPref; 
     [SerializeField] Attribute atrPref; 
     [SerializeField] Card cardInHandPref;
     [SerializeField] GameObject playersGrid;
@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
 
     public Server server;
     public Client client;
-    private NetManager nm;
+    private int hostId;
 
     public int countForEndGame;
     public float timeToTurn;
@@ -69,27 +69,24 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    public void ConvertToGameManager(List<User> users, User user)
+    public void ConvertToGameManager(List<User> users, User user, int hostId)
     {
         this.user = user;
         this.users = users;
+        this.hostId = hostId;
     }
 
     void Start()
     {
-
         playerTimer = gameObject.GetComponent<Timer>();
 
-        nm = FindObjectOfType<NetManager>();
+        NetManager nm = FindObjectOfType<NetManager>();
         server = FindObjectOfType<Server>();
         client = FindObjectOfType<Client>();
         myCards = new List<DeckCard>();
 
-        ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
+        ConvertToGameManager(nm.GetUsersList(), nm.GetUser(), nm.hostId);
         playerInfoList = new List<PlayerInfo>();
-
-        MessageProcessing.SetGameManager(this);
-        nm.SetGameManager(this);
 
         foreach(User u in users) u.isReady = false;
 
@@ -126,11 +123,20 @@ public class GameManager : MonoBehaviour
         timerText.text = playerTimer.remainingTimeMin;
         currentStage = CurrentStage.PreGameDelay;
 
+        MessageProcessing.SetGameManager(this);
+
         MessageProcessing.ReadyForGame(user);
         if(server != null)
         {
             SetUserActivity(user.id, true);
         }
+        if(client != null)
+        {
+            client.OnDisconnect += Disconnect;
+        }
+
+        Destroy(nm.gameObject);
+        MessageProcessing.netManager = null;
     }
 
     public bool AllUsersReady()
@@ -159,7 +165,7 @@ public class GameManager : MonoBehaviour
             for(int i=1; i<users.Count; i++)
             {
                 foreach(DeckCard card in kits[i].cardsKit)
-                server.SendClient(nm.hostId, users[i].id,
+                server.SendClient(hostId, users[i].id,
                 MessageProcessing.ServerPlayerKitMsg(card));
             }
             //Debug.Log(kits[0].cardsKit.Count);
@@ -492,7 +498,7 @@ public class GameManager : MonoBehaviour
             Destroy(playerInfoList.Find(x=>x.GetUser().id == playerToKick.id).gameObject);
             playerInfoList.Remove(playerInfoList.Find(x=>x.GetUser().id == playerToKick.id));
             
-            UserInfo newObserver = Instantiate(nm.MenuInterfaceManager.userInfo) as UserInfo;
+            UserInfo newObserver = Instantiate(userInfoPref) as UserInfo;
             
             newObserver.setNickname(playerToKick.Nickname);
             newObserver.setId(playerToKick.id);
@@ -517,12 +523,14 @@ public class GameManager : MonoBehaviour
                 Destroy(playerInfoList.Find(x=>x.GetUser().id == id).gameObject);
                 playerInfoList.Remove(playerInfoList.Find(x=>x.GetUser().id == id));
             }
-            else
+            else if(observersList.Find(x=>x.id == id) != null)
             {
-                Destroy(observersList.Find(x=>x.id == id));
+                Debug.Log("Found observer");
+                Destroy(observersList.Find(x=>x.id == id).gameObject);
                 observersList.Remove(observersList.Find(x=>x.id == id));
             }
             if(players.Count <= countForEndGame) EndGameSwitch();
+            else if(currentPlayer!=null && currentPlayer.id == id) SwitchTurn();
         }
     }
 
@@ -534,7 +542,7 @@ public class GameManager : MonoBehaviour
         chat.AddMessage("SYSTEM", "ENDGAME");
     }
 
-    public void Disconnect()
+    public void Disconnect(object s, EventArgs e)
     {
         MessageProcessing.Exit();
         SceneManager.LoadScene("MenuInterface");
