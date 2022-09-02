@@ -5,23 +5,32 @@ using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+
 public static class MessageProcessing
 {
     #region MessageProcessingFields
-
+    public static Server server;
+    public static Client client;
     public static NetManager netManager;
     public static GameManager gameManager;
     public static ChatManager chatManager;
     private static byte error;
     private const int BYTE_SIZE = 1024;
+
     #endregion
 
     #region MessageProcessingConstructors
+
     static MessageProcessing()
     {
+        server = null;
+        client = null;
         netManager = null;
+        gameManager = null;
+        chatManager = null;
+        error = 0;
     }
-
     public static void SetNetManager(NetManager nm)
     {
         netManager = nm;
@@ -35,7 +44,7 @@ public static class MessageProcessing
     public static void SetChatManager(ChatManager cm)
     {
         chatManager = cm;
-    }  
+    }
 
     #endregion
 
@@ -65,13 +74,62 @@ public static class MessageProcessing
 
     #endregion
 
+    #region OnConnection
+
+    public static void ClientOnServerConnection(object sender, Client.OnConnectEventArgs e)
+    {
+        if(netManager != null)
+        {
+            netManager.MenuInterfaceManager.NewConnectionStatus("Connected!");
+            netManager.hostId = e.hostId;
+            client.SendServer(MessageProcessing.AddUser(netManager.user));
+            netManager.MenuInterfaceManager.SwitchToLobby();
+        }
+    }
+
+    public static void ServerOnClientConnected(object sender, Server.OnConnectEventArgs e)
+    {
+        //Debug.Log("New player connected! Sending him list...");
+        if(netManager != null) server.SendClient(netManager.hostId, e.conId, MessageProcessing.ServerSetGlobalId(e.conId));
+    }
+
+    #endregion
+
+    #region OnDisonnection
+
+    public static void ClientOnServerDisonnection(object sender, EventArgs e)
+    {
+        //Debug.Log("We have been disconnected from server!");
+        if (gameManager != null)
+            SceneManager.LoadScene("MenuInterface");
+
+        if (netManager != null) 
+        {
+            netManager.ClearLobbyList();
+            netManager.MenuInterfaceManager.SwitchToMainMenu();
+        }
+    }
+
+    public static void ServerOnClientDisconnection(object sender, Server.OnDisconnectEventArgs e)
+    {
+        //Debug.Log(string.Format("Player {0} was disconnected! ", e.conId));
+        if(netManager != null)
+            netManager.LeaveUser(e.conId);
+        if (gameManager != null)
+            gameManager.OnUserLeave(e.conId);
+
+        SendLeaveUser(e.conId);
+    }
+
+    #endregion
+
     #region ServerReadMsg
-    
+
     /////////////////////////////////////////////////////////////////////////////
     /*                                SERVER                                   */
     /////////////////////////////////////////////////////////////////////////////
 
-    public static void OnData (object sender, Server.OnDataEventArgs e)
+    public static void ServerOnData(object sender, Server.OnDataEventArgs e)
     {
         NetMsg msg = MakeMessage(e.buffer);
         //Debug.Log(string.Format("Received msg from {0}, through channel {1}, host {2}. Msg type: {3}", e.conId, e.channel, e.host, msg.OP));
@@ -112,34 +170,35 @@ public static class MessageProcessing
                 break;
         }
     }
-      
+
     private static void OnNewUser(int conId, int host, NetUser_Add msg)
     {
-        netManager.AddNewUser(msg.Username, conId);
+        if(netManager != null) 
+            netManager.AddNewUser(msg.Username, conId);
         msg.id = conId;
-        netManager.server.SendOther(conId, host, MakeBuffer(msg));
-        netManager.server.SendClient(host, conId, ServerUsersListMsg(netManager.GetUsersList()));
+        server.SendOther(conId, host, MakeBuffer(msg));
+        server.SendClient(host, conId, ServerUsersListMsg(netManager.GetUsersList()));
     }
 
     private static void OnUpdateUser(int conId, int host, NetUser_UpdateInfo msg)
     {
         //Debug.Log(string.Format("Player {1} changed nick to {0} ", msg.Username, conId));
         netManager.UpdateUser(conId, msg.Nickname);
-        netManager.server.SendOther(conId, host, MakeBuffer(msg));
+        server.SendOther(conId, host, MakeBuffer(msg));
     }
 
     private static void OnPlayerCastCard(int conId, int host, Net_CastCard msg)
     {
         //Debug.Log("User" + msg.user.Nickname + " casted "+ msg.card.name);
         gameManager.AddCardToPlayerPanel(msg.user, msg.card);
-        netManager.server.SendOther(conId,host, MakeBuffer(msg));
+        gameManager.server.SendOther(conId, host, MakeBuffer(msg));
     }
 
     private static void OnUpdateChat(int conId, int host, Net_UpdateChat msg)
     {
         //Debug.Log("New message in chat!");
         chatManager.AddMessage(msg.Nickname, msg.message);
-        netManager.server.SendOther(conId,host, MakeBuffer(msg));
+        gameManager.server.SendOther(conId, host, MakeBuffer(msg));
     }
 
     private static void OnPlayerVote(int conId, int host, Net_PlayerVote msg)
@@ -158,7 +217,7 @@ public static class MessageProcessing
     private static void OnSwitchTurn(int conId, int host, Net_SwitchTurn msg)
     {
         gameManager.SwitchTurn();
-        netManager.server.SendOther(conId, host, MakeBuffer(msg));
+        gameManager.server.SendOther(conId, host, MakeBuffer(msg));
     }
 
     #endregion
@@ -169,8 +228,8 @@ public static class MessageProcessing
     /*                                CLIENT                                   */
     /////////////////////////////////////////////////////////////////////////////
 
-    public static void OnData (object sender, Client.OnDataEventArgs e)
-    {   
+    public static void ClientOnData(object sender, Client.OnDataEventArgs e)
+    {
         NetMsg msg = MakeMessage(e.buffer);
         ////Debug.Log(string.Format("Received msg. Msg type: {0}", msg.OP));
         //Here write what to do
@@ -191,11 +250,6 @@ public static class MessageProcessing
                 OnUpdateUser((NetUser_UpdateInfo)msg);
                 break;
 
-            case NetOP.UpdateCardPlayer:
-                OnUpdatePlayer((Net_UpdateCardPlayer)msg);
-                //make interface changes
-                break;
-
             case NetOP.LeaveUser:
                 OnLeaveUser((NetUser_Leave)msg);
                 break;
@@ -205,7 +259,7 @@ public static class MessageProcessing
                 break;
 
             case NetOP.CastCard:
-                OnPlayerCastCard((Net_CastCard)msg);        
+                OnPlayerCastCard((Net_CastCard)msg);
                 break;
 
             case NetOP.UpdateChat:
@@ -217,7 +271,7 @@ public static class MessageProcessing
                 break;
 
             case NetOP.PlayerVote:
-                OnPlayerVote((Net_PlayerVote) msg);
+                OnPlayerVote((Net_PlayerVote)msg);
                 break;
 
             case NetOP.LobbyStarted:
@@ -227,13 +281,13 @@ public static class MessageProcessing
             case NetOP.GameStarted:
                 OnGameStarted();
                 break;
-            
+
             case NetOP.PlayerKit:
-                OnPlayerKit((Net_PlayerKit) msg);
+                OnPlayerKit((Net_PlayerKit)msg);
                 break;
 
             case NetOP.SwitchTurn:
-                OnSwitchTurn((Net_SwitchTurn) msg);
+                OnSwitchTurn((Net_SwitchTurn)msg);
                 break;
 
             case NetOP.ServerReady:
@@ -245,7 +299,7 @@ public static class MessageProcessing
                 break;
         }
     }
-    
+
     private static void OnNewUser(NetUser_Add msg)
     {
         ////Debug.Log(string.Format("Player connected!. Username: {0}", msg.Username));
@@ -261,8 +315,8 @@ public static class MessageProcessing
     private static void OnLeaveUser(NetUser_Leave msg)
     {
         Debug.Log(string.Format("Player {0} disconnected.", msg.id));
-        if(netManager!=null) netManager.LeaveUser(msg.id);
-        if(gameManager!=null) gameManager.OnUserLeave(msg.id);
+        if (netManager != null) netManager.LeaveUser(msg.id);
+        if (gameManager != null) gameManager.OnUserLeave(msg.id);
     }
 
     private static void OnSetGlobalId(NetUser_SetGlobalId msg)
@@ -271,11 +325,6 @@ public static class MessageProcessing
         netManager.SetGlobalId(msg.globalConId);
     }
 
-    private static void OnUpdatePlayer(Net_UpdateCardPlayer msg)
-    {
-        ////Debug.Log(string.Format("Player {0} opened new card.", msg.Username));
-    }
-    
     private static void OnUpdateChat(Net_UpdateChat msg)
     {
         //Debug.Log("New message in chat!");
@@ -295,13 +344,13 @@ public static class MessageProcessing
         gameManager.VotingForPlayer(msg.id);
     }
 
-    private static void OnPlayerVote (Net_PlayerVote msg) 
+    private static void OnPlayerVote(Net_PlayerVote msg)
     {
         //Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
         gameManager.VotingForPlayer(msg.id);
     }
 
-    private static void OnPlayerKit (Net_PlayerKit msg) 
+    private static void OnPlayerKit(Net_PlayerKit msg)
     {
         //Debug.Log("Got card!");
         //Debug.Log("GM EMPTY = "+gameManager==null);
@@ -310,15 +359,15 @@ public static class MessageProcessing
         dc.category = msg.card.category;
         dc.description = msg.card.description;
         dc.iconName = msg.card.iconName;
-        Color color = new Color(msg.card.r,msg.card.g,msg.card.b, 1.0f);
+        Color color = new Color(msg.card.r, msg.card.g, msg.card.b, 1.0f);
         dc.color = color;
 
         gameManager.SetCardToList(dc);
     }
-    
+
     private static void OnLobbyStarted()
     {
-        netManager.ChangeScene(null, EventArgs.Empty);    
+        netManager.ChangeScene(null, EventArgs.Empty);
     }
 
     private static void OnGameStarted()
@@ -371,7 +420,7 @@ public static class MessageProcessing
         return MakeBuffer(msg);
     }
 
-    public static byte[] ServerPlayerVoteMsg (User user, int id)
+    public static byte[] ServerPlayerVoteMsg(User user, int id)
     {
         Net_PlayerVote msg = new Net_PlayerVote();
         msg.user = user;
@@ -380,11 +429,11 @@ public static class MessageProcessing
         return MakeBuffer(msg);
     }
 
-    public static byte[] ServerPlayerKitMsg (DeckCard card)
+    public static byte[] ServerPlayerKitMsg(DeckCard card)
     {
         Net_PlayerKit msg = new Net_PlayerKit();
         DeckCardSerializable dcs;
-        
+
         dcs.name = card.name;
         dcs.category = card.category;
         dcs.description = card.description;
@@ -397,27 +446,27 @@ public static class MessageProcessing
         return MakeBuffer(msg);
     }
 
-    public static byte[] ServerLobbyStartedMsg ()
+    public static byte[] ServerLobbyStartedMsg()
     {
         Net_LobbyStarted msg = new Net_LobbyStarted();
 
         return MakeBuffer(msg);
     }
 
-    public static byte[] ServerGameStartedMsg ()
+    public static byte[] ServerGameStartedMsg()
     {
         Net_GameStarted msg = new Net_GameStarted();
 
         return MakeBuffer(msg);
     }
-    
+
     public static byte[] ServerReadyForGame()
     {
         Net_ServerReady msg = new Net_ServerReady();
 
         return MakeBuffer(msg);
     }
-    
+
     #endregion
 
     #region ClientWriteMsg
@@ -445,7 +494,7 @@ public static class MessageProcessing
 
         return MakeBuffer(msg);
     }
-    
+
     public static byte[] ClientReadyForGame(int id)
     {
         Net_ReadyForGame msg = new Net_ReadyForGame();
@@ -472,10 +521,10 @@ public static class MessageProcessing
         NetUser_Leave msg = new NetUser_Leave();
         msg.id = id;
 
-        return MakeBuffer(msg); 
+        return MakeBuffer(msg);
     }
 
-    public static byte[] CastCardMsg (User user, Card card)
+    public static byte[] CastCardMsg(User user, Card card)
     {
         Net_CastCard msg = new Net_CastCard();
         msg.user = user;
@@ -511,20 +560,20 @@ public static class MessageProcessing
 
     public static void UpdateUser(User user)
     {
-        if(netManager.client)
+        if (client != null)
         {
-            netManager.client.SendServer(UpdateUserMsg(user));
+            client.SendServer(UpdateUserMsg(user));
         }
 
-        if(netManager.server)
+        if (server != null)
         {
-            netManager.server.SendOther(UpdateUserMsg(user));
+            server.SendOther(UpdateUserMsg(user));
         }
     }
 
     public static void SendLeaveUser(int id)
     {
-        netManager.server.SendOther(LeaveUser(id));
+        server.SendOther(LeaveUser(id));
     }
 
     public static void ReadyForGame(User user)
@@ -554,22 +603,21 @@ public static class MessageProcessing
 
     public static void ChangeScene()
     {
-        if (netManager.server != null) netManager.server.SendOther(ServerLobbyStartedMsg());
+        if (server != null) server.SendOther(ServerLobbyStartedMsg());
     }
 
-    public static void Exit() 
+    public static void Exit()
     {
-        if(netManager.server != null) 
+        if (gameManager.server != null)
         {
-            netManager.server.KickAll();
-            netManager.server.Shutdown();
-            netManager.NetManager_DeleteNetworkObjects(null, EventArgs.Empty);
+            gameManager.server.KickAll();
+            gameManager.server.Shutdown();
         }
-        if(netManager.client != null)
+        if (gameManager.client != null)
         {
-            netManager.client.Disconnect();
-            netManager.NetManager_DeleteNetworkObjects(null, EventArgs.Empty);
+            gameManager.client.Disconnect();
         }
     }
+
     #endregion
 }

@@ -61,6 +61,7 @@ public class Timer : MonoBehaviour
         TimeSpan t = TimeSpan.FromSeconds(time);
         remainingTimeMin = t.Minutes + ":" + t.Seconds;
         remainingTimeSec = t.ToString(@"ss\,fff");
+        remainingTimeInt = ((int)time).ToString();
     }
     
     void Update()
@@ -71,7 +72,7 @@ public class Timer : MonoBehaviour
             TimeSpan t = TimeSpan.FromSeconds(time);
             remainingTimeMin = t.Minutes + ":" + t.Seconds;
             remainingTimeSec = t.ToString(@"ss\,fff");
-            remainingTimeInt = t.ToString(@"s");
+            remainingTimeInt = ((int)time).ToString();
         }
         if (time < 0 && isRunning)
         {
@@ -79,7 +80,7 @@ public class Timer : MonoBehaviour
             TimeSpan t = TimeSpan.FromSeconds(time);
             remainingTimeMin = t.Minutes + ":" + t.Seconds;
             remainingTimeSec = t.ToString(@"ss\,fff");
-            remainingTimeInt = t.ToString(@"s");
+            remainingTimeInt = ((int)time).ToString();
             if(timerCallback != null) timerCallback();
         }
     }

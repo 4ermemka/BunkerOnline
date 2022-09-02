@@ -78,7 +78,7 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         KickConfirm panel = FindObjectOfType<KickConfirm>();
-        if(panel == null && gm.IsMyVoteTurn())
+        if(panel == null && gm.IsMyVoteTurn() && gm.user.id != this.user.id)
         {
             panel = Instantiate(kickPanelPref) as KickConfirm;
             panel.transform.SetParent(FindObjectOfType<Canvas>().transform);
