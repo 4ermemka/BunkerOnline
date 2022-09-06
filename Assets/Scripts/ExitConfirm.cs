@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class ExitConfirm : MonoBehaviour
 {
+    [SerializeField] private TabGroup Buttons;
+    [SerializeField] private TabButton ExitButton;
+
     void Start()
     {
         transform.position = Vector3.zero;
@@ -26,12 +29,15 @@ public class ExitConfirm : MonoBehaviour
 
     public void OnClickYes()
     {
+        Buttons.OnTabSelected(ExitButton);
         if(MessageProcessing.gameManager != null) MessageProcessing.gameManager.Disconnect(null, EventArgs.Empty);
         else Debug.Log("GM EMPTY!");
+        
     }
 
     public void OnClickNo()
     {
+        Buttons.OnTabSelected(ExitButton);
         Disapear();
     }
 }

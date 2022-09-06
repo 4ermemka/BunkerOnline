@@ -12,6 +12,7 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
     private User user;
     private GameManager gm;
     [SerializeField] private KickConfirm kickPanelPref;
+    [SerializeField] private CanvasGroup selectedCircle;
     [SerializeField] private Image avatar;
     [SerializeField] private CircleLayoutGroup attributePanel;
     [SerializeField] private TextMeshProUGUI nicknameText;
@@ -43,6 +44,7 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
     {
         gm = FindObjectOfType<GameManager>();
         attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
+        DeselectPlayer();
     }
 
     public void Update()
@@ -52,6 +54,16 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
         else votes.GetComponent<CanvasGroup>().alpha = 0;
         votes.text = user.votesFor.ToString();
         votes.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = user.votesFor.ToString();
+    }
+
+    public void SelectPlayer()
+    {
+        selectedCircle.alpha = 1f;
+    }
+
+    public void DeselectPlayer()
+    {
+        selectedCircle.alpha = 0f;
     }
 
     public void AddAttribute(Attribute attribute)

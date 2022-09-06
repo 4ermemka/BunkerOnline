@@ -59,7 +59,7 @@ public class TabGroup : MonoBehaviour
         foreach(TabButton tab in tabButtons)
         {
             if(selectedTab == null || selectedTab != tab)
-            tab.SetBackground(tabIdle);
+                tab.SetBackground(tabIdle);
         }
     }
 }
