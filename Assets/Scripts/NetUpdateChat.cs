@@ -7,4 +7,6 @@ public  class Net_UpdateChat : NetMsg
     }
     public string Nickname { get; set; }
     public string message { get; set; }
+
+    public string Color { get; set; }
 }

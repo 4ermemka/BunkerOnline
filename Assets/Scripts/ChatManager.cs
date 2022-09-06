@@ -16,6 +16,11 @@ public class ChatManager : MonoBehaviour
     private Server server;
     private Client client;
 
+    private void Update() 
+    {
+        if(transform.childCount > 10)
+            Destroy(transform.GetChild(0).gameObject);
+    }
 
     public void Start() 
     {
@@ -33,6 +38,19 @@ public class ChatManager : MonoBehaviour
     {
         ChatMessage chatMsg = Instantiate(msgPref) as ChatMessage;
 
+        chatMsg.SetColor("FFBC00");
+        chatMsg.SetMessage(msg);
+        chatMsg.SetNickname(author);
+
+        chatMsg.transform.SetParent(chatList.transform);
+        chatMsg.transform.localScale = new Vector3(1,1,1);
+    }
+
+    public void SystemMessage(string author, string msg, string hexColor)
+    {
+        ChatMessage chatMsg = Instantiate(msgPref) as ChatMessage;
+
+        chatMsg.SetColor(hexColor);
         chatMsg.SetMessage(msg);
         chatMsg.SetNickname(author);
 

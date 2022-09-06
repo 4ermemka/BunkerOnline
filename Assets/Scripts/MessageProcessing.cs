@@ -100,7 +100,7 @@ public static class MessageProcessing
     public static void ClientOnServerDisonnection(object sender, EventArgs e)
     {
         //Debug.Log("We have been disconnected from server!");
-        if (gameManager != null)
+        if (gameManager != null && !gameManager.endgameShown)
             SceneManager.LoadScene("MenuInterface");
 
         if (netManager != null) 
@@ -165,6 +165,10 @@ public static class MessageProcessing
                 OnSwitchTurn(e.conId, e.host, (Net_SwitchTurn)msg);
                 break;
 
+            case NetOP.EndgameOpen:
+                OnEndgameKit(e.conId, e.host, (Net_EndgameOpen)msg);
+                break;
+
             default:
                 //Debug.Log("Unexpected msg type!");
                 break;
@@ -205,7 +209,7 @@ public static class MessageProcessing
     {
         //Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
         gameManager.server.SendOther(conId, host, MakeBuffer(msg));
-        gameManager.VotingForPlayer(msg.id);
+        gameManager.VotingForPlayer(msg.id, msg.author);
     }
 
     private static void OnPlayerReadyForGame(int conId, int host, Net_ReadyForGame msg)
@@ -217,7 +221,13 @@ public static class MessageProcessing
     private static void OnSwitchTurn(int conId, int host, Net_SwitchTurn msg)
     {
         gameManager.SwitchTurn();
-        gameManager.server.SendOther(conId, host, MakeBuffer(msg));
+        server.SendOther(conId, host, MakeBuffer(msg));
+    }
+
+    private static void OnEndgameKit(int conId, int host, Net_EndgameOpen msg)
+    {
+        gameManager.SetPlayersEndgamePanel(msg.id, msg.card);
+        server.SendOther(conId, host, MakeBuffer(msg));
     }
 
     #endregion
@@ -266,10 +276,6 @@ public static class MessageProcessing
                 OnUpdateChat((Net_UpdateChat)msg);
                 break;
 
-            case NetOP.VotingForPlayer:
-                OnUpdateVotingArray((Net_VotingForPlayer)msg);
-                break;
-
             case NetOP.PlayerVote:
                 OnPlayerVote((Net_PlayerVote)msg);
                 break;
@@ -292,6 +298,10 @@ public static class MessageProcessing
 
             case NetOP.ServerReady:
                 OnServerReady();
+                break;
+
+            case NetOP.EndgameOpen:
+                OnEndgameKit((Net_EndgameOpen)msg);
                 break;
 
             default:
@@ -339,15 +349,10 @@ public static class MessageProcessing
         netManager.UpdateUsersList(newList);
     }
 
-    private static void OnUpdateVotingArray(Net_VotingForPlayer msg)
-    {
-        gameManager.VotingForPlayer(msg.id);
-    }
-
     private static void OnPlayerVote(Net_PlayerVote msg)
     {
         //Debug.Log("Player" + msg.user.id + "voted for player " + msg.id);
-        gameManager.VotingForPlayer(msg.id);
+        gameManager.VotingForPlayer(msg.id, msg.author);
     }
 
     private static void OnPlayerKit(Net_PlayerKit msg)
@@ -391,6 +396,11 @@ public static class MessageProcessing
         gameManager.SwitchTurn();
     }
 
+    private static void OnEndgameKit(Net_EndgameOpen msg)
+    {
+        gameManager.SetPlayersEndgamePanel(msg.id, msg.card);
+    }
+
     #endregion
 
     #region ServerWriteMsg
@@ -416,15 +426,6 @@ public static class MessageProcessing
         Net_UpdateChat msg = new Net_UpdateChat();
         msg.Nickname = user.Nickname;
         msg.message = message;
-
-        return MakeBuffer(msg);
-    }
-
-    public static byte[] ServerPlayerVoteMsg(User user, int id)
-    {
-        Net_PlayerVote msg = new Net_PlayerVote();
-        msg.user = user;
-        msg.id = id;
 
         return MakeBuffer(msg);
     }
@@ -477,6 +478,7 @@ public static class MessageProcessing
 
         return MakeBuffer(msg);
     }
+    
     public static byte[] UpdateUserMsg(User user)
     {
         NetUser_UpdateInfo msg = new NetUser_UpdateInfo();
@@ -542,10 +544,10 @@ public static class MessageProcessing
         return MakeBuffer(msg);
     }
 
-    public static byte[] PlayerVote(User author, int num_user)
+    public static byte[] PlayerVote(int author, int num_user)
     {
         Net_PlayerVote msg = new Net_PlayerVote();
-        msg.user = author;
+        msg.author = author;
         msg.id = num_user;
 
         return MakeBuffer(msg);
@@ -554,6 +556,16 @@ public static class MessageProcessing
     public static byte[] SwitchTurn()
     {
         Net_SwitchTurn msg = new Net_SwitchTurn();
+
+        return MakeBuffer(msg);
+    }
+
+    public static byte[] MakeEndgameKit(int id, DeckCardSerializable card)
+    {
+        Net_EndgameOpen msg = new Net_EndgameOpen();
+
+        msg.id = id;
+        msg.card = card;
 
         return MakeBuffer(msg);
     }
@@ -595,10 +607,10 @@ public static class MessageProcessing
         if (gameManager.server != null) gameManager.server.SendOther(CastCardMsg(user, e.card));
     }
 
-    public static void VoteFor(User user)
+    public static void VoteFor(int author, int id)
     {
-        if (gameManager.client != null) gameManager.client.SendServer(PlayerVote(user, user.id));
-        if (gameManager.server != null) gameManager.server.SendOther(PlayerVote(user, user.id));
+        if (client != null) client.SendServer(PlayerVote(author, id));
+        if (server != null) server.SendOther(PlayerVote(author, id));
     }
 
     public static void ChangeScene()
@@ -606,16 +618,22 @@ public static class MessageProcessing
         if (server != null) server.SendOther(ServerLobbyStartedMsg());
     }
 
+    public static void EndgameSend(DeckCardSerializable card)
+    {
+        if (client != null) client.SendServer(MakeEndgameKit(gameManager.user.id, card));
+        if (server != null) server.SendOther(MakeEndgameKit(gameManager.user.id, card));
+    }
+
     public static void Exit()
     {
-        if (gameManager.server != null)
+        if (server != null)
         {
-            gameManager.server.KickAll();
-            gameManager.server.Shutdown();
+            server.KickAll();
+            server.Shutdown();
         }
-        if (gameManager.client != null)
+        if (client != null)
         {
-            gameManager.client.Disconnect();
+            client.Disconnect();
         }
     }
 

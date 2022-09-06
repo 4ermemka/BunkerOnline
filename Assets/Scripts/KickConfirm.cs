@@ -8,6 +8,7 @@ public class KickConfirm : MonoBehaviour
     [SerializeField] private TextMeshProUGUI message;
     private User votingForUser;
     private GameManager gm;
+    
     void Start()
     {
         GetComponent<CanvasGroup>().alpha = 0;

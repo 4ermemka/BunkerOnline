@@ -145,6 +145,7 @@ public class NetManager : MonoBehaviour
         MessageProcessing.server.OnDisconnect += MessageProcessing.ServerOnClientDisconnection;
         netState = CurrentNetState.Server;
         user.ToggleHost(true);
+        user.id = 0;
         lobbyList.Add(user);
         MenuInterfaceManager.UpdateLobby(lobbyList);
     }

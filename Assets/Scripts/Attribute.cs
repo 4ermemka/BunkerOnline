@@ -150,6 +150,7 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         sprite = IconsList.GetIcon(card.iconName);
         Color = new Color(card.r, card.g, card.b, 1.0f);
     }
+    
     #endregion
 
     #region PointerBehaviour
@@ -176,7 +177,7 @@ public class Attribute : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             float offsetY = currCardInfo.GetComponent<RectTransform>().rect.height/2;
 
             Vector3 offset = new Vector3(offsetX, offsetY, 0);
-            Vector3 screen = cam.ScreenToWorldPoint(new Vector3(Screen.width-offsetX*2, Screen.height-offsetY*2,0));
+            Vector3 screen = cam.ScreenToWorldPoint(new Vector3(Screen.currentResolution.width-offsetX*2, Screen.currentResolution.height-offsetY*2,0));
             pos.z = 0;
 
             if(pos.x>screen.x) offset.x *=-1;

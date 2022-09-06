@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -17,5 +18,10 @@ public class ChatMessage : MonoBehaviour
     public void SetMessage(string msg) 
     {
         MessageText.text = msg;
+    }
+
+    public void SetColor(string hexCode)
+    {
+        Nickname.color = ColorHandler.GetColorFromString(hexCode);
     }
 }

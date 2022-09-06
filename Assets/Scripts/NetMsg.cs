@@ -18,6 +18,7 @@ public static class NetOP
     public const int VotingForPlayer = 15;
     public const int SwitchTurn = 16;
     public const int ServerReady = 17;
+    public const int EndgameOpen = 18;
 }
 
 [System.Serializable]
