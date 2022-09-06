@@ -8,7 +8,7 @@ using System.Linq;
 /* ТАЙМЕР:
  * OnEndTimer - Событие. Срабатывает при истечении времени таймера.
  * float time - Счетчик таймера.
- * private bool timerRunning - Индикатор запущенности таймера.
+ * private bool isRunning - Индикатор запущенности таймера.
  * float remainingTimeSec - Публичная переменная, оставшееся время с миллисекундами.
  * int remainingTimeMin - Публичная переменная, оставшееся время в целых секундах.
  * 
@@ -26,9 +26,10 @@ public class Timer : MonoBehaviour
     private Action timerCallback;
 
     public float time;
-    public bool timerRunning = false;
+    public bool isRunning = false;
     public string remainingTimeSec;
     public string remainingTimeMin;
+    public string remainingTimeInt;
 
     public void SetTime (float timeStart)
     {
@@ -45,7 +46,7 @@ public class Timer : MonoBehaviour
 
     public bool GetTimerRunning()
     {
-        return timerRunning;
+        return isRunning;
     }
 
     public bool TimeIsUp()
@@ -60,6 +61,7 @@ public class Timer : MonoBehaviour
         TimeSpan t = TimeSpan.FromSeconds(time);
         remainingTimeMin = t.Minutes + ":" + t.Seconds;
         remainingTimeSec = t.ToString(@"ss\,fff");
+        remainingTimeInt = ((int)time).ToString();
     }
     
     void Update()
@@ -70,13 +72,15 @@ public class Timer : MonoBehaviour
             TimeSpan t = TimeSpan.FromSeconds(time);
             remainingTimeMin = t.Minutes + ":" + t.Seconds;
             remainingTimeSec = t.ToString(@"ss\,fff");
+            remainingTimeInt = ((int)time).ToString();
         }
-        if (time < 0 || !timerRunning)
+        if (time < 0 && isRunning)
         {
             time = 0;
             TimeSpan t = TimeSpan.FromSeconds(time);
             remainingTimeMin = t.Minutes + ":" + t.Seconds;
             remainingTimeSec = t.ToString(@"ss\,fff");
+            remainingTimeInt = ((int)time).ToString();
             if(timerCallback != null) timerCallback();
         }
     }

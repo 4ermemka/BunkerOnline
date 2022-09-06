@@ -5,6 +5,6 @@ public class Net_PlayerVote : NetMsg
     {
         OP = NetOP.PlayerVote;
     }
-    public User user;
+    public int author { get; set; }
     public int id { get; set; }
 }

@@ -7,4 +7,5 @@ public class NetUser_Add : NetMsg
     }
 
     public string Username { set; get; }
+    public int id { set; get; }
 }

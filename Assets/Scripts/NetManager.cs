@@ -13,29 +13,23 @@ public enum CurrentNetState
 
 public class NetManager : MonoBehaviour
 {
-    #region Events
-    public event EventHandler<OnUserUpdatedEventArgs> OnUserUpdated;
-
-    public class OnUserUpdatedEventArgs:EventArgs
-    {
-        public string newName;
-    }
-    #endregion
-
     #region NetmanagerFields
 
     private CurrentNetState netState = CurrentNetState.None;
-    [SerializeField] private Server serverPref;
-    [SerializeField] private Client clientPref;
-    [SerializeField] public MenuInterfaceManager MenuInterfaceManager;
+
+    [SerializeField]
+    private Server serverPref;
+
+    [SerializeField]
+    private Client clientPref;
+
+    [SerializeField]
+    public MenuInterfaceManager MenuInterfaceManager;
     private GameManager gm;
-    public Server server;
-    private Client client;
     public int hostId;
 
-    public User user; 
+    public User user;
     private List<User> lobbyList;
-
     #endregion
 
     public void Start()
@@ -44,6 +38,7 @@ public class NetManager : MonoBehaviour
         user = new User();
         lobbyList = new List<User>();
         MessageProcessing.SetNetManager(this);
+        NetManager_DeleteNetworkObjects(null, EventArgs.Empty);
 
         MenuInterfaceManager.OnClickConnect += NetManager_ConnectPressed;
         MenuInterfaceManager.OnChooseClient += NetManager_StartClient;
@@ -52,107 +47,43 @@ public class NetManager : MonoBehaviour
         MenuInterfaceManager.OnStartGame += ChangeScene;
     }
 
-    #region OnConnection  
-
-    public void ClientOnServerConnection(object sender, Client.OnConnectEventArgs e)
-    {
-        MenuInterfaceManager.NewConnectionStatus("Connected!");
-        hostId = e.hostId;
-    }
-
-    public void ServerOnClientConnected(object sender, Server.OnConnectEventArgs e)
-    {
-        //Debug.Log("New player connected! Sending him list...");
-        server.SendClient(hostId, e.conId, MessageProcessing.ServerSetGlobalId(e.conId));
-    }
-
-    #endregion
-
-    #region OnDisonnection  
-
-    public void ClientOnServerDisonnection(object sender, EventArgs e)
-    {
-        //Debug.Log("We have been disconnected from server!");
-        if(gm != null) SceneManager.LoadScene("MenuInterface");
-        if(lobbyList != null)ClearLobbyList();
-        MenuInterfaceManager.SwitchToMainMenu();
-    }
-
-    public void ServerOnClientDisconnection(object sender, Server.OnDisconnectEventArgs e)
-    {
-        //Debug.Log(string.Format("Player {0} was disconnected! ", e.conId));
-        LeaveUser(e.conId);
-
-        server.SendOther(MessageProcessing.ServerUsersListMsg(lobbyList));
-    }
-
-    #endregion
-
     #region UserManager
-
     public void AddNewUser(string Nickname, int conId)
     {
-        User newUser = new User(conId, Nickname);
+        User newUser = new User(conId, Nickname, false);
         lobbyList.Add(newUser);
 
-        MenuInterfaceManager.UpdateLobby(lobbyList);
-    }
-
-    public void AddNewUser(string Nickname, int conId, bool host, int recHost)
-    {
-        User newUser = new User(conId, Nickname, host);
-        lobbyList.Add(newUser);
-
-        server.SendClient(recHost, conId, MessageProcessing.ServerUsersListMsg(lobbyList));
-        server.SendOther(conId, recHost, MessageProcessing.ServerUsersListMsg(lobbyList));
-
-        MenuInterfaceManager.UpdateLobby(lobbyList);
+        MenuInterfaceManager.AddUser(conId, Nickname, false);
     }
 
     public void UpdateUsername(string Nickname)
     {
         user.SetNickname(Nickname);
-        OnUserUpdated?.Invoke(this, new OnUserUpdatedEventArgs{newName = Nickname});
-        User updatedUser = lobbyList.Find(x=> x.id == user.id);
+        MenuInterfaceManager.OnNicknameChanged(Nickname);
 
-        if(updatedUser!=null) updatedUser.SetNickname(Nickname);
+        User updatedUser = lobbyList.Find(x => x.id == user.id);
+        if (updatedUser != null)
+            updatedUser.SetNickname(Nickname);
 
         MenuInterfaceManager.ClearLobby();
         MenuInterfaceManager.UpdateLobby(lobbyList);
 
-        if(netState == CurrentNetState.Server)
-        {
-            server.SendOther(MessageProcessing.ServerUsersListMsg(lobbyList));
-        }
-
-        if(netState == CurrentNetState.Client)
-        {
-            client.SendServer(MessageProcessing.ClientUpdateUserMsg(user));
-        }
+        MessageProcessing.UpdateUser(user);
     }
 
-    public void UpdateUser(int conId, int host, string newNickname) 
+    public void UpdateUser(int conId, string newNickname)
     {
-        User updatedUser = lobbyList.Find(x=> x.id == conId);
-        if(updatedUser!=null) 
+        User updatedUser = lobbyList.Find(x => x.id == conId);
+        if (updatedUser != null)
         {
             updatedUser.SetNickname(newNickname);
-            MenuInterfaceManager.ClearLobby();
-            MenuInterfaceManager.UpdateLobby(lobbyList);
-        }
-
-        if(netState == CurrentNetState.Server)
-        {
-            //Debug.Log("SENDING OTHER");
-            server.SendOther(conId, host, MessageProcessing.ServerUsersListMsg(lobbyList));
+            MenuInterfaceManager.UpdateUser(conId, newNickname);
         }
     }
 
     public void SetGlobalId(int globalConId)
     {
         user.id = globalConId;
-        //Debug.Log("Global id is now " + user.id);
-        client.SendServer(MessageProcessing.ClientNewUserMsg(user));
     }
 
     public void ClearLobbyList()
@@ -164,22 +95,25 @@ public class NetManager : MonoBehaviour
     public void LeaveUser(int conId)
     {
         User deletingUser = lobbyList.Find(x => x.id == conId);
-        if(deletingUser!=null) 
+        if (deletingUser != null)
         {
             lobbyList.Remove(deletingUser);
-            MenuInterfaceManager.UpdateLobby(lobbyList);
+            MenuInterfaceManager.DelUser(conId);
         }
-        else Debug.Log("Err during deleting!");
-
-        
+        else
+            Debug.Log("Err during deleting!");
     }
 
     public void UpdateUsersList(List<User> newList)
     {
         lobbyList = newList;
         MenuInterfaceManager.UpdateLobby(lobbyList);
-        MenuInterfaceManager.SwitchToLobby();
         //Debug.Log("List was updated!");
+    }
+
+    public void SetGameManager(GameManager gm)
+    {
+        this.gm = gm;
     }
 
     #endregion
@@ -189,54 +123,59 @@ public class NetManager : MonoBehaviour
     //////////////////////////////////////////////////////////////////
     /////////////////// Reversed Ladder of events ////////////////////
     //////////////////////////////////////////////////////////////////
-    
-    public void NetManager_ConnectPressed(object sender, MenuInterfaceManager.OnClickConnectEventArgs e)
+
+    public void NetManager_ConnectPressed(
+        object sender,
+        MenuInterfaceManager.OnClickConnectEventArgs e
+    )
     {
-        if(client!=null)
+        if (MessageProcessing.client != null)
         {
-            client.Connect(e.server_ip);
+            MessageProcessing.client.Connect(e.server_ip);
         }
-        else Debug.Log("Err! No Client O_o");
+        else
+            Debug.Log("Err! No Client O_o");
     }
 
     public void NetManager_StartServer(object sender, EventArgs e)
     {
-        server = Instantiate(serverPref);
-        server.OnData += MessageProcessing.OnData;
-        server.OnConnect += ServerOnClientConnected;
-        server.OnDisconnect += ServerOnClientDisconnection;
+        MessageProcessing.server = Instantiate(serverPref);
+        MessageProcessing.server.OnData += MessageProcessing.ServerOnData;
+        MessageProcessing.server.OnConnect += MessageProcessing.ServerOnClientConnected;
+        MessageProcessing.server.OnDisconnect += MessageProcessing.ServerOnClientDisconnection;
         netState = CurrentNetState.Server;
         user.ToggleHost(true);
+        user.id = 0;
         lobbyList.Add(user);
         MenuInterfaceManager.UpdateLobby(lobbyList);
     }
 
     public void NetManager_StartClient(object sender, EventArgs e)
     {
-        client = Instantiate(clientPref);
-        client.OnData += MessageProcessing.OnData;
-        client.OnConnect += ClientOnServerConnection;
-        client.OnDisconnect += ClientOnServerDisonnection;
+        MessageProcessing.client = Instantiate(clientPref);
+        MessageProcessing.client.OnData += MessageProcessing.ClientOnData;
+        MessageProcessing.client.OnConnect += MessageProcessing.ClientOnServerConnection;
+        MessageProcessing.client.OnDisconnect += MessageProcessing.ClientOnServerDisonnection;
         netState = CurrentNetState.Client;
         user.ToggleHost(false);
     }
 
     public void NetManager_DeleteNetworkObjects(object sender, EventArgs e)
     {
-        if(server!=null) 
+        if (MessageProcessing.server != null)
         {
-            server.OnData -= MessageProcessing.OnData;
-            server.OnConnect -= ServerOnClientConnected;
-            server.OnDisconnect -= ServerOnClientDisconnection;
-            server.Shutdown();
+            MessageProcessing.server.OnData -= MessageProcessing.ServerOnData;
+            MessageProcessing.server.OnConnect -= MessageProcessing.ServerOnClientConnected;
+            MessageProcessing.server.OnDisconnect -= MessageProcessing.ServerOnClientDisconnection;
+            MessageProcessing.server.Shutdown();
         }
-        if(client!=null) 
+        if (MessageProcessing.client != null)
         {
-            client.Disconnect();
-            client.OnData -= MessageProcessing.OnData;
-            client.OnConnect -= ClientOnServerConnection;
-            client.OnDisconnect -= ClientOnServerDisonnection;
-            client.Shutdown();
+            MessageProcessing.client.Disconnect();
+            MessageProcessing.client.OnData -= MessageProcessing.ClientOnData;
+            MessageProcessing.client.OnConnect -= MessageProcessing.ClientOnServerConnection;
+            MessageProcessing.client.OnDisconnect -= MessageProcessing.ClientOnServerDisonnection;
+            MessageProcessing.client.Shutdown();
         }
         netState = CurrentNetState.None;
         ClearLobbyList();
@@ -258,9 +197,12 @@ public class NetManager : MonoBehaviour
     }
 
     #endregion
+
     public void ChangeScene(object sender, EventArgs e)
     {
-        if(server!=null) server.SendOther(MessageProcessing.ServerLobbyStartedMsg());
+        if (MessageProcessing.server != null)
+            MessageProcessing.server.SendOther(MessageProcessing.ServerLobbyStartedMsg());
         SceneManager.LoadScene("GameInterface");
+        gm = FindObjectOfType<GameManager>();
     }
 }
