@@ -18,6 +18,7 @@ public class UserInfo:MonoBehaviour
 
     public void Start() 
     {
+        id = 0;
         if(animationTime <= 0) animationTime*=-1 + 1;
         gameObject.GetComponent<CanvasGroup>().alpha = 0;
         if(Application.isPlaying) LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 1, animationTime);
