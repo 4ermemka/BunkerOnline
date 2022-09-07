@@ -165,10 +165,11 @@ public class GameManager : MonoBehaviour
         chat.SystemMessage("SYSTEM","Все подключены, начинаем игру...","03FF00");
         playerTimer.isRunning = true;
         playerTimer.SetTime(120);
-        if(server!=null)
+        if (MessageProcessing.server != null)
         {
+            Debug.Log("Зашёл в цикл!");
             List<Category> allCards = new List<Category>();
-            
+
             gameObject.GetComponent<Deck>().UpdateDeck("DefaultDeck.json");
             allCards = gameObject.GetComponent<Deck>().GetCategories();
             //Debug.Log(allCards == null);
@@ -181,7 +182,7 @@ public class GameManager : MonoBehaviour
                 server.SendClient(hostId, users[i].id,
                 MessageProcessing.ServerPlayerKitMsg(card));
             }
-            //Debug.Log(kits[0].cardsKit.Count);
+            Debug.Log(kits[0].cardsKit.Count);
             foreach(DeckCard card in kits[0].cardsKit)
                 SetCardToList(card);
             server.SendOther(MessageProcessing.ServerGameStartedMsg());
