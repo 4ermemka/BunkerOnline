@@ -363,7 +363,6 @@ public class GameManager : MonoBehaviour
         {
         case CurrentStage.PreGameDelay:
             currentPlayer = players[0];
-            playerInfoList.Find(x=>x.GetUser() == currentPlayer).SelectPlayer();
             currentStage = CurrentStage.Turn;
 
             playerTimer.SetTime(timeToTurn);
@@ -374,21 +373,19 @@ public class GameManager : MonoBehaviour
                 currentStage = CurrentStage.TurnDelay;
                 playerTimer.SetTime(timeToDelay);
                 playerTimer.SetAction(SwitchTurn);
-                playerInfoList.Find(x=>x.GetUser() == currentPlayer).DeselectPlayer();
             break;
 
         case CurrentStage.TurnDelay:
             if(players.FindIndex(x=> x == currentPlayer) != players.Count-1)//if not last plaing user
             {
                 currentPlayer = players[players.FindIndex(x => x == currentPlayer)+1];//switch to next player
-                playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).SelectPlayer();
                 currentStage = CurrentStage.Turn;
                 playerTimer.SetTime(timeToTurn);
                 playerTimer.SetAction(MakeRandomCast);
             }
             else // if last player (then go to next stage)
             {   
-                currentPlayer = null;
+                currentPlayer = players[0];
                 currentStage = CurrentStage.Debate;
                 playerTimer.SetTime(timeToDebate);
                 playerTimer.SetAction(SwitchTurn);
@@ -483,6 +480,7 @@ public class GameManager : MonoBehaviour
 
             Random random = new Random();
             int randomIndex = random.Next(players.Count);
+            while(players[randomIndex].id == user.id) randomIndex = random.Next(players.Count);
             MyVoteFor(players[randomIndex]);
         }
         SwitchTurn();
