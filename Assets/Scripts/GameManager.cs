@@ -550,7 +550,7 @@ public class GameManager : MonoBehaviour
             UserInfo newObserver = Instantiate(userInfoPref) as UserInfo;
             
             newObserver.setNickname(playerToKick.GetUser().Nickname);
-            newObserver.setId(playerToKick.GetUser().id);
+            newObserver.id = playerToKick.GetUser().id;
             newObserver.toggleHost(playerToKick.GetUser().isHost);
             newObserver.setNum(observersGrid.transform.childCount+1);
 
@@ -624,6 +624,7 @@ public class GameManager : MonoBehaviour
             SetPlayersEndgamePanel(user.id, dcs);
         }
 
+        myCards.Clear();
         playerTimer.isRunning = false;
         playerTimer.SetTime(0);
     }
