@@ -13,10 +13,20 @@ public class ChatManager : MonoBehaviour
     [SerializeField] private ChatMessage msgPref;
 
     [SerializeField] private TMP_InputField msgField;
+    private Server server;
+    private Client client;
+
+    private void Update() 
+    {
+        if(transform.childCount > 10)
+            Destroy(transform.GetChild(0).gameObject);
+    }
 
     public void Start() 
     {
-        
+        server = FindObjectOfType<Server>();
+        client = FindObjectOfType<Client>();
+        MessageProcessing.SetChatManager(this); 
     }
 
     public void SetNickname(string nick) 
@@ -28,6 +38,19 @@ public class ChatManager : MonoBehaviour
     {
         ChatMessage chatMsg = Instantiate(msgPref) as ChatMessage;
 
+        chatMsg.SetColor("FFBC00");
+        chatMsg.SetMessage(msg);
+        chatMsg.SetNickname(author);
+
+        chatMsg.transform.SetParent(chatList.transform);
+        chatMsg.transform.localScale = new Vector3(1,1,1);
+    }
+
+    public void SystemMessage(string author, string msg, string hexColor)
+    {
+        ChatMessage chatMsg = Instantiate(msgPref) as ChatMessage;
+
+        chatMsg.SetColor(hexColor);
         chatMsg.SetMessage(msg);
         chatMsg.SetNickname(author);
 
@@ -37,7 +60,18 @@ public class ChatManager : MonoBehaviour
 
     public void WriteMessage()
     {
-        if(msgField.text!=string.Empty) AddMessage(this.myNickname, msgField.text);
+        if(msgField.text!=string.Empty) 
+            {
+                AddMessage(this.myNickname, msgField.text);
+                if(server != null)
+                {
+                    server.SendOther(MessageProcessing.WriteChatMsg(myNickname, msgField.text));
+                }
+                if(client != null)
+                {
+                    client.SendServer(MessageProcessing.WriteChatMsg(myNickname, msgField.text));
+                }
+            }
         msgField.text = string.Empty;
     }
 }

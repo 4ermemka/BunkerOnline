@@ -97,11 +97,23 @@ public class Server : MonoBehaviour
         isStarted = true;
     }
 
-    public void  Shutdown() 
+    public void Shutdown() 
     {
         isStarted = false;
         NetworkTransport.Shutdown();
         Destroy(this.gameObject);
+    }
+
+    public void Kick(int id)
+    {
+        NetworkTransport.Disconnect(hostId, id, out error);
+        connectedUsersList.Remove(connectedUsersList.Find(x=>x.GetConnectionId() == id));
+    }
+
+    public void KickAll()
+    {
+        foreach(ConnectionInfo info in connectedUsersList) NetworkTransport.Disconnect(hostId, info.GetConnectionId(), out error);
+        connectedUsersList.Clear();
     }
 
     #endregion
@@ -143,7 +155,7 @@ public class Server : MonoBehaviour
             break;
 
             case NetworkEventType.ConnectEvent:
-            Debug.Log(string.Format("User {0} connected through port {1}!", connectionId, recHostId));
+            //Debug.Log(string.Format("User {0} connected through port {1}!", connectionId, recHostId));
 
             ConnectionInfo newConnection = new ConnectionInfo();
             newConnection.SetHostId(recHostId);
@@ -154,7 +166,7 @@ public class Server : MonoBehaviour
             break;
 
             case NetworkEventType.DisconnectEvent:
-            Debug.Log(string.Format("User {0} disconnected!", connectionId));
+            //Debug.Log(string.Format("User {0} disconnected!", connectionId));
 
             OnDisconnect?.Invoke(this, new OnDisconnectEventArgs {conId = connectionId, host = recHostId});
 
@@ -185,7 +197,7 @@ public class Server : MonoBehaviour
         foreach (var i in connectedUsersList)
         {
             if (i.GetConnectionId() != conId) SendClient(i.GetHostId(), i.GetConnectionId(), buffer);
-            Debug.Log(string.Format("Sending msg about this to user {0}", i.GetConnectionId()));
+            //Debug.Log(string.Format("Sending msg about this to user {0}", i.GetConnectionId()));
         }
     }
 
@@ -194,7 +206,7 @@ public class Server : MonoBehaviour
         foreach (var i in connectedUsersList)
         {
             SendClient(i.GetHostId(), i.GetConnectionId(), buffer);
-            Debug.Log(string.Format("Sending msg about this to user {0}", i.GetConnectionId()));
+            //Debug.Log(string.Format("Sending msg about this to user {0}", i.GetConnectionId()));
         }
     }
     #endregion

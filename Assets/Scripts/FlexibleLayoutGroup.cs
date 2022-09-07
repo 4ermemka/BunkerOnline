@@ -24,7 +24,7 @@ public struct Padding
         return c1.Equals(c2);
     }
 
-    public static bool operator !=(Padding c1, Padding c2) 
+    public static bool operator != (Padding c1, Padding c2) 
     {
        return !c1.Equals(c2);
     }   
@@ -141,7 +141,7 @@ public class FlexibleLayoutGroup : MonoBehaviour
                     if (count % columns != 0) rows++;
                 }
             }
-            break;
+        break;
         
         case LayoutType.Flexible:
             float scr = Mathf.Sqrt(transform.childCount);
