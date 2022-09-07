@@ -141,7 +141,7 @@ public class FlexibleLayoutGroup : MonoBehaviour
                     if (count % columns != 0) rows++;
                 }
             }
-            break;
+        break;
         
         case LayoutType.Flexible:
             float scr = Mathf.Sqrt(transform.childCount);

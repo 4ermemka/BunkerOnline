@@ -11,6 +11,7 @@ public class TabButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     [SerializeField] private TabGroup tabGroup;
 
     [SerializeField] private Image background;
+    public bool isSelected;
 
     public UnityEvent OnTabSelected;
     public UnityEvent OnTabDeselected;
@@ -39,15 +40,18 @@ public class TabButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     {
         background = GetComponent<Image>();
         tabGroup.Subscribe(this);
+        isSelected = false;
     }
 
     public void Select() 
     {
+        isSelected = true;
         OnTabSelected?.Invoke();
     }
 
     public void Deselect() 
     {
+        isSelected = false;
         OnTabDeselected?.Invoke();
     }
 }

@@ -198,19 +198,10 @@ public class MenuInterfaceManager : MonoBehaviour
         panelsList.Add(newUser);
         Debug.Log("LIST COUNT: " + panelsList.Count);
         UpdateLobbyNums();
-
-        foreach(UserInfo u in panelsList)
-        {
-            Debug.Log("User: " + u.nickname + " id: " + u.id + " n: " + u.num);
-        }
     }
 
     public void DelUser(int conId)
     {
-        foreach(UserInfo u in panelsList)
-        {
-            Debug.Log(u.nickname + " id: " + u.id + " n:" + u.num);
-        }
         UserInfo userToDel = new UserInfo();
         userToDel = panelsList.Find(x => x.id == conId);
         if(userToDel != null) 
