@@ -163,7 +163,8 @@ public class FlexibleLayoutGroup : MonoBehaviour
         if(lastRectSize!=gameObject.GetComponent<RectTransform>().rect.size 
         || childrenLastCount!=transform.childCount
         || lastSpacing != spacing
-        || lastPadding != padding)
+        || lastPadding != padding
+        || !enableAnimation)
         {
             SetChildren();
             childrenLastCount = transform.childCount;

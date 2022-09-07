@@ -165,11 +165,13 @@ public class GameManager : MonoBehaviour
         chat.SystemMessage("SYSTEM","Все подключены, начинаем игру...","03FF00");
         playerTimer.isRunning = true;
         playerTimer.SetTime(120);
-        if(server!=null)
+        if(MessageProcessing.server!=null)
         {
             List<Category> allCards = new List<Category>();
             
             gameObject.GetComponent<Deck>().UpdateDeck("DefaultDeck.json");
+
+            FileHandler.SaveToJSON<DeckCard>(new List<DeckCard>(), "newfile");
             allCards = gameObject.GetComponent<Deck>().GetCategories();
             //Debug.Log(allCards == null);
             List<PlayerKit> kits = new List<PlayerKit>();
@@ -358,6 +360,7 @@ public class GameManager : MonoBehaviour
 
     public void SwitchTurn()
     {
+        if(endgameShown) return;
         //Debug.Log("Turn Switched");
         switch (currentStage) 
         {
@@ -574,11 +577,13 @@ public class GameManager : MonoBehaviour
 
     public void OnUserLeave(int id)
     {
+        if(endgameShown) return;
         User disconnectedUser = users.Find(x=>x.id == id);
         if(disconnectedUser!=null)
         {
             MessageProcessing.chatManager.SystemMessage("SYSTEM", "Игрок " + disconnectedUser.Nickname + " покидает игру.", "03FF00");
-
+            
+            users.Remove(disconnectedUser);
             if(players.Find(x=>x.id == id) != null)
             {
                 players.Remove(players.Find(x=>x.id == id));
