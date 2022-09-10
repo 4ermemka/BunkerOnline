@@ -134,8 +134,6 @@ public class GameManager : MonoBehaviour
         timerText.text = playerTimer.remainingTimeMin;
         currentStage = CurrentStage.PreGameDelay;
 
-        isKicked = false;
-        endgameShown = false;
         MessageProcessing.SetGameManager(this);
 
         MessageProcessing.ReadyForGame(user);
@@ -150,6 +148,9 @@ public class GameManager : MonoBehaviour
 
         Destroy(nm.gameObject);
         MessageProcessing.netManager = null;
+        
+        isKicked = false;
+        endgameShown = false;
     }
 
     public bool AllUsersReady()
@@ -439,6 +440,7 @@ public class GameManager : MonoBehaviour
                     currentStage = CurrentStage.Voting;
                     playerTimer.SetAction(MakeRandomChoise);
                     playerTimer.SetTime(timeToVote);
+                    NullVotes();
                 }
             }
             break;
@@ -480,8 +482,9 @@ public class GameManager : MonoBehaviour
     
     public void MakeRandomChoise()
     {
-        if(currentPlayer == user)
+        if(currentPlayer.id == user.id)
         {
+            Debug.Log("Time is up, random vote...");
             KickConfirm panel = FindObjectOfType<KickConfirm>();
             if(panel != null) Destroy(panel.gameObject);
 
@@ -512,7 +515,7 @@ public class GameManager : MonoBehaviour
 
     public void VotingForPlayer(int id, int authorId)
     {
-        MessageProcessing.chatManager.SystemMessage("VOTING_MANAGER", "Игрок " + 
+        MessageProcessing.chatManager.SystemMessage("ГОЛОСОВАНИЕ", "Игрок " + 
         players.Find(x=>x.id == authorId).Nickname + " голосует за игрока " + 
         players.Find(x=>x.id == id).Nickname, "FF0000", "FF8B7C");
 
@@ -543,7 +546,7 @@ public class GameManager : MonoBehaviour
         
         if(playerToKick!=null)
         {
-            chat.SystemMessage("KICK_MANAGER","Кикаем игрока "+ playerToKick.GetUser().Nickname, "FF0000", "FF8B7C");
+            chat.SystemMessage("ИЗГНАНИЕ","Кикаем игрока "+ playerToKick.GetUser().Nickname, "FF0000", "FF8B7C");
             players.Remove(playerToKick.GetUser());
 
             Destroy(playerToKick.gameObject);
@@ -585,7 +588,7 @@ public class GameManager : MonoBehaviour
         User disconnectedUser = users.Find(x=>x.id == id);
         if(disconnectedUser!=null)
         {
-            MessageProcessing.chatManager.SystemMessage("SYSTEM", "Игрок " + disconnectedUser.Nickname + " покидает игру.", "03FF00", "FF8B7C");
+            MessageProcessing.chatManager.SystemMessage("СИСТЕМА", "Игрок " + disconnectedUser.Nickname + " покидает игру.", "03FF00", "FF8B7C");
             
             users.Remove(disconnectedUser);
             if(players.Find(x=>x.id == id) != null)
@@ -594,12 +597,12 @@ public class GameManager : MonoBehaviour
                 Destroy(playerInfoList.Find(x=>x.GetUser().id == id).gameObject);
                 playerInfoList.Remove(playerInfoList.Find(x=>x.GetUser().id == id));
             }
-
-            if(observersList.Find(x=>x.id == id) != null)
+            UserInfo observer = observersGrid.GetComponentsInChildren<UserInfo>().ToList<UserInfo>().Find(x=>x.id == id);
+            if(observer != null)
             {
                 Debug.Log("Found observer");
-                Destroy(observersList.Find(x=>x.id == id).gameObject);
-                observersList.Remove(observersList.Find(x=>x.id == id));
+                Destroy(observer.gameObject);
+                observersList.Remove(observersList.Find(x=>observer.id == id));
             }
             if(players.Count <= countForEndGame) EndGameSwitch();
             else if(currentPlayer!=null && currentPlayer.id == id) SwitchTurn();
