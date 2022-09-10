@@ -52,18 +52,19 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
         nicknameText.text = Nickname;
         if(gm.currentStage == CurrentStage.Voting) votes.GetComponent<CanvasGroup>().alpha = 1;
         else votes.GetComponent<CanvasGroup>().alpha = 0;
+        
         votes.text = user.votesFor.ToString();
         votes.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = user.votesFor.ToString();
     }
 
     public void SelectPlayer()
     {
-        selectedCircle.alpha = 1f;
+        LeanTween.alphaCanvas(selectedCircle, 1f, 0.3f);
     }
 
     public void DeselectPlayer()
     {
-        selectedCircle.alpha = 0f;
+        LeanTween.alphaCanvas(selectedCircle, 0f, 0.3f);
     }
 
     public void AddAttribute(Attribute attribute)
