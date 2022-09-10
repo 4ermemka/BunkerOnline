@@ -18,7 +18,7 @@ public class ChatManager : MonoBehaviour
 
     private void Update() 
     {
-        if(transform.childCount > 10)
+        if(transform.childCount > 60)
             Destroy(transform.GetChild(0).gameObject);
     }
 
@@ -38,7 +38,7 @@ public class ChatManager : MonoBehaviour
     {
         ChatMessage chatMsg = Instantiate(msgPref) as ChatMessage;
 
-        chatMsg.SetColor("FFBC00");
+        chatMsg.SetColor("FFBC00", "FFFFFF");
         chatMsg.SetMessage(msg);
         chatMsg.SetNickname(author);
 
@@ -46,11 +46,11 @@ public class ChatManager : MonoBehaviour
         chatMsg.transform.localScale = new Vector3(1,1,1);
     }
 
-    public void SystemMessage(string author, string msg, string hexColor)
+    public void SystemMessage(string author, string msg, string hexColorAuthor, string hexColorMessage)
     {
         ChatMessage chatMsg = Instantiate(msgPref) as ChatMessage;
 
-        chatMsg.SetColor(hexColor);
+        chatMsg.SetColor(hexColorAuthor, hexColorMessage);
         chatMsg.SetMessage(msg);
         chatMsg.SetNickname(author);
 

@@ -9,6 +9,7 @@ public class TabMenu : MonoBehaviour
     [SerializeField] float animationSpeed;
     [SerializeField] AnimationCurve curve;
 
+    private Vector3 panelRectPos;
     private RectTransform panelRect;
     private RectTransform myRect;
     private Vector3 offset;
@@ -16,33 +17,36 @@ public class TabMenu : MonoBehaviour
     {
         panelRect = panel.GetComponent<RectTransform>();
         myRect = gameObject.GetComponent<RectTransform>();
-        offset = new Vector3(myRect.rect.width/2 + panelRect.rect.width/2, 0, 0);
-        SetPosition(panel.transform.localPosition + offset);
+
+        panelRectPos = panelRect.localPosition;
+        offset = new Vector3(myRect.rect.size.x / 2 + panelRect.rect.size.x / 2, 0, 0);
+
+        SetPosition(panelRectPos + offset);
     }
     void Update()
     {
-        offset = new Vector3(myRect.rect.width/2 + panelRect.rect.width/2, 0, 0);
+        offset = new Vector3(myRect.rect.size.x / 2 + panelRect.rect.size.x / 2, 0, 0);
     }
 
     public void Appear()
     {
-        SetPosition(panel.transform.localPosition + offset);
+        SetPosition(panelRectPos + offset);
         gameObject.GetComponent<CanvasGroup>().alpha = 0;
         LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 1, animationSpeed);
-        ChangePosition(panel.transform.localPosition - offset);
+        ChangePosition(panelRectPos - offset);
     }
 
-    public void Disappear() 
+    public void Disappear()
     {
-        SetPosition(panel.transform.localPosition - offset);
+        SetPosition(panelRectPos - offset);
         gameObject.GetComponent<CanvasGroup>().alpha = 1;
         LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 0, animationSpeed);
-        ChangePosition(panel.transform.localPosition + offset);
+        ChangePosition(panelRectPos + offset);
     }
 
     public void SetPosition(Vector3 pos)
     {
-        transform.localPosition = pos;
+        myRect.localPosition = pos;
     }
 
     public void ChangePosition(Vector3 pos)
