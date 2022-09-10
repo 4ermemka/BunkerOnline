@@ -23,7 +23,8 @@ public class TabMenu : MonoBehaviour
         offset = new Vector3(myRect.rect.size.x / 2 + panelRect.rect.size.x / 2, 0, 0);
 
         isActive = false;
-        SetPosition(panelRectPos + offset);
+        SetPosition(panelRectPos);
+        SetOffset(offset);
     }
     void Update()
     {
@@ -38,7 +39,7 @@ public class TabMenu : MonoBehaviour
         //SetPosition(panelRectPos + offset);
         gameObject.GetComponent<CanvasGroup>().alpha = 0;
         LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 1, animationSpeed);
-        ChangePosition(-offset);
+        ChangeOffset(-offset);
     }
 
     public void Disappear()
@@ -47,7 +48,7 @@ public class TabMenu : MonoBehaviour
         //SetPosition(panelRectPos - offset);
         gameObject.GetComponent<CanvasGroup>().alpha = 1;
         LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 0, animationSpeed);
-        ChangePosition(offset);
+        ChangeOffset(offset);
     }
 
     public void SetPosition(Vector3 pos)
@@ -55,9 +56,14 @@ public class TabMenu : MonoBehaviour
         gameObject.GetComponent<RectTransform>().localPosition = pos;
     }
 
-    public void ChangePosition(Vector3 pos)
+    public void ChangeOffset(Vector3 pos)
     {
         LeanTween.moveLocal(myRect.gameObject, pos, animationSpeed).setEase(curve);
+    }
+
+    public void SetOffset(Vector3 pos)
+    {
+        myRect.transform.localPosition = pos;
     }
 
 
