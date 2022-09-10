@@ -5,6 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(CanvasGroup))]
 public class TabMenu : MonoBehaviour
 {
+    public bool isActive;
     [SerializeField] TabGroup panel;
     [SerializeField] float animationSpeed;
     [SerializeField] AnimationCurve curve;
@@ -16,42 +17,47 @@ public class TabMenu : MonoBehaviour
     void Start()
     {
         panelRect = panel.GetComponent<RectTransform>();
-        myRect = gameObject.GetComponent<RectTransform>();
+        myRect = transform.GetChild(0).GetComponent<RectTransform>();
 
         panelRectPos = panelRect.localPosition;
         offset = new Vector3(myRect.rect.size.x / 2 + panelRect.rect.size.x / 2, 0, 0);
 
+        isActive = false;
         SetPosition(panelRectPos + offset);
     }
     void Update()
     {
+        panelRectPos = panelRect.localPosition;
+        SetPosition(panelRectPos);
         offset = new Vector3(myRect.rect.size.x / 2 + panelRect.rect.size.x / 2, 0, 0);
     }
 
     public void Appear()
     {
-        SetPosition(panelRectPos + offset);
+        isActive = true;
+        //SetPosition(panelRectPos + offset);
         gameObject.GetComponent<CanvasGroup>().alpha = 0;
         LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 1, animationSpeed);
-        ChangePosition(panelRectPos - offset);
+        ChangePosition(-offset);
     }
 
     public void Disappear()
     {
-        SetPosition(panelRectPos - offset);
+        isActive = false;
+        //SetPosition(panelRectPos - offset);
         gameObject.GetComponent<CanvasGroup>().alpha = 1;
         LeanTween.alphaCanvas(gameObject.GetComponent<CanvasGroup>(), 0, animationSpeed);
-        ChangePosition(panelRectPos + offset);
+        ChangePosition(offset);
     }
 
     public void SetPosition(Vector3 pos)
     {
-        myRect.localPosition = pos;
+        gameObject.GetComponent<RectTransform>().localPosition = pos;
     }
 
     public void ChangePosition(Vector3 pos)
     {
-        LeanTween.moveLocal(gameObject, pos, animationSpeed).setEase(curve);
+        LeanTween.moveLocal(myRect.gameObject, pos, animationSpeed).setEase(curve);
     }
 
 
