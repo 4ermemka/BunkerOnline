@@ -62,7 +62,7 @@ public class Deck : MonoBehaviour
     public void UpdateDeck(string deckName)
     {
         deck = new List<DeckCard>();
-        deck = FileHandler.ReadListFromJSON<DeckCard>(deckName);
+        deck = FileHandler.ReadListFromJSON<DeckCard>("Decks\\" +deckName);
 
         categories = new List<Category>();
         SplitCategories(deck);

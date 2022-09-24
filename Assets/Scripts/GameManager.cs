@@ -28,8 +28,8 @@ public class GameManager : MonoBehaviour
 {
     #region GameManagerFields
     public User user;
-    public bool isKicked;
-    public bool endgameShown;
+    public bool isKicked = false;
+    public bool endgameShown = false;
 
     private List<User> users;
     private List<User> players;
@@ -113,7 +113,7 @@ public class GameManager : MonoBehaviour
         }
 
         timeToTurn = 30;
-        timeToDebate = 10;
+        timeToDebate = 120;
         timeToVote = 30;
         timeToDelay = 5;
         
@@ -124,6 +124,9 @@ public class GameManager : MonoBehaviour
         votingList = new List<int>();
         observersList = new List<UserInfo>();
         NullVotes();
+        
+        isKicked = false;
+        endgameShown = false;
 
         chat.SetNickname(user.Nickname);
         displayNickname.text = user.Nickname;
@@ -148,9 +151,6 @@ public class GameManager : MonoBehaviour
 
         Destroy(nm.gameObject);
         MessageProcessing.netManager = null;
-        
-        isKicked = false;
-        endgameShown = false;
     }
 
     public bool AllUsersReady()
@@ -172,7 +172,6 @@ public class GameManager : MonoBehaviour
             
             gameObject.GetComponent<Deck>().UpdateDeck("DefaultDeck.json");
 
-            FileHandler.SaveToJSON<DeckCard>(new List<DeckCard>(), "newfile");
             allCards = gameObject.GetComponent<Deck>().GetCategories();
             //Debug.Log(allCards == null);
             List<PlayerKit> kits = new List<PlayerKit>();
@@ -437,6 +436,7 @@ public class GameManager : MonoBehaviour
                 {
                     MessageProcessing.chatManager.SystemMessage("SYSTEM", "Мнения разделились, голосование проводится повторно!", "FF0000", "FF8B7C");
                     currentPlayer = players[0];
+                    playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).SelectPlayer();
                     currentStage = CurrentStage.Voting;
                     playerTimer.SetAction(MakeRandomChoise);
                     playerTimer.SetTime(timeToVote);
@@ -493,7 +493,6 @@ public class GameManager : MonoBehaviour
             while(players[randomIndex].id == user.id) randomIndex = random.Next(players.Count);
             MyVoteFor(players[randomIndex]);
         }
-        SwitchTurn();
     }
 
     public bool IsMyTurn()
@@ -584,7 +583,7 @@ public class GameManager : MonoBehaviour
 
     public void OnUserLeave(int id)
     {
-        if(endgameShown) return;
+        //if(endgameShown) return;
         User disconnectedUser = users.Find(x=>x.id == id);
         if(disconnectedUser!=null)
         {

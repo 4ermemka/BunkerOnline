@@ -95,6 +95,7 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
         {
             panel = Instantiate(kickPanelPref) as KickConfirm;
             panel.transform.SetParent(FindObjectOfType<Canvas>().transform);
+            panel.transform.localScale = Vector3.one;
             panel.SetUser(user);
         }
     }
