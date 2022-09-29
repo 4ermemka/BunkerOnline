@@ -11,7 +11,7 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
 {
     private User user;
     private GameManager gm;
-    [SerializeField] private KickConfirm kickPanelPref;
+    [SerializeField] private KickConfirm kickPanel;
     [SerializeField] private CanvasGroup selectedCircle;
     [SerializeField] private Image avatar;
     [SerializeField] private CircleLayoutGroup attributePanel;
@@ -44,6 +44,7 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
     {
         gm = FindObjectOfType<GameManager>();
         attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
+        kickPanel = FindObjectOfType<KickConfirm>();
         DeselectPlayer();
     }
 
@@ -52,18 +53,19 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
         nicknameText.text = Nickname;
         if(gm.currentStage == CurrentStage.Voting) votes.GetComponent<CanvasGroup>().alpha = 1;
         else votes.GetComponent<CanvasGroup>().alpha = 0;
+        
         votes.text = user.votesFor.ToString();
         votes.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = user.votesFor.ToString();
     }
 
     public void SelectPlayer()
     {
-        selectedCircle.alpha = 1f;
+        LeanTween.alphaCanvas(selectedCircle, 1f, 0.3f);
     }
 
     public void DeselectPlayer()
     {
-        selectedCircle.alpha = 0f;
+        LeanTween.alphaCanvas(selectedCircle, 0f, 0.3f);
     }
 
     public void AddAttribute(Attribute attribute)
@@ -89,12 +91,10 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        KickConfirm panel = FindObjectOfType<KickConfirm>();
-        if(panel == null && gm.IsMyVoteTurn() && gm.user.id != this.user.id)
+        if(this.user.id != gm.user.id)
         {
-            panel = Instantiate(kickPanelPref) as KickConfirm;
-            panel.transform.SetParent(FindObjectOfType<Canvas>().transform);
-            panel.SetUser(user);
+            kickPanel.SetUser(user);
+            kickPanel.Appear();
         }
     }
 }

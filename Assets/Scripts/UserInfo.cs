@@ -50,7 +50,7 @@ public class UserInfo:MonoBehaviour
     public void setNickname(string n)
     {
         nickname = n;
-        nick.text = nickname + " id: " + id;
+        nick.text = nickname;
     }
 
     public void setPanelToList(GameObject list)
