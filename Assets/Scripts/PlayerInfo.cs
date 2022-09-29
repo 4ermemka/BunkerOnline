@@ -7,12 +7,16 @@ using TMPro;
 using UnityEngine.EventSystems;
 
 [Serializable]
-public class PlayerInfo : MonoBehaviour
+public class PlayerInfo : MonoBehaviour, IPointerClickHandler
 {
     private User user;
+    private GameManager gm;
+    [SerializeField] private KickConfirm kickPanel;
+    [SerializeField] private CanvasGroup selectedCircle;
     [SerializeField] private Image avatar;
     [SerializeField] private CircleLayoutGroup attributePanel;
     [SerializeField] private TextMeshProUGUI nicknameText;
+    [SerializeField] private TextMeshProUGUI votes;
 
     private List<Attribute> attributesList;
 
@@ -38,12 +42,30 @@ public class PlayerInfo : MonoBehaviour
 
     public void Start() 
     {
+        gm = FindObjectOfType<GameManager>();
         attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
+        kickPanel = FindObjectOfType<KickConfirm>();
+        DeselectPlayer();
     }
 
     public void Update()
     {
         nicknameText.text = Nickname;
+        if(gm.currentStage == CurrentStage.Voting) votes.GetComponent<CanvasGroup>().alpha = 1;
+        else votes.GetComponent<CanvasGroup>().alpha = 0;
+        
+        votes.text = user.votesFor.ToString();
+        votes.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = user.votesFor.ToString();
+    }
+
+    public void SelectPlayer()
+    {
+        LeanTween.alphaCanvas(selectedCircle, 1f, 0.3f);
+    }
+
+    public void DeselectPlayer()
+    {
+        LeanTween.alphaCanvas(selectedCircle, 0f, 0.3f);
     }
 
     public void AddAttribute(Attribute attribute)
@@ -61,14 +83,18 @@ public class PlayerInfo : MonoBehaviour
         return attribute;
     }
 
-    public void UpdateAttribute(int id) 
-    {
-        
-    }
-
     public void DeleteAttribute(int id) 
     {
         Attribute deletedAttribute = FindAttribute(id);
         if (deletedAttribute!=null) Destroy(deletedAttribute.gameObject);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if(this.user.id != gm.user.id)
+        {
+            kickPanel.SetUser(user);
+            kickPanel.Appear();
+        }
     }
 }

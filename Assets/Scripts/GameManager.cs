@@ -6,12 +6,16 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = System.Random;
+using UnityEngine.SceneManagement;
 
 public enum CurrentStage
 {
+    PreGameDelay,
     Turn,
+    TurnDelay,
     Debate,
-    Voting
+    Voting,
+    AfterVotingDelay
 }
 
 public struct PlayerKit
@@ -23,21 +27,33 @@ public struct PlayerKit
 public class GameManager : MonoBehaviour
 {
     #region GameManagerFields
-    private User user;
-    private int inlistId;
+    public User user;
+    public bool isKicked = false;
+    public bool endgameShown = false;
+
     private List<User> users;
+    private List<User> players;
     private List<int> votingList;
 
+    [SerializeField] EndgamePanel endgamePanel; 
     [SerializeField] PlayerInfo playerInfoPref; 
+    [SerializeField] UserInfo userInfoPref; 
     [SerializeField] Attribute atrPref; 
     [SerializeField] Card cardInHandPref;
     [SerializeField] GameObject playersGrid;
+    [SerializeField] GameObject observersGrid;
+    [SerializeField] KickedPanel kickedPanel;
     [SerializeField] GameObject handPanel;
     [SerializeField] OpenedCardsPanel openedCardsPanel;
 
+    [SerializeField] private TabGroup Buttons;
+    [SerializeField] private TabButton CardsButton;
+    [SerializeField] private TabButton ObserversButton;
+
     List<PlayerInfo> playerInfoList;
+    List<UserInfo> observersList;
     PlayerInfo myPanel;
-    List<DeckCard> myCards;
+    public List<DeckCard> myCards;
 
     [SerializeField] private TextMeshProUGUI displayNickname;
     [SerializeField] private TextMeshProUGUI hostStatus;
@@ -47,47 +63,42 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private ChatManager chat;
 
-    private Server server;
-    private Client client;
-    private NetManager nm;
+    public Server server;
+    public Client client;
+    private int hostId;
 
-    public int countForEndGame = 1;
-    public float timeToTurn = 15;
-    public float timeToVote = 15;
+    public int countForEndGame;
+    public float timeToTurn;
+    public float timeToDebate;
+    public float timeToVote;
+    public float timeToDelay;
     private Timer playerTimer;
-    private int currentPlayer = 0;
 
-    CurrentStage currentStage = CurrentStage.Turn;
+    public User currentPlayer;
+    public CurrentStage currentStage;
+
     #endregion
 
-    public void ConvertToGameManager(List<User> users, User user)
+    public void ConvertToGameManager(List<User> users, User user, int hostId)
     {
         this.user = user;
         this.users = users;
+        this.hostId = hostId;
     }
-    //GameManager(List<User> users, float timeToTurn, float timeToVote, int CountForEndGame)
-    //{
-    //    ConvertFromUsersToPlayers(users);
-    //    this.timeToTurn = timeToTurn;
-    //    this.timeToVote = timeToVote;
-    //    this.CountForEndGame = CountForEndGame;
-    //}
 
     void Start()
     {
-        List<Category> allCards = new List<Category>();
         playerTimer = gameObject.GetComponent<Timer>();
 
-        nm = FindObjectOfType<NetManager>();
+        NetManager nm = FindObjectOfType<NetManager>();
         server = FindObjectOfType<Server>();
         client = FindObjectOfType<Client>();
         myCards = new List<DeckCard>();
 
-        ConvertToGameManager(nm.GetUsersList(), nm.GetUser());
+        ConvertToGameManager(nm.GetUsersList(), nm.GetUser(), nm.hostId);
         playerInfoList = new List<PlayerInfo>();
 
-        MessageProcessing.SetGameManager(this);
-        MessageProcessing.SetNetManager(nm);
+        foreach(User u in users) u.isReady = false;
 
         for (int i = 0; i < users.Count; i++)
         {
@@ -100,8 +111,22 @@ public class GameManager : MonoBehaviour
             if(users[i].id == user.id) myPanel = temp; 
             playerInfoList.Add(temp);
         }
+
+        timeToTurn = 30;
+        timeToDebate = 120;
+        timeToVote = 30;
+        timeToDelay = 5;
+        
+        players = users;
+        countForEndGame = players.Count/2;
+        if(countForEndGame <= 1) countForEndGame = 2;
+
         votingList = new List<int>();
-        NullList(votingList);
+        observersList = new List<UserInfo>();
+        NullVotes();
+        
+        isKicked = false;
+        endgameShown = false;
 
         chat.SetNickname(user.Nickname);
         displayNickname.text = user.Nickname;
@@ -109,34 +134,71 @@ public class GameManager : MonoBehaviour
         if (user.isHost) hostStatus.text = "HOST";
         else hostStatus.text = string.Empty;
 
-        playerTimer.SetTime(15);
+        timerText.text = playerTimer.remainingTimeMin;
+        currentStage = CurrentStage.PreGameDelay;
 
-        timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
-        //playerTimer.OnEndTimer += ChangePlayer;
-        
-        if(server!=null)
+        MessageProcessing.SetGameManager(this);
+
+        MessageProcessing.ReadyForGame(user);
+        if(server != null)
         {
-            server.SendOther(MessageProcessing.ServerGameStartedMsg());
-            
+            SetUserActivity(user.id, true);
+        }
+        if(client != null)
+        {
+            client.OnDisconnect += Disconnect;
+        }
+
+        Destroy(nm.gameObject);
+        MessageProcessing.netManager = null;
+    }
+
+    public bool AllUsersReady()
+    {
+        foreach(User u in players)
+            if(!u.isReady) return false;
+        //Debug.Log("ALL PLAYERS READY!");
+        return true;
+    }
+
+    public void StartGame() 
+    {
+        chat.SystemMessage("SYSTEM","Все подключены, начинаем игру...","03FF00", "8EFF7C");
+        playerTimer.isRunning = true;
+        playerTimer.SetTime(120);
+        
+        if(MessageProcessing.server!=null)
+        {
+            Debug.Log("Зашёл в цикл!");
+            List<Category> allCards = new List<Category>();
+
             gameObject.GetComponent<Deck>().UpdateDeck("DefaultDeck.json");
+
             allCards = gameObject.GetComponent<Deck>().GetCategories();
-            Debug.Log(allCards == null);
+            //Debug.Log(allCards == null);
             List<PlayerKit> kits = new List<PlayerKit>();
             kits = SortDeckForKits(allCards,users);
             
             for(int i=1; i<users.Count; i++)
             {
                 foreach(DeckCard card in kits[i].cardsKit)
-                server.SendClient(nm.hostId, users[i].id,
+                server.SendClient(hostId, users[i].id,
                 MessageProcessing.ServerPlayerKitMsg(card));
             }
             Debug.Log(kits[0].cardsKit.Count);
             foreach(DeckCard card in kits[0].cardsKit)
                 SetCardToList(card);
+            server.SendOther(MessageProcessing.ServerGameStartedMsg());
         }
-        MenuInterfaceManager.OnStartGame += Game;
+
         openedCardsPanel.OnCastCard += AddCardToMyPanel;
-        Debug.Log("Game started!");
+        SwitchTurn();
+    }
+
+    public void SetUserActivity(int id, bool ready)
+    {
+        users.Find(x=> x.id == id).isReady = ready;
+        if(AllUsersReady()) StartGame();
     }
 
     public List<PlayerKit> SortDeckForKits(List<Category> categories, List<User> users)
@@ -172,13 +234,20 @@ public class GameManager : MonoBehaviour
         newAtr.DeckCardSerializableToAttribute(card);
         
         playerInfoList.Find(x=> x.GetUser().id == user.id).AddAttribute(newAtr);
+
+        MessageProcessing.chatManager.SystemMessage("CARD_DROP", 
+        "Игрок " + players.Find(x=>x.id == user.id).Nickname + 
+        " открывает карту \"" + card.name + 
+        "\" из категории \"" + card.category + 
+        "\"", "00BAFF", "60BBFF");
+        if(CardsButton.isSelected) Buttons.OnTabSelected(CardsButton);
+        if(ObserversButton.isSelected) Buttons.OnTabSelected(ObserversButton);
     }
 
     public void AddCardToMyPanel(object sender, OpenedCardsPanel.OnCastCardEventArgs e)
     {
         AddCardToPlayerPanel(user, e.card.AttributeToDeckCardSerializable());
-        if(client!=null) client.SendServer(MessageProcessing.CastCardMsg(user, e.card));
-        if(server!=null) server.SendOther(MessageProcessing.CastCardMsg(user, e.card));
+        MessageProcessing.AddCardToPanel(user, e);
     }
 
     public void UpdateHand()
@@ -205,15 +274,84 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if(playerTimer.remainingTimeFloat<=10f) 
+        UpdateCurrentPlayerText();
+        UpdateStageText();
+        if(playerTimer.GetTime()<=10f && (currentStage == CurrentStage.Debate 
+                                       || currentStage == CurrentStage.Turn
+                                       || currentStage == CurrentStage.Voting)) 
         {
             timerText.color = Color.red;
-            timerText.text = playerTimer.remainingTimeFloat.ToString("F2");
+            timerText.text = playerTimer.remainingTimeSec;
         }
-        else
+        else if (currentStage != CurrentStage.TurnDelay)
+        {
+            timerText.color = Color.green;
+            timerText.text = playerTimer.remainingTimeMin;
+        }
+        else 
         {
             timerText.color = Color.white;
-            timerText.text = playerTimer.remainingTimeInt.ToString();
+            timerText.text = playerTimer.remainingTimeInt;
+        }
+    }
+
+    public void UpdateStageText()
+    {
+       switch (currentStage) {
+        case CurrentStage.PreGameDelay:
+            stageText.text = "Ожидание игроков";
+            break;
+            
+        case CurrentStage.Turn:
+            stageText.text = "Сброс карт";
+            break;
+
+        case CurrentStage.TurnDelay:
+            stageText.text = "Ход окончен...";
+            break;
+
+        case CurrentStage.Debate:
+            stageText.text = "Обсуждение";
+            break;
+        
+        case CurrentStage.Voting:
+            stageText.text = "Голосование";
+            break;
+
+        case CurrentStage.AfterVotingDelay:
+            stageText.text = "Решение принято";
+            break;
+
+       }
+    }
+
+    public void UpdateCurrentPlayerText()
+    {
+        switch (currentStage) {
+        case CurrentStage.PreGameDelay:
+            currentPlayerTurnText.text = "-/-/-";
+            break;
+            
+        case CurrentStage.Turn:
+            currentPlayerTurnText.text = currentPlayer.Nickname;
+            break;
+
+        case CurrentStage.TurnDelay:
+            currentPlayerTurnText.text = "Определяется...";
+            break;
+
+        case CurrentStage.Debate:
+            currentPlayerTurnText.text = "Все";
+            break;
+        
+        case CurrentStage.Voting:
+            currentPlayerTurnText.text = currentPlayer.Nickname;
+            break;
+
+        case CurrentStage.AfterVotingDelay:
+            currentPlayerTurnText.text = "-/-/-";
+            break;
+
         }
     }
 
@@ -222,84 +360,297 @@ public class GameManager : MonoBehaviour
         return user.Nickname;
     }
 
-    public void Game(object sender, EventArgs e)
+    public void SwitchTurn()
     {
-        while (users.Count > countForEndGame)
+        if(endgameShown) return;
+        //Debug.Log("Turn Switched");
+        switch (currentStage) 
         {
-            switch (currentStage)
+        case CurrentStage.PreGameDelay:
+            currentPlayer = players[0];
+            currentStage = CurrentStage.Turn;
+            playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).SelectPlayer();
+
+            playerTimer.SetTime(timeToTurn);
+            playerTimer.SetAction(MakeRandomCast);
+            break;
+
+        case CurrentStage.Turn:
+                currentStage = CurrentStage.TurnDelay;
+                playerTimer.SetTime(timeToDelay);
+                playerTimer.SetAction(SwitchTurn);
+                playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).DeselectPlayer();
+            break;
+
+        case CurrentStage.TurnDelay:
+            if(players.FindIndex(x=> x == currentPlayer) != players.Count-1)//if not last plaing user
             {
-
-                case CurrentStage.Turn:
-                    foreach (User element in users)
-                    {
-                        //Turn();
-                    }
-                    currentStage = CurrentStage.Debate;
-                    break;
-
-                case CurrentStage.Debate:
-                    playerTimer.SetTime(timeToVote);
-                    foreach (User element in users)
-                    {
-
-                    }
-                    currentStage = CurrentStage.Voting;
-                    break;
-
-                case CurrentStage.Voting:
-                    foreach (User element in users)
-                    {
-
-                    }
-                    currentStage = CurrentStage.Turn;
-                    break;
+                currentPlayer = players[players.FindIndex(x => x == currentPlayer)+1];//switch to next player
+                playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).SelectPlayer();
+                currentStage = CurrentStage.Turn;
+                playerTimer.SetTime(timeToTurn);
+                playerTimer.SetAction(MakeRandomCast);
             }
-        }
+            else // if last player (then go to next stage)
+            {   
+                playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).DeselectPlayer();
+                currentPlayer = players[0];
+                currentStage = CurrentStage.Debate;
+                playerTimer.SetTime(timeToDebate);
+                playerTimer.SetAction(SwitchTurn);
+            }
+            break;
+
+        case CurrentStage.Debate:
+            playerTimer.SetTime(timeToVote);
+            currentStage = CurrentStage.Voting;
+            
+            currentPlayer = players[0];
+            playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).SelectPlayer();
+            playerTimer.SetAction(MakeRandomChoise);
+            break;
+
+        case CurrentStage.Voting:
+            playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).DeselectPlayer();
+            if(players.FindIndex(x => x == currentPlayer) != players.Count-1)//if not last player
+            {
+                currentPlayer = players[players.FindIndex(x => x == currentPlayer)+1];//switch to next player
+                playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).SelectPlayer();
+                currentStage = CurrentStage.Voting;
+                playerTimer.SetTime(timeToVote);
+            }
+            else // if last player (then go to next stage)
+            {   
+                if(FindPlayerToKick() != null)
+                {
+                    MessageProcessing.chatManager.SystemMessage("SYSTEM", "Выбран игрок " + FindPlayerToKick().Nickname, "FF0000", "FF8B7C");
+                    currentPlayer = players[0];
+                    currentStage = CurrentStage.AfterVotingDelay;
+                    playerTimer.SetAction(SwitchTurn);
+                    playerTimer.SetTime(timeToDelay);
+
+                    playerInfoList.Find(x=>x.GetUser().id == FindPlayerToKick().id).transform.SetParent(kickedPanel.panel.transform);
+                    playerInfoList.Find(x=>x.GetUser().id == FindPlayerToKick().id).transform.localScale = new Vector3(1.5f,1.5f,1.5f);
+                    playerInfoList.Find(x=>x.GetUser().id == FindPlayerToKick().id).transform.position = Vector3.zero;
+                    kickedPanel.Appear();
+                }
+                else
+                {
+                    MessageProcessing.chatManager.SystemMessage("SYSTEM", "Мнения разделились, голосование проводится повторно!", "FF0000", "FF8B7C");
+                    currentPlayer = players[0];
+                    playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).SelectPlayer();
+                    currentStage = CurrentStage.Voting;
+                    playerTimer.SetAction(MakeRandomChoise);
+                    playerTimer.SetTime(timeToVote);
+                    NullVotes();
+                }
+            }
+            break;
+
+        case CurrentStage.AfterVotingDelay:
+            Kick();
+            kickedPanel.Disapear();
+            if(players.Count <= countForEndGame) 
+            {
+                playerTimer.SetTime(timeToDelay);
+                playerTimer.SetAction(EndGameSwitch);
+            }
+            else
+            {
+                currentPlayer = players[0];
+                currentStage = CurrentStage.Turn;
+                playerInfoList.Find(x=>x.GetUser().id == currentPlayer.id).SelectPlayer();
+
+                playerTimer.SetTime(timeToTurn);
+                playerTimer.SetAction(MakeRandomCast);
+            }
+            break;
+       }
     }
 
-    public List<int> GetVotingList()
+    public void MakeRandomCast()
     {
-        return votingList;
-    }
-
-    public void SetVotingList(List<int> newList)
-    {
-        this.votingList = newList;
-    }
-
-    //Voting methods
-    private void NullList(List<int> votingList)
-    {
-        for(int i = 0; i < votingList.Count; i++) 
+        if(currentPlayer.id == user.id)
         {
-            votingList[i] = 0;
+            Random random = new Random();
+            int randomIndex = random.Next(handPanel.transform.childCount);
+
+            Card randomCard = handPanel.transform.GetChild(randomIndex).GetComponent<Card>();
+            openedCardsPanel.AddCardToList(randomCard);
+            Destroy(randomCard.gameObject);
+        }
+        SwitchTurn();
+    }
+    
+    public void MakeRandomChoise()
+    {
+        if(currentPlayer.id == user.id)
+        {
+            Debug.Log("Time is up, random vote...");
+            KickConfirm panel = FindObjectOfType<KickConfirm>();
+            if(panel != null) Destroy(panel.gameObject);
+
+            Random random = new Random();
+            int randomIndex = random.Next(players.Count);
+            while(players[randomIndex].id == user.id) randomIndex = random.Next(players.Count);
+            MyVoteFor(players[randomIndex]);
         }
     }
 
-    public void Voting(int id)
+    public bool IsMyTurn()
     {
-        Debug.Log("This voted for" + id);
-        votingList[id]++;
-        //if(server!=null) server.SendOther();
+        if(currentStage == CurrentStage.Turn && currentPlayer.id == user.id) return true;
+        return false;
     }
 
-    private int FindPlayerToKick()
+    public bool IsMyVoteTurn()
+    {
+        if(currentStage == CurrentStage.Voting && currentPlayer.id == user.id) return true;
+        return false;
+    }
+
+    private void NullVotes()
+    {
+        foreach(User p in players) p.votesFor = 0;
+    }
+
+    public void VotingForPlayer(int id, int authorId)
+    {
+        MessageProcessing.chatManager.SystemMessage("ГОЛОСОВАНИЕ", "Игрок " + 
+        players.Find(x=>x.id == authorId).Nickname + " голосует за игрока " + 
+        players.Find(x=>x.id == id).Nickname, "FF0000", "FF8B7C");
+
+        players.Find(x=>x.id == id).votesFor++;
+        SwitchTurn();
+    }
+
+    public void MyVoteFor(User user)
+    {
+        VotingForPlayer(user.id, this.user.id);
+        MessageProcessing.VoteFor(this.user.id, user.id);
+    }
+
+    private User FindPlayerToKick()
     {
         int max = 0;
-        foreach (int p in votingList)
-            if (p > max) max = p;
-        return max;
+        foreach (User p in players)
+            if (p.votesFor > max) max = p.votesFor;
+        List<User> list = players.FindAll(x=>x.votesFor == max);
+
+        if(list.Count == 1) return list[0];
+        else return null;
     }
 
     public void Kick()
     {
-        int playerToKick = FindPlayerToKick();
-        NullList(votingList);
-        users.RemoveAt(playerToKick);
+        PlayerInfo playerToKick = kickedPanel.GetComponentInChildren<PlayerInfo>();
+        
+        if(playerToKick!=null)
+        {
+            chat.SystemMessage("ИЗГНАНИЕ","Кикаем игрока "+ playerToKick.GetUser().Nickname, "FF0000", "FF8B7C");
+            players.Remove(playerToKick.GetUser());
+
+            Destroy(playerToKick.gameObject);
+            playerInfoList.Remove(playerInfoList.Find(x=>x.GetUser().id == playerToKick.GetUser().id));
+            
+            UserInfo newObserver = Instantiate(userInfoPref) as UserInfo;
+            
+            newObserver.setId(playerToKick.GetUser().id);
+            newObserver.setNickname(playerToKick.GetUser().Nickname);
+            newObserver.toggleHost(playerToKick.GetUser().isHost);
+            newObserver.setNum(observersGrid.transform.childCount+1);
+
+            newObserver.setPanelToList(observersGrid.gameObject);
+
+            observersList.Add(newObserver);
+
+            if(playerToKick.GetUser().id == user.id) // if this user kicked
+            {
+                foreach(Transform card in handPanel.transform)
+                {
+                    Destroy(card.gameObject);
+                }
+                foreach(Transform card in openedCardsPanel.transform)
+                {
+                    Destroy(card.gameObject);
+                }
+            
+                isKicked = true;
+            }
+
+            if(!ObserversButton.isSelected) Buttons.OnTabSelected(ObserversButton);
+        }
+        NullVotes();
     }
 
-    public void OnUserLeave(string nickname)
+    public void OnUserLeave(int id)
     {
-        Destroy(playerInfoList.Find(x=>x.GetUser().Nickname == nickname).gameObject);
+        //if(endgameShown) return;
+        User disconnectedUser = users.Find(x=>x.id == id);
+        if(disconnectedUser!=null)
+        {
+            MessageProcessing.chatManager.SystemMessage("СИСТЕМА", "Игрок " + disconnectedUser.Nickname + " покидает игру.", "03FF00", "FF8B7C");
+            
+            users.Remove(disconnectedUser);
+            if(players.Find(x=>x.id == id) != null)
+            {
+                players.Remove(players.Find(x=>x.id == id));
+                Destroy(playerInfoList.Find(x=>x.GetUser().id == id).gameObject);
+                playerInfoList.Remove(playerInfoList.Find(x=>x.GetUser().id == id));
+            }
+            UserInfo observer = observersGrid.GetComponentsInChildren<UserInfo>().ToList<UserInfo>().Find(x=>x.id == id);
+            if(observer != null)
+            {
+                Debug.Log("Found observer");
+                Destroy(observer.gameObject);
+                observersList.Remove(observersList.Find(x=>observer.id == id));
+            }
+            if(players.Count <= countForEndGame) EndGameSwitch();
+            else if(currentPlayer!=null && currentPlayer.id == id) SwitchTurn();
+        }
+        if(FindObjectOfType<EndgamePanel>() == null && disconnectedUser.id == currentPlayer.id) SwitchTurn();
+    }
+
+    public void EndGameSwitch()
+    {
+        endgamePanel.Appear();
+        endgameShown = true;
+        Debug.Log("Send cards!");
+        if(!isKicked) foreach(DeckCard card in myCards) 
+        {
+            DeckCardSerializable dcs;
+            dcs.name = card.name;
+            dcs.category = card.category;
+            dcs.description = card.description;
+            dcs.iconName = card.iconName;
+            dcs.r = card.color.r;
+            dcs.g = card.color.g;
+            dcs.b = card.color.b;
+
+            MessageProcessing.EndgameSend(dcs);
+            SetPlayersEndgamePanel(user.id, dcs);
+        }
+
+        myCards.Clear();
+        playerTimer.isRunning = false;
+        playerTimer.SetTime(0);
+    }
+
+    public void SetPlayersEndgamePanel(int id, DeckCardSerializable dcs)
+    {
+        User playerToAdd = players.Find(x=> x.id == id);
+        if(playerToAdd != null) endgamePanel.AddUserToEndgame(playerToAdd, dcs);
+        else Debug.Log("Пользователь c id:" +id+ " не найден!");
+    }
+
+    public void Exit() 
+    {
+        Disconnect(null, EventArgs.Empty);
+    }
+
+    public void Disconnect(object s, EventArgs e)
+    {
+        MessageProcessing.Exit();
+        SceneManager.LoadScene("MenuInterface");
     }
 }

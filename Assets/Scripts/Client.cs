@@ -96,6 +96,11 @@ public class Client : MonoBehaviour
         isStarted = true;
     }
 
+    public void Disconnect() 
+    {
+        NetworkTransport.Disconnect(hostId, connectionId, out error);
+    }
+
     private void Update() // каждый кадр
     {
         UpdateMessagePump();
@@ -149,7 +154,7 @@ public class Client : MonoBehaviour
     public void SendServer(byte[] buffer) 
     {
         NetworkTransport.Send(hostId, connectionId, reliableChannel, buffer, buffer.Length, out error);
-        Debug.Log("Sending msg...");
+        //Debug.Log("Sending msg...");
     }
     
     #endregion
