@@ -11,7 +11,7 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
 {
     private User user;
     private GameManager gm;
-    [SerializeField] private KickConfirm kickPanelPref;
+    [SerializeField] private KickConfirm kickPanel;
     [SerializeField] private CanvasGroup selectedCircle;
     [SerializeField] private Image avatar;
     [SerializeField] private CircleLayoutGroup attributePanel;
@@ -44,6 +44,7 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
     {
         gm = FindObjectOfType<GameManager>();
         attributesList = attributePanel.GetComponentsInChildren<Attribute>().ToList();
+        kickPanel = FindObjectOfType<KickConfirm>();
         DeselectPlayer();
     }
 
@@ -90,13 +91,10 @@ public class PlayerInfo : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        KickConfirm panel = FindObjectOfType<KickConfirm>();
-        if(panel == null && gm.IsMyVoteTurn() && gm.user.id != this.user.id)
+        if(this.user.id != gm.user.id)
         {
-            panel = Instantiate(kickPanelPref) as KickConfirm;
-            panel.transform.SetParent(FindObjectOfType<Canvas>().transform);
-            panel.transform.localScale = Vector3.one;
-            panel.SetUser(user);
+            kickPanel.SetUser(user);
+            kickPanel.Appear();
         }
     }
 }

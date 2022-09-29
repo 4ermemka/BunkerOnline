@@ -12,11 +12,22 @@ public class KickConfirm : MonoBehaviour
     void Start()
     {
         GetComponent<CanvasGroup>().alpha = 0;
+        GetComponent<CanvasGroup>().blocksRaycasts = false;
 
-        LeanTween.alphaCanvas(GetComponent<CanvasGroup>(), 1f, 0.3f);
-        transform.localScale = Vector3.one;
         gm = FindObjectOfType<GameManager>();
         message.text = "Проголосовать за игрока ";
+    }
+
+    public void Appear()
+    {
+        LeanTween.alphaCanvas(GetComponent<CanvasGroup>(), 1, 0.5f);
+        GetComponent<CanvasGroup>().blocksRaycasts = true;
+    }
+
+    public void Disapear()
+    {
+        LeanTween.alphaCanvas( GetComponent<CanvasGroup>(), 0, 0.5f);
+         GetComponent<CanvasGroup>().blocksRaycasts = false;
     }
 
     public void SetUser(User user)
@@ -32,12 +43,12 @@ public class KickConfirm : MonoBehaviour
 
     public void OnClickNo()
     {
-        Destroy(gameObject);
+        Disapear();
     }
 
     public void OnClickYes() 
     {
         gm.MyVoteFor(votingForUser);
-        Destroy(gameObject);
+        Disapear();;
     }
 }
